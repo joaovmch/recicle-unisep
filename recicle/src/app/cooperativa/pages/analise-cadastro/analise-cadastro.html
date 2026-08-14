@@ -1,0 +1,130 @@
+<div class="auth-shell">
+
+  <header class="auth-topbar">
+    <div class="auth-brand">
+      <div class="brand-icon">
+        <img src="/logo.png" alt="Re-cicle" />
+      </div>
+      <span>Re-cicle</span>
+    </div>
+
+    <a class="auth-topbar-link" routerLink="/cooperativa/entrar">Sair da conta</a>
+  </header>
+
+  <div class="analise-body">
+    <div class="analise-grid-layout">
+
+      <!-- ESQUERDA -->
+      <section class="wizard-card analise-card">
+
+        <div class="analise-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+        </div>
+
+        <h1>Cadastro em análise</h1>
+        <p class="analise-lead">
+          Recebemos os documentos da sua cooperativa. A conferência da licença junto ao órgão ambiental leva até
+          3 dias úteis — avisamos por e-mail e WhatsApp assim que terminar.
+        </p>
+
+        <div class="analise-steps">
+          <div class="analise-step">
+            <span class="stepper-dot done"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></span>
+            <strong>Cadastro enviado</strong>
+            <small>{{ enviadoEm }}</small>
+          </div>
+
+          <div class="analise-step-line done"></div>
+
+          <div class="analise-step">
+            <span class="stepper-dot active">2</span>
+            <strong>Conferência</strong>
+            <small>até 3 dias úteis</small>
+          </div>
+
+          <div class="analise-step-line"></div>
+
+          <div class="analise-step">
+            <span class="stepper-dot">3</span>
+            <strong>Painel liberado</strong>
+            <small>após aprovação</small>
+          </div>
+        </div>
+
+        <h3 class="summary-title analise-section-title">O que enviamos para conferência</h3>
+
+        <div class="documento-list">
+          @for (doc of documentos; track doc.nome) {
+            <div class="documento-row analise-doc-row">
+              <div class="documento-info">
+                <strong>{{ doc.nome }}</strong>
+              </div>
+              <span class="badge" [class.badge-good]="doc.status === 'validado'" [class.badge-warning]="doc.status === 'em-conferencia'">
+                {{ statusLabel[doc.status] }}
+              </span>
+            </div>
+          }
+        </div>
+
+        <div class="analise-footer">
+          <span>Precisa corrigir alguma coisa?</span>
+          <button class="btn btn-outline small" routerLink="/cooperativa/cadastro">Revisar cadastro</button>
+        </div>
+
+      </section>
+
+
+      <!-- DIREITA -->
+      <aside class="right-column">
+
+        <div class="side-card">
+          <h3 class="summary-title">Enquanto isso</h3>
+          <p class="summary-hint">Dá para adiantar o que não depende da análise.</p>
+
+          <div class="tarefa-list">
+            @for (t of tarefas; track t.texto) {
+              <div class="tarefa-item" [class.feita]="t.feita">
+                <span class="tarefa-check">
+                  @if (t.feita) {
+                    <svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg>
+                  }
+                </span>
+                {{ t.texto }}
+              </div>
+            }
+          </div>
+
+          <button class="btn btn-primary" style="width: 100%; margin-top: 16px;" routerLink="/cooperativa/equipe">
+            Cadastrar equipe agora
+          </button>
+        </div>
+
+        <div class="info-card">
+          <strong>Se algo estiver errado</strong>
+          <p>
+            Documento ilegível ou licença vencida faz o cadastro voltar para vocês com a lista do que corrigir.
+            Não precisa refazer tudo — só o item apontado.
+          </p>
+        </div>
+
+        <div class="side-card">
+          <h3 class="summary-title">Falar com a equipe</h3>
+
+          <div class="material-list">
+            <div>
+              <span>WhatsApp</span>
+              <strong>(46) 99000-1234</strong>
+            </div>
+            <div>
+              <span>E-mail</span>
+              <strong>parceiros&#64;re-cicle.org</strong>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,236 @@
+.entrar-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 460px) minmax(0, 1fr);
+}
+
+
+/* =========================
+   LADO ESQUERDO
+========================= */
+
+.entrar-hero {
+  background: #073f31;
+  color: #ffffff;
+  padding: 40px 46px;
+  display: flex;
+  flex-direction: column;
+}
+
+.entrar-hero .auth-brand span {
+  color: #ffffff;
+}
+
+.entrar-hero h1 {
+  margin: 40px 0 0;
+  font-size: 33px;
+  font-weight: 750;
+  line-height: 1.2;
+  letter-spacing: -0.6px;
+}
+
+.entrar-lead {
+  margin: 16px 0 0;
+  max-width: 400px;
+  color: #b7d3c8;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.entrar-destaques {
+  list-style: none;
+  margin: 30px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.entrar-destaques li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #d8ebe4;
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.entrar-destaque-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.entrar-destaque-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+
+/* =========================
+   LADO DIREITO
+========================= */
+
+.entrar-form-side {
+  background: #f7f6f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.entrar-card {
+  width: 100%;
+  max-width: 380px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 26px 28px 28px;
+  box-shadow: 0 2px 5px rgba(20, 50, 40, 0.05);
+}
+
+.entrar-tabs {
+  display: flex;
+  padding: 4px;
+  border-radius: 10px;
+  background: #f1f0ea;
+  margin-bottom: 22px;
+}
+
+.entrar-tab {
+  flex: 1;
+  min-height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #7f9089;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.entrar-tab.active {
+  background: #ffffff;
+  color: #0b4939;
+  box-shadow: 0 1px 3px rgba(20, 50, 40, 0.12);
+}
+
+.entrar-card h2 {
+  margin: 0;
+  color: #0b4939;
+  font-size: 19px;
+  font-weight: 750;
+}
+
+.entrar-card .field {
+  margin-top: 16px;
+}
+
+.senha-wrap {
+  position: relative;
+}
+
+.senha-wrap input {
+  width: 100%;
+  padding-right: 42px;
+}
+
+.senha-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border: 0;
+  background: transparent;
+  color: #8b9994;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.senha-toggle svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.entrar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.entrar-remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #48625a;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.entrar-remember input {
+  accent-color: #10a957;
+  width: 15px;
+  height: 15px;
+}
+
+.entrar-footer {
+  margin: 18px 0 0;
+  text-align: center;
+  color: #8b9994;
+  font-size: 12.5px;
+}
+
+.entrar-footer a {
+  display: block;
+  margin-top: 4px;
+  color: #0ca553;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+@media (max-width: 900px) {
+  .entrar-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .entrar-hero {
+    padding: 32px 24px;
+  }
+
+  .entrar-hero h1 {
+    margin-top: 24px;
+    font-size: 27px;
+  }
+}
+
+@media (max-width: 480px) {
+  .entrar-card {
+    padding: 22px 18px 24px;
+  }
+}

@@ -1,1 +1,482 @@
-<p>cadastro works!</p>
+<div class="auth-shell">
+
+  <header class="auth-topbar">
+    <div class="auth-brand">
+      <div class="brand-icon">
+        <img src="/logo.png" alt="Re-cicle" />
+      </div>
+      <span>Re-cicle</span>
+    </div>
+
+    <button class="auth-topbar-link" (click)="salvarRascunho()">Salvar e continuar depois</button>
+  </header>
+
+  <input #fileInput type="file" class="hidden-file-input" (change)="arquivoSelecionado($event)" />
+
+  <div class="wizard-body">
+    <div class="wizard-grid">
+
+      <!-- STEPPER -->
+      <aside class="wizard-stepper-wrap">
+        <h1 class="wizard-title">Cadastro de parceiro</h1>
+        <p class="wizard-subtitle">Etapa {{ etapaAtual() }} de 4</p>
+
+        <div class="wizard-stepper">
+          @for (passo of passos; track passo.titulo; let i = $index) {
+            <button
+              class="stepper-step"
+              [class.active]="etapaAtual() === i + 1"
+              [class.done]="etapaMaximaAlcancada() > i + 1"
+              [disabled]="i + 1 > etapaMaximaAlcancada()"
+              (click)="irParaEtapa(i + 1)"
+            >
+              <span class="stepper-dot">
+                @if (etapaMaximaAlcancada() > i + 1) {
+                  <svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg>
+                } @else {
+                  {{ i + 1 }}
+                }
+              </span>
+              <span class="stepper-text">
+                <strong>{{ passo.titulo }}</strong>
+                <small>{{ passo.subtitulo }}</small>
+              </span>
+            </button>
+          }
+        </div>
+
+        <div class="info-card">
+          <strong>Por que pedimos isso?</strong>
+          <p>{{ porQuePedimos[etapaAtual() - 1] }}</p>
+        </div>
+      </aside>
+
+
+      <!-- CONTEÚDO -->
+      <section class="wizard-card">
+
+        <!-- ETAPA 1 -->
+        @if (etapaAtual() === 1) {
+          <h2>Quem é a organização</h2>
+          <p class="wizard-lead">Esses dados aparecem para o morador quando sua cooperativa é sugerida.</p>
+
+          <span class="section-label">Tipo de organização</span>
+          <div class="option-grid">
+            @for (tipo of tiposOrganizacao; track tipo.valor) {
+              <div
+                class="option-card selectable"
+                [class.on]="organizacao().tipo === tipo.valor"
+                (click)="atualizarOrganizacao('tipo', tipo.valor)"
+              >
+                <strong>{{ tipo.label }}</strong>
+                <p>{{ tipo.descricao }}</p>
+              </div>
+            }
+          </div>
+
+          <div class="field-row" style="margin-top: 18px;">
+            <div class="field">
+              <label for="org-nome">Nome da organização</label>
+              <input
+                id="org-nome"
+                type="text"
+                placeholder="Ex.: Cooperativa Nova Esperança"
+                [value]="organizacao().nome"
+                (input)="atualizarOrganizacao('nome', $any($event.target).value)"
+              />
+              <span class="hint">É esse nome que o morador vê no aplicativo.</span>
+            </div>
+
+            <div class="field">
+              <label for="org-cnpj">CNPJ</label>
+              <input
+                id="org-cnpj"
+                type="text"
+                placeholder="00.000.000/0001-00"
+                [value]="organizacao().cnpj"
+                (input)="atualizarOrganizacao('cnpj', $any($event.target).value)"
+              />
+              <span class="hint">Situação ativa na Receita Federal.</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="org-ano">Ano de fundação</label>
+              <input
+                id="org-ano"
+                type="text"
+                placeholder="Ex.: 2018"
+                [value]="organizacao().anoFundacao"
+                (input)="atualizarOrganizacao('anoFundacao', $any($event.target).value)"
+              />
+            </div>
+
+            <div class="field">
+              <label for="org-pessoas">Pessoas na operação</label>
+              <input
+                id="org-pessoas"
+                type="text"
+                placeholder="Ex.: 12 cooperados"
+                [value]="organizacao().pessoasOperacao"
+                (input)="atualizarOrganizacao('pessoasOperacao', $any($event.target).value)"
+              />
+            </div>
+          </div>
+
+          <span class="section-label" style="margin-top: 8px;">Responsável pelo cadastro</span>
+          <p class="wizard-lead" style="margin-top: -8px;">Quem a gente procura se alguma coleta der problema.</p>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="resp-nome">Nome completo</label>
+              <input
+                id="resp-nome"
+                type="text"
+                placeholder="Nome e sobrenome"
+                [value]="organizacao().responsavelNome"
+                (input)="atualizarOrganizacao('responsavelNome', $any($event.target).value)"
+              />
+            </div>
+
+            <div class="field">
+              <label for="resp-cargo">Cargo</label>
+              <input
+                id="resp-cargo"
+                type="text"
+                placeholder="Ex.: Presidente"
+                [value]="organizacao().responsavelCargo"
+                (input)="atualizarOrganizacao('responsavelCargo', $any($event.target).value)"
+              />
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="resp-email">E-mail</label>
+              <input
+                id="resp-email"
+                type="email"
+                placeholder="contato@suacooperativa.org.br"
+                [value]="organizacao().responsavelEmail"
+                (input)="atualizarOrganizacao('responsavelEmail', $any($event.target).value)"
+              />
+            </div>
+
+            <div class="field">
+              <label for="resp-telefone">Telefone com WhatsApp</label>
+              <input
+                id="resp-telefone"
+                type="text"
+                placeholder="(00) 00000-0000"
+                [value]="organizacao().responsavelTelefone"
+                (input)="atualizarOrganizacao('responsavelTelefone', $any($event.target).value)"
+              />
+            </div>
+          </div>
+        }
+
+        <!-- ETAPA 2 -->
+        @if (etapaAtual() === 2) {
+          <h2>Onde vocês ficam e até onde vão</h2>
+          <p class="wizard-lead">O endereço do galpão não aparece para o morador — só a distância até ele.</p>
+
+          <span class="section-label">Endereço do galpão de triagem</span>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="end-cep">CEP</label>
+              <input id="end-cep" type="text" placeholder="00000-000" [value]="endereco().cep" (input)="atualizarEndereco('cep', $any($event.target).value)" />
+            </div>
+            <div class="field">
+              <label for="end-rua">Rua</label>
+              <input id="end-rua" type="text" placeholder="Nome da rua" [value]="endereco().rua" (input)="atualizarEndereco('rua', $any($event.target).value)" />
+            </div>
+          </div>
+
+          <div class="field-row three">
+            <div class="field">
+              <label for="end-numero">Número</label>
+              <input id="end-numero" type="text" placeholder="Nº" [value]="endereco().numero" (input)="atualizarEndereco('numero', $any($event.target).value)" />
+            </div>
+            <div class="field">
+              <label for="end-complemento">Complemento</label>
+              <input
+                id="end-complemento"
+                type="text"
+                placeholder="galpão, fundos, quadra…"
+                [value]="endereco().complemento"
+                (input)="atualizarEndereco('complemento', $any($event.target).value)"
+              />
+            </div>
+            <div class="field">
+              <label for="end-bairro">Bairro</label>
+              <input id="end-bairro" type="text" placeholder="Bairro" [value]="endereco().bairro" (input)="atualizarEndereco('bairro', $any($event.target).value)" />
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="end-cidade">Cidade</label>
+              <input id="end-cidade" type="text" placeholder="Cidade" [value]="endereco().cidade" (input)="atualizarEndereco('cidade', $any($event.target).value)" />
+            </div>
+            <div class="field">
+              <label for="end-uf">UF</label>
+              <input id="end-uf" type="text" placeholder="UF" [value]="endereco().uf" (input)="atualizarEndereco('uf', $any($event.target).value)" />
+            </div>
+          </div>
+
+          <span class="section-label" style="margin-top: 8px;">Até onde vocês buscam</span>
+          <p class="wizard-lead" style="margin-top: -8px;">Arraste para ajustar. Dá para mudar depois no painel.</p>
+
+          <div class="radius-row">
+            <div class="radius-display">
+              <strong>{{ endereco().raioKm }} km a partir do galpão</strong>
+            </div>
+            <input
+              type="range"
+              min="2"
+              max="20"
+              class="radius-slider"
+              [value]="endereco().raioKm"
+              (input)="atualizarRaio($any($event.target).value)"
+            />
+          </div>
+
+          <span class="section-label" style="margin-top: 22px;">Horário de funcionamento</span>
+          <p class="wizard-lead" style="margin-top: -8px;">
+            Quando o galpão recebe entrega e quando a equipe sai para coleta.
+          </p>
+
+          <div class="field-row three">
+            <div class="field">
+              <label for="hor-dias">Dias</label>
+              <input
+                id="hor-dias"
+                type="text"
+                placeholder="Ex.: Segunda a sexta"
+                [value]="endereco().diasFuncionamento"
+                (input)="atualizarEndereco('diasFuncionamento', $any($event.target).value)"
+              />
+            </div>
+            <div class="field">
+              <label for="hor-abre">Abre</label>
+              <input id="hor-abre" type="text" placeholder="00:00" [value]="endereco().horaAbre" (input)="atualizarEndereco('horaAbre', $any($event.target).value)" />
+            </div>
+            <div class="field">
+              <label for="hor-fecha">Fecha</label>
+              <input id="hor-fecha" type="text" placeholder="00:00" [value]="endereco().horaFecha" (input)="atualizarEndereco('horaFecha', $any($event.target).value)" />
+            </div>
+          </div>
+        }
+
+        <!-- ETAPA 3 -->
+        @if (etapaAtual() === 3) {
+          <h2>Resíduos que vocês aceitam</h2>
+          <p class="wizard-lead">Marque tudo que a triagem recebe hoje. Dá para mudar depois no painel.</p>
+
+          <div class="residuo-chips">
+            @for (r of residuos(); track r.nome; let i = $index) {
+              <button class="residuo-chip" [class.on]="r.marcado" (click)="alternarResiduo(i)">
+                <span class="chip-check">
+                  @if (r.marcado) {
+                    <svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg>
+                  }
+                </span>
+                {{ r.nome }}
+              </button>
+            }
+          </div>
+
+          <span class="section-label" style="margin-top: 24px;">Capacidade de coleta</span>
+          <p class="wizard-lead" style="margin-top: -8px;">
+            usamos isso para não te mandar pedido que vocês não conseguem atender
+          </p>
+
+          <div class="field-row three">
+            <div class="field">
+              <label for="cap-peso">Peso máximo por coleta</label>
+              <input
+                id="cap-peso"
+                type="text"
+                [value]="capacidade().pesoMaximoKg + ' kg'"
+                (input)="atualizarPesoMaximo($any($event.target).value)"
+              />
+            </div>
+            <div class="field">
+              <label for="cap-veiculos">Veículos disponíveis</label>
+              <input
+                id="cap-veiculos"
+                type="text"
+                placeholder="Ex.: 1 caminhonete"
+                [value]="capacidade().veiculosDisponiveis"
+                (input)="atualizarCapacidade('veiculosDisponiveis', $any($event.target).value)"
+              />
+            </div>
+            <div class="field">
+              <label for="cap-coletas">Coletas por dia</label>
+              <input id="cap-coletas" type="text" [value]="'até ' + capacidade().coletasPorDia" disabled />
+            </div>
+          </div>
+
+          <div class="warning-box" style="margin-top: 18px;">
+            <strong>Resíduo perigoso exige licença específica</strong>
+            <p>
+              Pilhas, baterias e eletrônicos só ficam disponíveis depois que a licença ambiental for validada na
+              etapa 4.
+            </p>
+          </div>
+        }
+
+        <!-- ETAPA 4 -->
+        @if (etapaAtual() === 4) {
+          <h2>Licença e documentos</h2>
+          <p class="wizard-lead">Último passo. A análise leva até 3 dias úteis e avisamos por e-mail.</p>
+
+          <span class="section-label">Licença ambiental de operação</span>
+          <p class="wizard-lead" style="margin-top: -8px;">Emitida pelo órgão ambiental estadual ou municipal.</p>
+
+          @if (licencaArquivo(); as arquivo) {
+            <div class="upload-row">
+              <span class="upload-icon">
+                <svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6V3Z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+              </span>
+              <div class="upload-info">
+                <strong>{{ arquivo.nome }}</strong>
+                <p>{{ arquivo.meta }}</p>
+              </div>
+              <button class="link-btn" (click)="acionarTrocaLicenca(fileInput)">Trocar</button>
+            </div>
+          } @else {
+            <button class="upload-dropzone" (click)="acionarTrocaLicenca(fileInput)">
+              <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 17v3h16v-3"/></svg>
+              <strong>Arraste ou escolha o arquivo</strong>
+              <span>PDF ou imagem, até 10 MB</span>
+            </button>
+          }
+
+          <div class="field-row three">
+            <div class="field">
+              <label for="lic-numero">Número da licença</label>
+              <input
+                id="lic-numero"
+                type="text"
+                placeholder="Ex.: LO 1234/2025"
+                [value]="licenca().numero"
+                (input)="atualizarLicenca('numero', $any($event.target).value)"
+              />
+            </div>
+            <div class="field">
+              <label for="lic-orgao">Órgão emissor</label>
+              <input
+                id="lic-orgao"
+                type="text"
+                placeholder="Ex.: IAT — Paraná"
+                [value]="licenca().orgao"
+                (input)="atualizarLicenca('orgao', $any($event.target).value)"
+              />
+            </div>
+            <div class="field">
+              <label for="lic-validade">Válida até</label>
+              <input
+                id="lic-validade"
+                type="text"
+                placeholder="MM/AAAA"
+                [value]="licenca().validade"
+                (input)="atualizarLicenca('validade', $any($event.target).value)"
+              />
+            </div>
+          </div>
+
+          <span class="section-label" style="margin-top: 8px;">Documentos da organização</span>
+
+          <div class="field-row">
+            <div>
+              <span class="upload-label">Cartão CNPJ</span>
+              @if (cnpjArquivo(); as arquivo) {
+                <div class="upload-row">
+                  <span class="upload-icon">
+                    <svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6V3Z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+                  </span>
+                  <div class="upload-info">
+                    <strong>{{ arquivo.nome }}</strong>
+                    <p>{{ arquivo.meta }}</p>
+                  </div>
+                  <button class="link-btn" (click)="acionarTrocaCnpj(fileInput)">Trocar</button>
+                </div>
+              } @else {
+                <button class="upload-dropzone" (click)="acionarTrocaCnpj(fileInput)">
+                  <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 17v3h16v-3"/></svg>
+                  <strong>Arraste ou escolha o arquivo</strong>
+                  <span>PDF ou imagem, até 10 MB</span>
+                </button>
+              }
+            </div>
+
+            <div>
+              <span class="upload-label">Ata de eleição da diretoria</span>
+
+              @if (ataEnviada()) {
+                <div class="upload-row">
+                  <span class="upload-icon">
+                    <svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6V3Z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+                  </span>
+                  <div class="upload-info">
+                    <strong>ata-eleicao-diretoria.pdf</strong>
+                    <p>890 KB</p>
+                  </div>
+                  <button class="link-btn" (click)="alternarAta()">Trocar</button>
+                </div>
+              } @else {
+                <button class="upload-dropzone" (click)="alternarAta()">
+                  <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 17v3h16v-3"/></svg>
+                  <strong>Arraste ou escolha o arquivo</strong>
+                  <span>PDF ou imagem, até 10 MB</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          @if (residuosPerigososMarcados().length > 0) {
+            <div class="warning-box" style="margin-top: 18px;">
+              <strong>Pilhas, baterias e eletrônicos ficam bloqueados até a análise</strong>
+              <p>
+                Vocês marcaram esses resíduos na etapa 3. Eles exigem licença específica e só entram no painel
+                depois que o documento for validado. O resto libera junto com o cadastro.
+              </p>
+            </div>
+          }
+
+          <label class="confirm-checkbox">
+            <input type="checkbox" [checked]="confirmaVeracidade()" (change)="confirmaVeracidade.set(!confirmaVeracidade())" />
+            Confirmo que os documentos são verdadeiros e que a organização responde pela destinação correta do
+            material recolhido pelo Re-cicle.
+          </label>
+        }
+
+
+        <!-- AÇÕES -->
+        <div class="wizard-actions">
+          @if (etapaAtual() > 1) {
+            <button class="btn btn-outline" (click)="voltar()">Voltar</button>
+          } @else {
+            <a class="auth-topbar-link" routerLink="/cooperativa/entrar">Já tem cadastro? Entrar no painel</a>
+          }
+
+          @if (etapaAtual() < 4) {
+            <button class="btn btn-primary" (click)="avancar()">{{ ctaLabels[etapaAtual() - 1] }}</button>
+          } @else {
+            <button class="btn btn-primary" [disabled]="!confirmaVeracidade()" (click)="enviarParaAnalise()">
+              Enviar para análise
+            </button>
+          }
+        </div>
+
+      </section>
+
+    </div>
+  </div>
+
+</div>
+
+<app-toast-host></app-toast-host>

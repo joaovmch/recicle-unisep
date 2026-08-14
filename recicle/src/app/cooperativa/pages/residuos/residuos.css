@@ -1,0 +1,8 @@
+.residuo-group + .residuo-group {
+  margin-top: 26px;
+}
+
+.field input:disabled {
+  color: #8b9994;
+  background: #f4f3ee;
+}

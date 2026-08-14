@@ -1,19 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
 
-import { Cadastro } from './cadastro';
+import { AreaCobertura } from './area-cobertura';
 
-describe('Cadastro', () => {
-  let component: Cadastro;
-  let fixture: ComponentFixture<Cadastro>;
+describe('AreaCobertura', () => {
+  let component: AreaCobertura;
+  let fixture: ComponentFixture<AreaCobertura>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Cadastro],
-      providers: [provideRouter([])],
+      imports: [AreaCobertura],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(Cadastro);
+    fixture = TestBed.createComponent(AreaCobertura);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

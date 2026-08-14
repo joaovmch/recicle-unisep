@@ -1,0 +1,255 @@
+@if (solicitacao(); as s) {
+
+  <p class="breadcrumb">
+    <a routerLink="/cooperativa/solicitacoes">Solicitações</a> › #{{ s.id }}
+  </p>
+
+  <header class="page-header">
+    <div>
+      <h1>Confirmar recebimento</h1>
+      <p>Preencha na hora da retirada. É isso que fecha a solicitação e credita os pontos do morador.</p>
+    </div>
+
+    <span class="status-pill info">Em rota</span>
+  </header>
+
+  <div class="content-grid">
+
+    <!-- ESQUERDA -->
+    <section class="confirm-form">
+
+      <div class="side-card form-section">
+        <h3>1. Código do morador</h3>
+        <p>Peça os 4 caracteres que aparecem na tela dele.</p>
+
+        <div class="code-boxes">
+          <input
+            #b0
+            maxlength="1"
+            class="code-box"
+            [value]="codigoDigitado()[0]"
+            (input)="atualizarDigito(0, $any($event.target).value, b1)"
+          />
+          <input
+            #b1
+            maxlength="1"
+            class="code-box"
+            [value]="codigoDigitado()[1]"
+            (input)="atualizarDigito(1, $any($event.target).value, b2)"
+          />
+          <input
+            #b2
+            maxlength="1"
+            class="code-box"
+            [value]="codigoDigitado()[2]"
+            (input)="atualizarDigito(2, $any($event.target).value, b3)"
+          />
+          <input
+            #b3
+            maxlength="1"
+            class="code-box"
+            [value]="codigoDigitado()[3]"
+            (input)="atualizarDigito(3, $any($event.target).value, null)"
+          />
+        </div>
+
+        @if (codigoCompleto().length === 4) {
+          <span class="status-pill" [class.good]="codigoValido()" [class.bad]="!codigoValido()">
+            {{ codigoValido() ? 'Código confere com a solicitação #' + s.id : 'Código não confere' }}
+          </span>
+        }
+      </div>
+
+      <div class="side-card form-section">
+        <h3>2. Pesagem</h3>
+        <p>O peso real substitui a estimativa da IA e define os pontos.</p>
+
+        <div class="field-row three">
+          <div class="field">
+            <label for="peso-recebido">Peso recebido</label>
+            <input
+              id="peso-recebido"
+              type="number"
+              step="0.1"
+              [value]="pesoRecebido()"
+              (input)="atualizarPesoRecebido($any($event.target).value)"
+            />
+          </div>
+
+          <div class="field">
+            <label for="peso-estimado">Estimado pela IA</label>
+            <input id="peso-estimado" type="text" [value]="pesoEstimado() + ' kg'" disabled />
+          </div>
+
+          <div class="field">
+            <label for="rejeito">Rejeito separado</label>
+            <input
+              id="rejeito"
+              type="number"
+              step="0.1"
+              [value]="rejeitoKg()"
+              (input)="atualizarRejeito($any($event.target).value)"
+            />
+          </div>
+        </div>
+
+        @if (divergenciaKg() !== 0) {
+          <div class="warning-box">
+            <strong>
+              Divergência de peso: {{ formatarDivergencia() }} kg a {{ divergenciaKg() > 0 ? 'menos' : 'mais' }}
+            </strong>
+            <p>
+              Diferenças acima de 20% ficam registradas para ajustar o modelo de estimativa da IA. Abaixo disso,
+              segue normal.
+            </p>
+          </div>
+        }
+      </div>
+
+      <div class="side-card form-section">
+        <h3>3. Triagem</h3>
+        <p>Marque o que entrou de fato em cada fluxo.</p>
+
+        <div class="triagem-list">
+          @for (item of triagem(); track $index) {
+            <label class="triagem-row" [class.checked]="item.checado">
+              <span class="triagem-check">
+                <input type="checkbox" [checked]="item.checado" (change)="alternarTriagem($index)" />
+                {{ item.material }}
+              </span>
+
+              <input
+                type="number"
+                step="0.1"
+                class="triagem-kg"
+                [value]="item.kg"
+                (input)="atualizarTriagemKg($index, $any($event.target).value)"
+              />
+            </label>
+          }
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-outline" (click)="abrirProblema()">Registrar problema na coleta</button>
+        <button class="btn btn-primary" [disabled]="!codigoValido()" (click)="confirmar()">
+          Confirmar e creditar pontos
+        </button>
+      </div>
+
+    </section>
+
+    <!-- DIREITA -->
+    <aside class="right-column">
+
+      <div class="side-card">
+        <h3 class="summary-title">Solicitação #{{ s.id }}</h3>
+
+        <dl class="summary-list">
+          <div>
+            <dt>Morador</dt>
+            <dd>{{ s.solicitante }}</dd>
+          </div>
+          <div>
+            <dt>Resíduo</dt>
+            <dd>{{ s.titulo }}</dd>
+          </div>
+          <div>
+            <dt>Endereço</dt>
+            <dd>{{ s.endereco }}</dd>
+          </div>
+          <div>
+            <dt>Valor combinado</dt>
+            <dd>R$ {{ s.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="highlight-card">
+        <span>Pontos que serão creditados</span>
+        <strong>+{{ pontosCreditados() }}</strong>
+        <p>Calculado sobre {{ pesoRecebido() }} kg recebidos, descontando {{ rejeitoKg() }} kg de rejeito.</p>
+      </div>
+
+      <div class="side-card sem-codigo-card">
+        <h3 class="summary-title">Sem o código?</h3>
+        <p>
+          Dá para confirmar com foto do material na retirada, mas a solicitação fica marcada para conferência.
+        </p>
+
+        @if (!fotoSelecionada()) {
+          <button class="upload-dropzone small" (click)="selecionarFoto()">
+            <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5" /><path d="M4 17v3h16v-3" /></svg>
+            <strong>Confirmar por foto</strong>
+            <span>Tirar ou escolher uma foto do material</span>
+          </button>
+        } @else {
+          <div class="upload-row">
+            <span class="upload-icon">
+              <svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" /></svg>
+            </span>
+            <div class="upload-info">
+              <strong>foto-coleta-{{ s.id }}.jpg</strong>
+              <p>anexada agora</p>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="width: 100%;" (click)="confirmarPorFoto()">
+            Enviar e marcar para conferência
+          </button>
+        }
+      </div>
+
+    </aside>
+
+  </div>
+
+} @else {
+  <p>Solicitação não encontrada. <a routerLink="/cooperativa/solicitacoes">Voltar para solicitações</a></p>
+}
+
+
+<!-- MODAL — REGISTRAR PROBLEMA -->
+@if (problemaAberto()) {
+  <div class="modal-overlay" (click)="fecharProblema()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="fecharProblema()">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
+
+      <h2>Registrar problema na coleta</h2>
+      <p class="modal-description">
+        Conta pra gente o que aconteceu. A solicitação continua em rota até você confirmar o recebimento.
+      </p>
+
+      <div class="reason-list">
+        @for (motivo of motivosProblema; track motivo) {
+          <label class="reason-option" [class.selected]="motivoProblema() === motivo">
+            <input
+              type="radio"
+              name="motivo-problema"
+              [value]="motivo"
+              [checked]="motivoProblema() === motivo"
+              (change)="motivoProblema.set(motivo)"
+            />
+            <span><strong>{{ motivo }}</strong></span>
+          </label>
+        }
+      </div>
+
+      <div class="field">
+        <label for="descricao-problema">Detalhes · opcional</label>
+        <textarea
+          id="descricao-problema"
+          placeholder="Ex.: ninguém atendeu no endereço combinado…"
+          [value]="descricaoProblema()"
+          (input)="descricaoProblema.set($any($event.target).value)"
+        ></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-outline" (click)="fecharProblema()">Cancelar</button>
+        <button class="btn btn-primary" (click)="enviarProblema()">Registrar problema</button>
+      </div>
+    </div>
+  </div>
+}

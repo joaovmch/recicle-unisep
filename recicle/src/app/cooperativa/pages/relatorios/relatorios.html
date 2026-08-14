@@ -1,0 +1,190 @@
+<!-- CABEÇALHO -->
+<header class="page-header">
+  <div>
+    <h1>Relatórios</h1>
+    <p>O que entrou na triagem e de onde veio.</p>
+  </div>
+
+  <div class="header-actions">
+    <div class="tabs no-margin">
+      <button class="tab" [class.active]="periodoAtivo() === '30'" (click)="setPeriodo('30')">30 dias</button>
+      <button class="tab" [class.active]="periodoAtivo() === '90'" (click)="setPeriodo('90')">90 dias</button>
+      <button class="tab" [class.active]="periodoAtivo() === 'ano'" (click)="setPeriodo('ano')">Ano</button>
+    </div>
+    <button class="btn btn-outline" (click)="exportarPdf()">Exportar PDF</button>
+  </div>
+</header>
+
+
+<!-- INDICADORES -->
+<section class="stats-grid">
+
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg viewBox="0 0 24 24">
+        <path d="M20.2 4.2C14.5 3.7 8.1 5.1 5.1 9.2c-2 2.8-1.7 6.1.1 8.4 1.2-2.9 3.6-5.2 6.8-6.5-2.2 1.8-3.7 4.1-4.3 6.8 3.3.7 6.8-.7 8.7-3.7 1.7-2.7 2.1-6.4 3.8-10z"/>
+      </svg>
+    </div>
+    <strong>{{ materialRecebido() }}</strong>
+    <span>material recebido</span>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg viewBox="0 0 24 24">
+        <path d="M3 7h12v10H3z"/>
+        <path d="M15 10h3l3 3v4h-6"/>
+        <circle cx="7" cy="18" r="2"/>
+        <circle cx="18" cy="18" r="2"/>
+      </svg>
+    </div>
+    <strong>{{ coletasConcluidas() }}</strong>
+    <span>coletas concluídas</span>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg viewBox="0 0 24 24">
+        <path d="M5 20V10"/>
+        <path d="M12 20V4"/>
+        <path d="M19 20v-7"/>
+        <path d="M3 20h18"/>
+      </svg>
+    </div>
+    <strong>{{ formatarPreco(receitaRecebida()) }}</strong>
+    <span>recebido pelas coletas</span>
+  </div>
+
+  <div class="stat-card stat-warning">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 3 2 20h20L12 3Z"/>
+        <path d="M12 10v4M12 17h.01"/>
+      </svg>
+    </div>
+    <strong>{{ rejeitoTriagem() }}%</strong>
+    <span>de rejeito na triagem</span>
+  </div>
+
+</section>
+
+
+<div class="content-grid">
+
+  <!-- ESQUERDA -->
+  <section class="relatorios-main">
+
+    <div class="side-card">
+      <div class="side-card-header">
+        <div>
+          <h3>Volume recebido por semana</h3>
+          <p class="subtitle">{{ chartSubtitulo() }}</p>
+        </div>
+        <span class="badge badge-neutral">{{ comparativo() }}</span>
+      </div>
+
+      @if (volumeSemanal().length === 0) {
+        <p class="empty-hint">Nenhuma coleta concluída neste período ainda.</p>
+      } @else {
+        <div class="bar-chart">
+          @for (semana of volumeSemanal(); track semana.label) {
+            <div class="bar-column">
+              <span class="bar-value">{{ semana.kg }}</span>
+              <div class="bar" [class.destaque]="semana.destaque" [style.height.%]="alturaBarra(semana.kg)"></div>
+              <span class="bar-label">{{ semana.label }}</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="side-card">
+      <div class="side-card-header">
+        <h3>Por tipo de material</h3>
+        <button class="link-btn" (click)="baixarCsvMaterial()">Baixar CSV</button>
+      </div>
+
+      @if (porTipoMaterial().length === 0) {
+        <p class="empty-hint">Nenhum material recebido neste período ainda.</p>
+      } @else {
+        <table class="data-table material-table">
+          <thead>
+            <tr>
+              <th>Material</th>
+              <th>Peso recebido</th>
+              <th>Coletas</th>
+              <th>Rejeito</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of porTipoMaterial(); track m.nome) {
+              <tr>
+                <td>
+                  <strong>{{ m.nome }}</strong>
+                  @if (m.subtitulo) {
+                    <p>{{ m.subtitulo }}</p>
+                  }
+                </td>
+                <td>{{ m.pesoKg.toLocaleString('pt-BR') }} {{ m.unidade }}</td>
+                <td>{{ m.coletas }}</td>
+                <td>
+                  <span class="badge" [class.badge-good]="m.rejeitoPercent < 10" [class.badge-warning]="m.rejeitoPercent >= 10">
+                    {{ m.rejeitoPercent }}%
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+
+  </section>
+
+
+  <!-- DIREITA -->
+  <aside class="right-column">
+
+    <div class="side-card">
+      <h3 class="summary-title">Bairros que mais enviam</h3>
+
+      @if (bairrosQueMaisEnviam().length === 0) {
+        <p class="empty-hint">Nenhum bairro com coletas ainda.</p>
+      } @else {
+        <div class="bairro-bar-list">
+          @for (b of bairrosQueMaisEnviam(); track b.nome) {
+            <div class="bairro-bar-row">
+              <div class="bairro-bar-top">
+                <span>{{ b.nome }}</span>
+                <strong>{{ b.kg.toLocaleString('pt-BR') }} kg</strong>
+              </div>
+              <div class="bairro-bar-track">
+                <div class="bairro-bar-fill" [style.width.%]="larguraBairro(b.kg)"></div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    @if (porTipoMaterial().length > 0) {
+      <div class="warning-box">
+        <strong>Volumosos puxam o rejeito</strong>
+        <p>
+          {{ volumososRejeito() }}% do que entra como móvel vira rejeito — quase sempre espuma. Vale reforçar
+          essa instrução no passo a passo da IA.
+        </p>
+      </div>
+    }
+
+    <div class="side-card">
+      <h3 class="summary-title">Relatório para a prefeitura</h3>
+      <p>Gera o consolidado mensal no formato exigido pelo plano municipal de resíduos.</p>
+      <button class="link-btn" style="display: block; margin-top: 10px;" (click)="gerarRelatorioPrefeitura()">
+        Gerar relatório
+      </button>
+    </div>
+
+  </aside>
+
+</div>

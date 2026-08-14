@@ -1,0 +1,161 @@
+<!-- CABEÇALHO -->
+<header class="page-header">
+  <div>
+    <h1>Documentos e licença</h1>
+    <p>O que mantém sua cooperativa recebendo solicitação pelo Re-cicle.</p>
+  </div>
+
+  <div class="header-actions">
+    <button class="btn btn-primary" (click)="acionarNovoDocumento(fileInput)">Enviar documento</button>
+  </div>
+</header>
+
+<input #fileInput type="file" class="hidden-file-input" (change)="arquivoSelecionado($event)" />
+
+
+<!-- ALERTA -->
+<div class="alert-banner">
+  <svg viewBox="0 0 24 24">
+    <path d="M12 3 2 20h20L12 3Z"/>
+    <path d="M12 10v4M12 17h.01"/>
+  </svg>
+
+  <p>
+    Nenhum documento foi enviado ainda. Sem a licença ambiental validada, sua cooperativa não recebe solicitações
+    pelo Re-cicle.
+  </p>
+
+  <button class="btn btn-outline small" (click)="verOQueEnviamos()">Ver documentos</button>
+</div>
+
+
+<div class="content-grid">
+
+  <!-- ESQUERDA -->
+  <section class="documentos-main">
+
+    <div class="side-card">
+      <h3>Documentos no cadastro</h3>
+      <p class="summary-hint">Substituir um arquivo abre nova análise só daquele item</p>
+
+      <div class="documento-list" #listaDocumentos>
+        @for (doc of documentos(); track doc.nome; let i = $index) {
+          <div class="documento-row" [class.highlight]="destacarEmAnalise() && doc.status === 'em-analise'">
+            <div class="documento-icon">
+              @switch (doc.icone) {
+                @case ('clock') {
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+                }
+                @case ('upload') {
+                  <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 17v3h16v-3"/></svg>
+                }
+                @default {
+                  <svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6V3Z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+                }
+              }
+            </div>
+
+            <div class="documento-info">
+              <strong>{{ doc.nome }}</strong>
+              @if (doc.meta) {
+                <p>{{ doc.meta }}</p>
+              }
+            </div>
+
+            <span
+              class="badge"
+              [class.badge-good]="doc.status === 'validado'"
+              [class.badge-warning]="doc.status === 'em-analise'"
+              [class.badge-neutral]="doc.status === 'nao-enviado'"
+            >
+              {{ statusLabel[doc.status] }}
+            </span>
+
+            <button class="link-btn" (click)="acaoDocumento(doc, i, fileInput)">{{ doc.acaoLabel }}</button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="side-card">
+      <h3>O que a análise confere</h3>
+      <p class="summary-hint">Feita pela equipe do Re-cicle junto ao órgão ambiental.</p>
+
+      <div class="analise-grid">
+        @for (item of analiseConfere; track item.titulo) {
+          <div class="analise-tile">
+            <strong>{{ item.titulo }}</strong>
+            <p>{{ item.descricao }}</p>
+          </div>
+        }
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- DIREITA -->
+  <aside class="right-column">
+
+    <div class="highlight-card">
+      <span>Licença de operação</span>
+      <strong>Ainda não enviada</strong>
+
+      <p>
+        Envie a licença ambiental para começar a receber solicitações. Depois de validada, avisamos por e-mail
+        90 dias antes do vencimento.
+      </p>
+    </div>
+
+    <div class="side-card">
+      <h3 class="summary-title">Histórico</h3>
+
+      @if (historico.length === 0) {
+        <p class="empty-hint">Nenhuma movimentação registrada ainda.</p>
+      } @else {
+        <div class="historico-list">
+          @for (evento of historico; track evento.data + evento.titulo) {
+            <div class="historico-item">
+              <span class="historico-dot" [class.recente]="evento.recente"></span>
+              <div>
+                <strong>{{ evento.titulo }}</strong>
+                <p>{{ evento.data }}@if (evento.autor) { · por {{ evento.autor }} }</p>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="side-card">
+      <h3 class="summary-title">Avisos de vencimento</h3>
+      <p class="summary-hint">Para quem mandamos o lembrete de renovação.</p>
+
+      <div class="toggle-row-list">
+        <div class="toggle-row">
+          <span>E-mail da cooperativa</span>
+          <label class="toggle-switch">
+            <input type="checkbox" [checked]="avisoEmail()" (change)="avisoEmail.set(!avisoEmail())" />
+            <span class="track"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <span>WhatsApp da cooperativa</span>
+          <label class="toggle-switch">
+            <input type="checkbox" [checked]="avisoWhatsapp()" (change)="avisoWhatsapp.set(!avisoWhatsapp())" />
+            <span class="track"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <span>Aviso no painel</span>
+          <label class="toggle-switch">
+            <input type="checkbox" [checked]="avisoPainel()" (change)="avisoPainel.set(!avisoPainel())" />
+            <span class="track"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+</div>

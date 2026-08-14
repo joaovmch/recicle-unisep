@@ -1,0 +1,119 @@
+<!-- CABEÇALHO -->
+<header class="page-header">
+  <div>
+    <h1>Área de cobertura</h1>
+    <p>{{ bairrosNoRaio() }} bairros dentro do raio · {{ foraDoRaio.length }} fora pedindo coleta.</p>
+  </div>
+
+  <div class="header-actions">
+    <button class="btn btn-outline" (click)="descartar()">Descartar</button>
+    <button class="btn btn-primary" (click)="salvarAlteracoes()">Salvar alterações</button>
+  </div>
+</header>
+
+
+<div class="content-grid">
+
+  <!-- ESQUERDA -->
+  <section class="side-card map-card">
+
+    <div class="side-card-header">
+      <div>
+        <h3>Raio a partir do galpão</h3>
+        <p class="subtitle">Endereço do galpão ainda não cadastrado</p>
+      </div>
+      <span class="badge badge-good">{{ raio() }} km</span>
+    </div>
+
+    <div class="map-canvas">
+      <div class="map-grid"></div>
+
+      <div class="map-radius" [style.width.px]="raioPx()" [style.height.px]="raioPx()"></div>
+
+      <div class="map-center">
+        <span class="map-pin"></span>
+        <span class="map-pin-label">Seu galpão</span>
+      </div>
+
+      @for (b of bairros(); track b.nome) {
+        <span class="map-label" [class.dim]="!b.atendido" [style.top.%]="b.top" [style.left.%]="b.left">
+          {{ b.nome }}
+        </span>
+      }
+    </div>
+
+    <p class="map-attribution">Leaflet · dados © OpenStreetMap contributors</p>
+
+  </section>
+
+
+  <!-- DIREITA -->
+  <aside class="right-column">
+
+    <div class="side-card">
+      <h3 class="summary-title">Ajustar raio</h3>
+
+      <div class="radius-display">
+        <strong>{{ raio() }} km</strong>
+        <span>{{ bairrosNoRaio() }} bairros</span>
+      </div>
+
+      <input
+        type="range"
+        min="2"
+        max="20"
+        step="1"
+        class="radius-slider"
+        [value]="raio()"
+        (input)="atualizarRaio($any($event.target).value)"
+      />
+
+      <p class="summary-hint" style="margin-top: 14px;">
+        Raio maior traz mais pedido, mas aumenta o custo de viagem por coleta.
+      </p>
+    </div>
+
+    <div class="side-card">
+      <div class="side-card-header">
+        <h3>Bairros atendidos</h3>
+        <button (click)="alternarTodos()">{{ todosMarcados() ? 'desmarcar todos' : 'marcar todos' }}</button>
+      </div>
+
+      @if (bairros().length === 0) {
+        <p class="empty-hint">Nenhum bairro identificado dentro do raio ainda.</p>
+      } @else {
+        <div class="toggle-row-list">
+          @for (b of bairros(); track b.nome; let i = $index) {
+            <div class="toggle-row">
+              <span>{{ b.nome }} · {{ b.distanciaKm.toFixed(1).replace('.', ',') }} km</span>
+              <label class="toggle-switch">
+                <input type="checkbox" [checked]="b.atendido" (change)="alternarBairro(i)" />
+                <span class="track"></span>
+              </label>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="side-card">
+      <h3 class="summary-title">Fora do raio, mas pedindo</h3>
+      <p class="summary-hint">Moradores que tentaram coleta nos últimos 90 dias</p>
+
+      @if (foraDoRaio.length === 0) {
+        <p class="empty-hint">Nenhum pedido fora do raio ainda.</p>
+      } @else {
+        <div class="material-list">
+          @for (item of foraDoRaio; track item.nome) {
+            <div>
+              <span>{{ item.nome }} · {{ item.distanciaKm }} km</span>
+              <strong>{{ item.pedidos }} pedidos</strong>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  </aside>
+
+</div>

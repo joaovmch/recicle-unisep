@@ -1,279 +1,301 @@
-<div class="cooperativa-layout">
+<!-- CABEÇALHO -->
+<header class="page-header">
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
+  <div>
+    <h1>Solicitações recebidas</h1>
+    <p>Pedidos de coleta e entrega direcionados à sua cooperativa.</p>
+  </div>
 
-    <div class="brand">
-      <div class="brand-icon">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M20.2 4.2C14.5 3.7 8.1 5.1 5.1 9.2c-2 2.8-1.7 6.1.1 8.4 1.2-2.9 3.6-5.2 6.8-6.5-2.2 1.8-3.7 4.1-4.3 6.8 3.3.7 6.8-.7 8.7-3.7 1.7-2.7 2.1-6.4 3.8-10z"/>
-        </svg>
-      </div>
+  <div class="header-actions">
+    <button class="btn btn-outline" (click)="exportarCsv()">
+      Exportar CSV
+    </button>
 
-      <div>
-        <div class="brand-name">Re-cicle</div>
-        <div class="brand-subtitle">painel do parceiro</div>
-      </div>
+    <button class="btn btn-primary" routerLink="/cooperativa/cadastro">
+      Editar cadastro
+    </button>
+  </div>
+
+</header>
+
+
+<!-- INDICADORES -->
+<section class="stats-grid">
+
+  <div class="stat-card stat-warning">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M5 8h14l1 11H4L5 8Z"/>
+        <path d="M8 8a4 4 0 0 1 8 0"/>
+      </svg>
+    </div>
+    <strong>{{ pendentes().length }}</strong>
+    <span>aguardando resposta</span>
+  </div>
+
+  <div class="stat-card stat-blue">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M3 7h12v10H3z"/>
+        <path d="M15 10h3l3 3v4h-6"/>
+        <circle cx="7" cy="18" r="2"/>
+        <circle cx="18" cy="18" r="2"/>
+      </svg>
+    </div>
+    <strong>{{ aceitas().length }}</strong>
+    <span>coletas em rota hoje</span>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg viewBox="0 0 24 24">
+        <path d="M20.2 4.2C14.5 3.7 8.1 5.1 5.1 9.2c-2 2.8-1.7 6.1.1 8.4 1.2-2.9 3.6-5.2 6.8-6.5-2.2 1.8-3.7 4.1-4.3 6.8 3.3.7 6.8-.7 8.7-3.7 1.7-2.7 2.1-6.4 3.8-10z"/>
+      </svg>
+    </div>
+    <strong>{{ totalColetasConcluidas }}</strong>
+    <span>coletas concluídas</span>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg viewBox="0 0 24 24">
+        <path d="M5 20V10"/>
+        <path d="M12 20V4"/>
+        <path d="M19 20v-7"/>
+        <path d="M3 20h18"/>
+      </svg>
+    </div>
+    <strong>{{ materialRecebidoMes }}</strong>
+    <span>material recebido no mês</span>
+  </div>
+
+</section>
+
+
+<!-- ÁREA PRINCIPAL -->
+<div class="content-grid">
+
+  <!-- ESQUERDA -->
+  <section class="requests-section">
+
+    <!-- ABAS -->
+    <div class="tabs">
+      <button class="tab" [class.active]="abaAtiva() === 'pendente'" (click)="setAba('pendente')">
+        Pendentes ({{ pendentes().length }})
+      </button>
+
+      <button class="tab" [class.active]="abaAtiva() === 'aceita'" (click)="setAba('aceita')">
+        Aceitas ({{ aceitas().length }})
+      </button>
+
+      <button class="tab" [class.active]="abaAtiva() === 'concluida'" (click)="setAba('concluida')">
+        Concluídas
+      </button>
+
+      <button class="tab" [class.active]="abaAtiva() === 'recusada'" (click)="setAba('recusada')">
+        Recusadas
+      </button>
     </div>
 
-    <nav class="sidebar-menu">
-
-      <a class="menu-item">
-        <svg viewBox="0 0 24 24">
-          <rect x="4" y="4" width="6" height="6" rx="1"/>
-          <rect x="14" y="4" width="6" height="6" rx="1"/>
-          <rect x="4" y="14" width="6" height="6" rx="1"/>
-          <rect x="14" y="14" width="6" height="6" rx="1"/>
-        </svg>
-        <span>Visão geral</span>
-      </a>
-
-      <a class="menu-item active">
-        <svg viewBox="0 0 24 24">
-          <path d="M5 8h14l1 11H4L5 8Z"/>
-          <path d="M8 8a4 4 0 0 1 8 0"/>
-        </svg>
-        <span>Solicitações</span>
-      </a>
-
-      <a class="menu-item">
-        <svg viewBox="0 0 24 24">
-          <path d="m12 3 8 8-8 10-8-10 8-8Z"/>
-          <circle cx="12" cy="11" r="2"/>
-        </svg>
-        <span>Tipos de resíduo aceitos</span>
-      </a>
-
-      <a class="menu-item">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 21s6-5.4 6-11a6 6 0 1 0-12 0c0 5.6 6 11 6 11Z"/>
-          <circle cx="12" cy="10" r="2"/>
-        </svg>
-        <span>Área de cobertura</span>
-      </a>
-
-      <a class="menu-item">
-        <svg viewBox="0 0 24 24">
-          <circle cx="9" cy="8" r="3"/>
-          <circle cx="17" cy="10" r="2.5"/>
-          <path d="M3 20c0-3.2 2.7-5 6-5s6 1.8 6 5"/>
-          <path d="M14 15c3 0 5 1.5 5 4"/>
-        </svg>
-        <span>Equipe e veículos</span>
-      </a>
-
-      <a class="menu-item">
-        <svg viewBox="0 0 24 24">
-          <path d="M6 3h9l4 4v14H6V3Z"/>
-          <path d="M14 3v5h5"/>
-          <path d="M9 13h6M9 17h6"/>
-        </svg>
-        <span>Documentos e licença</span>
-      </a>
-
-    </nav>
-
-    <div class="cooperativa-card">
-      <strong>Cooperativa Reviver</strong>
-
-      <div class="license">
-        <span class="status-dot"></span>
-        licença válida até 03/2027
+    @if (listaAtiva().length === 0) {
+      <div class="side-card empty-state">
+        <p>Nenhuma solicitação nesta aba no momento.</p>
       </div>
+    }
+
+    @for (s of listaAtiva(); track s.id) {
+      <article class="request-card" [class.highlighted]="s.novo">
+
+        <div class="request-top">
+          <div class="request-title-area">
+            <div class="request-image"></div>
+
+            <div>
+              <div class="title-line">
+                <h2>{{ s.titulo }}</h2>
+                @if (s.novo) {
+                  <span class="badge badge-new">novo</span>
+                }
+                <span class="request-id">#{{ s.id }}</span>
+              </div>
+              <p class="request-description">{{ s.categoria }} · ≈ {{ s.pesoEstimadoKg }} kg</p>
+            </div>
+          </div>
+
+          <div class="request-price">{{ formatarPreco(s.preco) }}</div>
+        </div>
+
+        <div class="request-info">
+          <div>
+            <span>Solicitante</span>
+            <strong>{{ s.solicitante }}</strong>
+          </div>
+
+          <div>
+            <span>Endereço</span>
+            <strong>{{ s.endereco }} — {{ s.bairro }} · {{ formatarDistancia(s.distanciaKm) }}</strong>
+          </div>
+
+          @if (s.status === 'pendente' || s.status === 'aceita') {
+            <div>
+              <span>Janela preferida</span>
+              <strong>{{ s.janela }}</strong>
+            </div>
+          }
+
+          @if (s.status === 'recusada') {
+            <div>
+              <span>Motivo da recusa</span>
+              <strong>{{ s.motivoRecusa }}</strong>
+            </div>
+          }
+
+          @if (s.status === 'concluida') {
+            <div>
+              <span>Status</span>
+              <strong>Material triado e creditado</strong>
+            </div>
+          }
+        </div>
+
+        <div class="request-actions">
+          @if (s.status === 'pendente') {
+            <button class="btn btn-outline small" (click)="abrirRecusa(s)">Recusar</button>
+            <button class="btn btn-primary small" (click)="aceitar(s)">Aceitar coleta</button>
+            <button class="conversation-btn" (click)="abrirConversa(s)">Ver conversa com a IA</button>
+          }
+
+          @if (s.status === 'aceita') {
+            <span class="status-pill info">Em rota</span>
+            <button class="btn btn-primary small" (click)="irParaConfirmacao(s)">Confirmar recebimento</button>
+            <button class="conversation-btn" (click)="abrirConversa(s)">Ver conversa com a IA</button>
+          }
+
+          @if (s.status === 'concluida') {
+            <span class="status-pill good">Concluída</span>
+          }
+
+          @if (s.status === 'recusada') {
+            <span class="status-pill bad">Recusada</span>
+          }
+        </div>
+
+      </article>
+    }
+
+  </section>
+
+
+  <!-- DIREITA -->
+  <aside class="right-column">
+
+    <!-- RESÍDUOS -->
+    <div class="side-card">
+
+      <div class="side-card-header">
+        <h3>Resíduos que aceitamos</h3>
+        <button routerLink="/cooperativa/residuos">editar</button>
+      </div>
+
+      <p class="empty-hint">Nenhum tipo de resíduo configurado ainda.</p>
+
+    </div>
+
+
+    <!-- ÁREA DE COBERTURA -->
+    <div class="side-card coverage-card">
+
+      <div class="side-card-header">
+        <h3>Área de cobertura</h3>
+        <button routerLink="/cooperativa/area-cobertura">editar</button>
+      </div>
+
+      <p class="empty-hint">Área de cobertura ainda não definida.</p>
+
     </div>
 
   </aside>
 
+</div>
 
-  <!-- CONTEÚDO -->
-  <main class="main-content">
 
-    <!-- CABEÇALHO -->
-    <header class="page-header">
+<!-- MODAL CONVERSA COM A IA -->
+@if (conversaAberta(); as s) {
+  <div class="modal-overlay" (click)="fecharConversa()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="fecharConversa()">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
 
-      <div>
-        <h1>Solicitações recebidas</h1>
-        <p>Pedidos de coleta e entrega direcionados à sua cooperativa.</p>
+      <h2>Conversa com a IA · #{{ s.id }}</h2>
+      <p class="modal-description">{{ s.solicitante }} · {{ s.titulo }}</p>
+
+      <div class="chat-thread">
+        @for (m of conversaDe(s); track $index) {
+          <div class="chat-bubble" [class.ia]="m.autor === 'ia'">
+            <span class="chat-author">{{ m.autor === 'ia' ? 'IA do Re-cicle' : s.solicitante }}</span>
+            {{ m.texto }}
+          </div>
+        }
       </div>
 
-      <div class="header-actions">
-        <button class="btn btn-outline">
-          Exportar CSV
-        </button>
+      <div class="modal-actions">
+        <button class="btn btn-outline" (click)="fecharConversa()">Fechar</button>
+      </div>
+    </div>
+  </div>
+}
 
-        <button class="btn btn-primary">
-          Editar cadastro
-        </button>
+
+<!-- MODAL RECUSAR -->
+@if (solicitacaoParaRecusar(); as s) {
+  <div class="modal-overlay" (click)="fecharRecusa()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+
+      <h2>Recusar a coleta #{{ s.id }}</h2>
+      <p class="modal-description">
+        {{ s.categoria }} · {{ s.solicitante }} · ≈ {{ s.pesoEstimadoKg }} kg. O motivo não aparece para o
+        solicitante — ele recebe uma mensagem neutra e outra opção de destino.
+      </p>
+
+      <div class="reason-list">
+        @for (motivo of motivos; track motivo.valor) {
+          <label class="reason-option" [class.selected]="motivoSelecionado() === motivo.valor">
+            <input
+              type="radio"
+              name="motivo-recusa"
+              [value]="motivo.valor"
+              [checked]="motivoSelecionado() === motivo.valor"
+              (change)="selecionarMotivo(motivo.valor)"
+            />
+            <span>
+              <strong>{{ motivo.label }}</strong>
+              <small>{{ motivo.ajuda }}</small>
+            </span>
+          </label>
+        }
       </div>
 
-    </header>
-
-
-    <!-- INDICADORES -->
-    <section class="stats-grid">
-
-      <div class="stat-card stat-warning">
-
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24">
-            <path d="M5 8h14l1 11H4L5 8Z"/>
-            <path d="M8 8a4 4 0 0 1 8 0"/>
-          </svg>
-        </div>
-
-        <strong>0</strong>
-        <span>aguardando resposta</span>
-
+      <div class="field">
+        <label for="observacao-recusa">Observação para a equipe do Re-cicle · opcional</label>
+        <textarea
+          id="observacao-recusa"
+          placeholder="Ex.: a caçamba não entra na rua do galpão…"
+          [value]="observacaoRecusa()"
+          (input)="atualizarObservacao($any($event.target).value)"
+        ></textarea>
       </div>
 
-
-      <div class="stat-card stat-blue">
-
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24">
-            <path d="M3 7h12v10H3z"/>
-            <path d="M15 10h3l3 3v4h-6"/>
-            <circle cx="7" cy="18" r="2"/>
-            <circle cx="18" cy="18" r="2"/>
-          </svg>
-        </div>
-
-        <strong>0</strong>
-        <span>coletas em rota hoje</span>
-
+      <div class="info-box">
+        <strong>O que acontece depois</strong>
+        <p>A IA oferece o pedido para a próxima cooperativa que aceita esse tipo de resíduo na região. Recusar não afeta sua avaliação.</p>
       </div>
 
-
-      <div class="stat-card">
-
-        <div class="stat-icon green">
-          <svg viewBox="0 0 24 24">
-            <path d="M20.2 4.2C14.5 3.7 8.1 5.1 5.1 9.2c-2 2.8-1.7 6.1.1 8.4 1.2-2.9 3.6-5.2 6.8-6.5-2.2 1.8-3.7 4.1-4.3 6.8 3.3.7 6.8-.7 8.7-3.7 1.7-2.7 2.1-6.4 3.8-10z"/>
-          </svg>
-        </div>
-
-        <strong>0</strong>
-        <span>coletas concluídas</span>
-
+      <div class="modal-actions">
+        <button class="btn btn-outline" (click)="fecharRecusa()">Voltar</button>
+        <button class="btn btn-danger" (click)="confirmarRecusa()">Recusar coleta</button>
       </div>
-
-
-      <div class="stat-card">
-
-        <div class="stat-icon green">
-          <svg viewBox="0 0 24 24">
-            <path d="M5 20V10"/>
-            <path d="M12 20V4"/>
-            <path d="M19 20v-7"/>
-            <path d="M3 20h18"/>
-          </svg>
-        </div>
-
-        <strong>0</strong>
-        <span>material recebido no mês</span>
-
-      </div>
-
-    </section>
-
-
-    <!-- ÁREA PRINCIPAL -->
-    <div class="content-grid">
-
-      <!-- ESQUERDA -->
-      <section class="requests-section">
-
-        <!-- ABAS -->
-        <div class="tabs">
-
-          <button class="tab active">
-            Pendentes ()
-          </button>
-
-          <button class="tab">
-            Aceitas ()
-          </button>
-
-          <button class="tab">
-            Concluídas
-          </button>
-
-          <button class="tab">
-            Recusadas
-          </button>
-
-        </div>
-
-      </section>
-
-
-      <!-- DIREITA -->
-      <aside class="right-column">
-
-        <!-- RESÍDUOS -->
-        <div class="side-card">
-
-          <div class="side-card-header">
-            <h3>Resíduos que aceitamos</h3>
-            <button>editar</button>
-          </div>
-
-          <div class="tags">
-
-            <span>Volumosos</span>
-            <span>Madeira</span>
-            <span>Metal</span>
-            <span>Papel/papelão</span>
-            <span>Plástico</span>
-            <span>Vidro</span>
-            <span>Óleo saturado</span>
-            <span>Eletrônicos</span>
-
-          </div>
-
-          <div class="not-accepted">
-            Não aceitamos: entulho, resíduo hospitalar
-          </div>
-
-        </div>
-
-
-        <!-- ÁREA DE COBERTURA -->
-        <div class="side-card coverage-card">
-
-          <div class="side-card-header">
-            <h3>Área de cobertura</h3>
-            <button>editar</button>
-          </div>
-
-          <div class="map-placeholder">
-
-            <div class="map-area"></div>
-
-            <div class="map-center"></div>
-
-          </div>
-
-          <div class="coverage-info">
-
-            <div>
-              <span>Raio de atendimento</span>
-              <strong>10 km</strong>
-            </div>
-
-            <div>
-              <span>Bairros atendidos</span>
-              <strong>14</strong>
-            </div>
-
-          </div>
-
-        </div>
-
-      </aside>
 
     </div>
-
-  </main>
-
-</div>
+  </div>
+}

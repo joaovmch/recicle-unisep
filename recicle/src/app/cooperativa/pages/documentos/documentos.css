@@ -1,0 +1,213 @@
+.documentos-main {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.documentos-main .side-card > h3 {
+  margin: 0 0 4px;
+  color: #103f33;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+
+/* =========================
+   ALERTA
+========================= */
+
+.alert-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 18px;
+  border-radius: 12px;
+  background: #fbe3c7;
+  margin-bottom: 21px;
+}
+
+.alert-banner svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: #a15d09;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+.alert-banner p {
+  flex: 1;
+  margin: 0;
+  color: #8a4c07;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+
+/* =========================
+   LISTA DE DOCUMENTOS
+========================= */
+
+.documento-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.documento-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px 0;
+  border-bottom: 1px solid #ece9e0;
+}
+
+.documento-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.documento-row.highlight {
+  background: #fff1d8;
+  border-radius: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin: 0 -10px;
+  transition: background 0.3s ease;
+}
+
+.documento-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  background: #eef0e8;
+  color: #556961;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.documento-icon svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.documento-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.documento-info strong {
+  display: block;
+  color: #122f27;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.documento-info p {
+  margin: 2px 0 0;
+  color: #7f9089;
+  font-size: 11.5px;
+}
+
+
+/* =========================
+   O QUE A ANÁLISE CONFERE
+========================= */
+
+.analise-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.analise-tile {
+  border: 1px solid #e6e5de;
+  border-radius: 12px;
+  padding: 15px 17px;
+}
+
+.analise-tile strong {
+  display: block;
+  color: #122f27;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.analise-tile p {
+  margin: 0;
+  color: #7f9089;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+
+/* =========================
+   HISTÓRICO
+========================= */
+
+.historico-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.historico-item {
+  display: flex;
+  gap: 11px;
+}
+
+.historico-dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: #d9d8d0;
+  flex-shrink: 0;
+}
+
+.historico-dot.recente {
+  background: #10a957;
+}
+
+.historico-item strong {
+  display: block;
+  color: #122f27;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.historico-item p {
+  margin: 3px 0 0;
+  color: #8b9994;
+  font-size: 11px;
+}
+
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+@media (max-width: 760px) {
+  .alert-banner {
+    flex-wrap: wrap;
+  }
+
+  .documento-row {
+    flex-wrap: wrap;
+  }
+
+  .analise-grid {
+    grid-template-columns: 1fr;
+  }
+}

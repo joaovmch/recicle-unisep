@@ -1,0 +1,234 @@
+.analise-body {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 32px 60px;
+}
+
+.analise-grid-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 24px;
+  align-items: start;
+}
+
+
+/* =========================
+   CARTÃO PRINCIPAL
+========================= */
+
+.analise-card {
+  text-align: center;
+}
+
+.analise-icon {
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: #fbe3c7;
+  color: #a15d09;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.analise-icon svg {
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.analise-card h1 {
+  margin: 0;
+  color: #0b4939;
+  font-size: 24px;
+  font-weight: 750;
+}
+
+.analise-lead {
+  max-width: 480px;
+  margin: 12px auto 0;
+  color: #667871;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+
+/* =========================
+   PASSOS
+========================= */
+
+.analise-steps {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0;
+  margin: 30px 0 34px;
+}
+
+.analise-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 150px;
+}
+
+.analise-step strong {
+  color: #122f27;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.analise-step small {
+  color: #8b9994;
+  font-size: 11px;
+}
+
+.analise-step-line {
+  width: 70px;
+  height: 1.5px;
+  background: #e0dfd7;
+  margin-top: 13px;
+}
+
+.analise-step-line.done {
+  background: #10a957;
+}
+
+
+/* =========================
+   DOCUMENTOS
+========================= */
+
+.analise-section-title {
+  text-align: left;
+  margin-top: 6px;
+}
+
+.documento-list {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.analise-doc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 13px 0;
+  border-bottom: 1px solid #ece9e0;
+}
+
+.analise-doc-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.analise-doc-row .documento-info strong {
+  color: #122f27;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.analise-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #ece9e0;
+  text-align: left;
+}
+
+.analise-footer span {
+  color: #667871;
+  font-size: 12.5px;
+}
+
+
+/* =========================
+   TAREFAS
+========================= */
+
+.tarefa-list {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.tarefa-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #556961;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.tarefa-item.feita {
+  color: #24413a;
+}
+
+.tarefa-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1.5px solid #d9d8d0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tarefa-item.feita .tarefa-check {
+  border-color: #10a957;
+  background: #10a957;
+}
+
+.tarefa-check svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+@media (max-width: 800px) {
+  .analise-grid-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .analise-body {
+    padding: 30px 16px 40px;
+  }
+
+  .analise-steps {
+    flex-wrap: wrap;
+    row-gap: 16px;
+  }
+
+  .analise-step-line {
+    display: none;
+  }
+
+  .analise-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

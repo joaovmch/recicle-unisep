@@ -1,0 +1,193 @@
+.equipe-main {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.equipe-main .side-card > h3 {
+  margin: 0;
+  color: #103f33;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+
+/* =========================
+   TABELA DE EQUIPE
+========================= */
+
+.equipe-table {
+  margin-top: 6px;
+}
+
+.equipe-table th:nth-child(n + 2),
+.equipe-table td:nth-child(n + 2) {
+  text-align: left;
+}
+
+.pessoa-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #d9f3e4;
+  color: #0c543f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.pessoa-cell strong {
+  display: block;
+  color: #122f27;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pessoa-cell p {
+  margin: 2px 0 0;
+  color: #7f9089;
+  font-size: 11.5px;
+}
+
+.add-row-btn {
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1.5px dashed #d9d8d0;
+  background: transparent;
+  color: #556961;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.add-row-btn:hover {
+  background: #f7f6f1;
+}
+
+
+/* =========================
+   VEÍCULOS
+========================= */
+
+.veiculo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.veiculo-card {
+  border: 1px solid #e6e5de;
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.veiculo-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.veiculo-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: #d9f3e4;
+  color: #0c543f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.veiculo-icon svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.veiculo-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.veiculo-title strong {
+  display: block;
+  color: #122f27;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.veiculo-title p {
+  margin: 2px 0 0;
+  color: #7f9089;
+  font-size: 11.5px;
+}
+
+.veiculo-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.veiculo-rows div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.veiculo-rows span {
+  color: #8b9994;
+  font-size: 11.5px;
+}
+
+.veiculo-rows strong {
+  color: #122f27;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+@media (max-width: 760px) {
+  .veiculo-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .equipe-table thead {
+    display: none;
+  }
+
+  .equipe-table td {
+    display: block;
+    border-bottom: 0;
+    padding: 4px 0;
+  }
+
+  .equipe-table tr {
+    display: block;
+    padding: 12px 0;
+    border-bottom: 1px solid #ece9e0;
+  }
+}

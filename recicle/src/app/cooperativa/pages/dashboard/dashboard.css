@@ -1,0 +1,222 @@
+.dashboard-main {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+
+/* =========================
+   ROTA DE HOJE
+========================= */
+
+.route-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.route-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  position: relative;
+  padding-bottom: 20px;
+}
+
+.route-item:not(.no-line)::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: 28px;
+  bottom: 0;
+  width: 1.5px;
+  background: #e0dfd7;
+}
+
+.route-marker {
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: #eef0e8;
+  color: #7f9089;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.route-marker.done {
+  background: #10a957;
+  color: #ffffff;
+}
+
+.route-marker svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.route-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.route-info strong {
+  display: block;
+  color: #122f27;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.route-info strong span {
+  color: #61736d;
+  font-weight: 500;
+}
+
+.route-info p {
+  margin: 3px 0 0;
+  color: #7f9089;
+  font-size: 12px;
+}
+
+.route-time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.route-time > span:first-child {
+  color: #8b9994;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+
+/* =========================
+   ESPERANDO RESPOSTA
+========================= */
+
+.waiting-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.waiting-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 6px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.waiting-row:hover {
+  background: #f7f6f1;
+}
+
+.waiting-row .request-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 9px;
+  background: #d9f3e4;
+  flex-shrink: 0;
+}
+
+.waiting-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.waiting-info strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #122f27;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.waiting-info p {
+  margin: 3px 0 0;
+  color: #7f9089;
+  font-size: 12px;
+}
+
+.waiting-price {
+  color: #073f31;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+
+/* =========================
+   MODAL — MAPA DA ROTA
+========================= */
+
+.route-map-canvas {
+  position: relative;
+  height: 320px;
+  border-radius: 12px;
+  background: #e9ebe2;
+  overflow: hidden;
+}
+
+.route-map-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #7f9089;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  z-index: 2;
+  cursor: default;
+}
+
+.route-map-pin.done {
+  background: #10a957;
+}
+
+.route-map-pin.active {
+  background: #2768c8;
+}
+
+.route-map-pin small {
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #123d31;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.route-map-pin:hover small {
+  opacity: 1;
+}
+
+

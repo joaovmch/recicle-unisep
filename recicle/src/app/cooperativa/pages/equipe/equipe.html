@@ -1,0 +1,322 @@
+<!-- CABEÇALHO -->
+<header class="page-header">
+  <div>
+    <h1>Equipe e veículos</h1>
+    <p>Quem sai para coletar e com o quê. Só quem está aqui confirma recebimento.</p>
+  </div>
+
+  <div class="header-actions">
+    <button class="btn btn-outline" (click)="abrirModalVeiculo()">Adicionar veículo</button>
+    <button class="btn btn-primary" (click)="abrirModalPessoa()">Adicionar pessoa</button>
+  </div>
+</header>
+
+
+<div class="content-grid">
+
+  <!-- ESQUERDA -->
+  <section class="equipe-main">
+
+    <!-- EQUIPE -->
+    <div class="side-card">
+      <div class="side-card-header">
+        <div>
+          <h3>Equipe</h3>
+          <p class="subtitle">{{ pessoasComAcesso() }} de {{ equipe().length }} pessoas com acesso ao painel</p>
+        </div>
+        <button (click)="abrirModalPermissoes()">gerenciar permissões</button>
+      </div>
+
+      @if (equipe().length === 0) {
+        <p class="empty-hint">Nenhuma pessoa cadastrada ainda.</p>
+      } @else {
+        <table class="data-table equipe-table">
+          <thead>
+            <tr>
+              <th>Pessoa</th>
+              <th>Função</th>
+              <th>Coletas</th>
+              <th>Situação</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of equipe(); track m.nome) {
+              <tr>
+                <td>
+                  <div class="pessoa-cell">
+                    <span class="avatar">{{ m.iniciais }}</span>
+                    <div>
+                      <strong>{{ m.nome }}</strong>
+                      <p>{{ m.telefone }}@if (m.observacao) { · {{ m.observacao }} }</p>
+                    </div>
+                  </div>
+                </td>
+                <td>{{ m.funcao }}</td>
+                <td>{{ m.coletas ?? '—' }}</td>
+                <td>
+                  <span
+                    class="status-pill"
+                    [class.good]="m.situacaoTipo === 'good'"
+                    [class.info]="m.situacaoTipo === 'info'"
+                    [class.neutral]="m.situacaoTipo === 'neutral'"
+                  >
+                    {{ m.situacao }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+
+      <button class="add-row-btn" (click)="abrirModalPessoa()">+ Adicionar pessoa à equipe</button>
+    </div>
+
+
+    <!-- VEÍCULOS -->
+    <div class="side-card">
+      <h3>Veículos</h3>
+      <p class="subtitle" style="margin-bottom: 16px;">A capacidade define o peso máximo que a IA pode oferecer</p>
+
+      @if (veiculos().length === 0) {
+        <p class="empty-hint">Nenhum veículo cadastrado ainda.</p>
+      }
+
+      <div class="veiculo-grid">
+        @for (v of veiculos(); track v.nome) {
+          <div class="veiculo-card">
+            <div class="veiculo-top">
+              <div class="veiculo-icon">
+                <svg viewBox="0 0 24 24">
+                  <path d="M3 7h12v10H3z"/>
+                  <path d="M15 10h3l3 3v4h-6"/>
+                  <circle cx="7" cy="18" r="2"/>
+                  <circle cx="18" cy="18" r="2"/>
+                </svg>
+              </div>
+
+              <div class="veiculo-title">
+                <strong>{{ v.nome }}</strong>
+                <p>{{ v.identificacao }}</p>
+              </div>
+
+              <span
+                class="status-pill"
+                [class.good]="v.situacaoTipo === 'good'"
+                [class.info]="v.situacaoTipo === 'info'"
+              >
+                {{ v.situacao }}
+              </span>
+            </div>
+
+            <div class="veiculo-rows">
+              <div>
+                <span>Capacidade</span>
+                <strong>{{ v.capacidadeKg }} kg · {{ v.capacidadeM3 }} m³</strong>
+              </div>
+              <div>
+                <span>{{ v.extraLabel }}</span>
+                <strong>{{ v.extraValor }}</strong>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- DIREITA -->
+  <aside class="right-column">
+
+    <div class="highlight-card">
+      <span>Capacidade somada</span>
+      <strong>{{ capacidadeSomada().toLocaleString('pt-BR') }} kg</strong>
+      <p>
+        É o teto que a IA considera ao montar a rota do dia. Coleta acima disso é oferecida para outra
+        cooperativa.
+      </p>
+    </div>
+
+    <div class="side-card">
+      <h3 class="summary-title">Quem confirma recebimento</h3>
+      <p class="summary-hint">No app do coletor, com o código de 4 dígitos do morador.</p>
+
+      @if (coletores().length === 0) {
+        <p class="empty-hint">Adicione pessoas à equipe para definir quem confirma.</p>
+      } @else {
+        <div class="toggle-row-list">
+          @for (m of coletores(); track m.nome) {
+            <div class="toggle-row">
+              <span>{{ m.nome }}</span>
+              <label class="toggle-switch">
+                <input type="checkbox" [checked]="m.podeConfirmar" (change)="alternarConfirmacao(m.nome)" />
+                <span class="track"></span>
+              </label>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="side-card">
+      <h3 class="summary-title">Coletas por pessoa</h3>
+      <p class="summary-hint">Últimos 30 dias</p>
+
+      @if (coletasPorPessoa.length === 0) {
+        <p class="empty-hint">Nenhuma coleta registrada ainda.</p>
+      } @else {
+        <div class="material-list">
+          @for (item of coletasPorPessoa; track item.nome) {
+            <div>
+              <span>{{ item.nome }}</span>
+              <strong>{{ item.coletas }}</strong>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  </aside>
+
+</div>
+
+
+<!-- MODAL — ADICIONAR PESSOA -->
+@if (modalPessoaAberto()) {
+  <div class="modal-overlay" (click)="fecharModalPessoa()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="fecharModalPessoa()">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
+
+      <h2>Adicionar pessoa à equipe</h2>
+      <p class="modal-description">Ela aparece na tabela de equipe e pode ganhar acesso para confirmar recebimento.</p>
+
+      <div class="field">
+        <label for="pessoa-nome">Nome completo</label>
+        <input id="pessoa-nome" type="text" [value]="novoNome()" (input)="novoNome.set($any($event.target).value)" />
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="pessoa-telefone">Telefone</label>
+          <input
+            id="pessoa-telefone"
+            type="text"
+            placeholder="(46) 99999-9999"
+            [value]="novoTelefone()"
+            (input)="novoTelefone.set($any($event.target).value)"
+          />
+        </div>
+
+        <div class="field">
+          <label for="pessoa-funcao">Função</label>
+          <select id="pessoa-funcao" [value]="novaFuncao()" (change)="novaFuncao.set($any($event.target).value)">
+            @for (f of funcoesDisponiveis; track f) {
+              <option [value]="f">{{ f }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-outline" (click)="fecharModalPessoa()">Cancelar</button>
+        <button class="btn btn-primary" [disabled]="!novoNome().trim()" (click)="salvarPessoa()">Adicionar</button>
+      </div>
+    </div>
+  </div>
+}
+
+
+<!-- MODAL — ADICIONAR VEÍCULO -->
+@if (modalVeiculoAberto()) {
+  <div class="modal-overlay" (click)="fecharModalVeiculo()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="fecharModalVeiculo()">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
+
+      <h2>Adicionar veículo</h2>
+      <p class="modal-description">A capacidade entra direto no teto que a IA considera para oferecer coletas.</p>
+
+      <div class="field">
+        <label for="veiculo-nome">Nome do veículo</label>
+        <input
+          id="veiculo-nome"
+          type="text"
+          placeholder="Ex.: Furgão"
+          [value]="novoVeiculoNome()"
+          (input)="novoVeiculoNome.set($any($event.target).value)"
+        />
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="veiculo-identificacao">Placa e motorista</label>
+          <input
+            id="veiculo-identificacao"
+            type="text"
+            placeholder="Ex.: ABC-1234 · Nome"
+            [value]="novoVeiculoIdentificacao()"
+            (input)="novoVeiculoIdentificacao.set($any($event.target).value)"
+          />
+        </div>
+
+        <div class="field">
+          <label for="veiculo-capacidade">Capacidade (kg)</label>
+          <input
+            id="veiculo-capacidade"
+            type="number"
+            step="10"
+            [value]="novoVeiculoCapacidade()"
+            (input)="novoVeiculoCapacidade.set(+$any($event.target).value || 0)"
+          />
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-outline" (click)="fecharModalVeiculo()">Cancelar</button>
+        <button class="btn btn-primary" [disabled]="!novoVeiculoNome().trim()" (click)="salvarVeiculo()">
+          Adicionar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+
+<!-- MODAL — GERENCIAR PERMISSÕES -->
+@if (modalPermissoesAberto()) {
+  <div class="modal-overlay" (click)="fecharModalPermissoes()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="fecharModalPermissoes()">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
+
+      <h2>Gerenciar permissões</h2>
+      <p class="modal-description">Quem tem acesso ao painel do parceiro para ver solicitações e relatórios.</p>
+
+      @if (equipe().length === 0) {
+        <p class="empty-hint">Nenhuma pessoa cadastrada ainda.</p>
+      } @else {
+        <div class="toggle-row-list">
+          @for (m of equipe(); track m.nome) {
+            <div class="toggle-row">
+              <span>{{ m.nome }} <small>· {{ m.funcao }}</small></span>
+              <label class="toggle-switch">
+                <input type="checkbox" [checked]="m.acessoPainel" (change)="alternarAcessoPainel(m.nome)" />
+                <span class="track"></span>
+              </label>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="modal-actions" style="margin-top: 20px;">
+        <button class="btn btn-primary" (click)="fecharModalPermissoes()">Concluído</button>
+      </div>
+    </div>
+  </div>
+}

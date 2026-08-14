@@ -1,0 +1,103 @@
+<div class="cooperativa-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <div class="brand">
+      <div class="brand-icon">
+        <img src="/logo.png" alt="Re-cicle" />
+      </div>
+
+      <div>
+        <div class="brand-name">Re-cicle</div>
+        <div class="brand-subtitle">painel do parceiro</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-menu">
+
+      <a class="menu-item" routerLink="dashboard" routerLinkActive="active">
+        <svg viewBox="0 0 24 24">
+          <rect x="4" y="4" width="6" height="6" rx="1"/>
+          <rect x="14" y="4" width="6" height="6" rx="1"/>
+          <rect x="4" y="14" width="6" height="6" rx="1"/>
+          <rect x="14" y="14" width="6" height="6" rx="1"/>
+        </svg>
+        <span>Visão geral</span>
+      </a>
+
+      <a class="menu-item" routerLink="solicitacoes" routerLinkActive="active">
+        <svg viewBox="0 0 24 24">
+          <path d="M5 8h14l1 11H4L5 8Z"/>
+          <path d="M8 8a4 4 0 0 1 8 0"/>
+        </svg>
+        <span>Solicitações</span>
+      </a>
+
+      <a class="menu-item" routerLink="residuos" routerLinkActive="active">
+        <svg viewBox="0 0 24 24">
+          <path d="m12 3 8 8-8 10-8-10 8-8Z"/>
+          <circle cx="12" cy="11" r="2"/>
+        </svg>
+        <span>Tipos de resíduo</span>
+      </a>
+
+      <a class="menu-item" routerLink="area-cobertura" routerLinkActive="active">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 21s6-5.4 6-11a6 6 0 1 0-12 0c0 5.6 6 11 6 11Z"/>
+          <circle cx="12" cy="10" r="2"/>
+        </svg>
+        <span>Área de cobertura</span>
+      </a>
+
+      <a class="menu-item" routerLink="equipe" routerLinkActive="active">
+        <svg viewBox="0 0 24 24">
+          <circle cx="9" cy="8" r="3"/>
+          <circle cx="17" cy="10" r="2.5"/>
+          <path d="M3 20c0-3.2 2.7-5 6-5s6 1.8 6 5"/>
+          <path d="M14 15c3 0 5 1.5 5 4"/>
+        </svg>
+        <span>Equipe e veículos</span>
+      </a>
+
+      <a class="menu-item" routerLink="documentos" routerLinkActive="active">
+        <svg viewBox="0 0 24 24">
+          <path d="M6 3h9l4 4v14H6V3Z"/>
+          <path d="M14 3v5h5"/>
+          <path d="M9 13h6M9 17h6"/>
+        </svg>
+        <span>Documentos e licença</span>
+      </a>
+
+      <a class="menu-item" routerLink="relatorios" routerLinkActive="active">
+        <svg viewBox="0 0 24 24">
+          <path d="M5 20V10"/>
+          <path d="M12 20V4"/>
+          <path d="M19 20v-7"/>
+          <path d="M3 20h18"/>
+        </svg>
+        <span>Relatórios</span>
+      </a>
+
+    </nav>
+
+    <div class="cooperativa-card">
+      <strong>Sua cooperativa</strong>
+
+      <div class="license">
+        <span class="status-dot pendente"></span>
+        cadastro em andamento
+      </div>
+    </div>
+
+  </aside>
+
+
+  <!-- CONTEÚDO -->
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <app-toast-host></app-toast-host>
+
+</div>

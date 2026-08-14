@@ -1,0 +1,238 @@
+.wizard-body {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 36px 32px 60px;
+}
+
+.wizard-grid {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+
+/* =========================
+   COLUNA DO STEPPER
+========================= */
+
+.wizard-stepper-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.wizard-title {
+  margin: 0;
+  color: #0b4939;
+  font-size: 22px;
+  font-weight: 750;
+  letter-spacing: -0.5px;
+}
+
+.wizard-subtitle {
+  margin: 4px 0 0;
+  color: #8b9994;
+  font-size: 12.5px;
+}
+
+.wizard-stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stepper-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px;
+  border-radius: 12px;
+  border: 1.5px solid transparent;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.stepper-step:disabled {
+  cursor: not-allowed;
+}
+
+.stepper-step.active {
+  border-color: #10a957;
+  background: #ffffff;
+}
+
+.stepper-step.active .stepper-dot {
+  background: #123d31;
+  color: #ffffff;
+}
+
+.stepper-step.done .stepper-dot {
+  background: #10a957;
+  color: #ffffff;
+}
+
+.stepper-text strong {
+  display: block;
+  color: #122f27;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.stepper-text small {
+  display: block;
+  margin-top: 2px;
+  color: #8b9994;
+  font-size: 11px;
+}
+
+
+/* =========================
+   CARTÃO PRINCIPAL
+========================= */
+
+.wizard-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px 36px 30px;
+  box-shadow: 0 2px 5px rgba(20, 50, 40, 0.05);
+  min-width: 0;
+}
+
+.wizard-card h2 {
+  margin: 0;
+  color: #0b4939;
+  font-size: 22px;
+  font-weight: 750;
+}
+
+.wizard-lead {
+  margin: 6px 0 20px;
+  color: #667871;
+  font-size: 13px;
+}
+
+.wizard-card .field-row {
+  margin-bottom: 16px;
+}
+
+
+/* =========================
+   CHIPS DE RESÍDUO
+========================= */
+
+.residuo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.residuo-chip {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #d9d8d0;
+  background: #ffffff;
+  color: #48625a;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.residuo-chip.on {
+  border-color: #10a957;
+  background: #eef9f3;
+  color: #0d4b3a;
+}
+
+.chip-check {
+  width: 17px;
+  height: 17px;
+  border-radius: 5px;
+  border: 1.5px solid #d9d8d0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.residuo-chip.on .chip-check {
+  border-color: #10a957;
+  background: #10a957;
+}
+
+.chip-check svg {
+  width: 11px;
+  height: 11px;
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+
+
+/* =========================
+   CONFIRMAÇÃO E AÇÕES
+========================= */
+
+.confirm-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 18px;
+  color: #48625a;
+  font-size: 12.5px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.confirm-checkbox input {
+  margin-top: 3px;
+  accent-color: #10a957;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.wizard-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid #ece9e0;
+}
+
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+@media (max-width: 900px) {
+  .wizard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .wizard-body {
+    padding: 24px 16px 40px;
+  }
+
+  .wizard-card {
+    padding: 24px 20px 22px;
+  }
+
+  .wizard-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}

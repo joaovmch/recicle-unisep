@@ -1,0 +1,191 @@
+.confirm-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.form-section h3 {
+  margin: 0 0 4px;
+  color: #0b4939;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.form-section > p {
+  margin: 0 0 16px;
+  color: #667871;
+  font-size: 12.5px;
+}
+
+
+/* =========================
+   CÓDIGO DO MORADOR
+========================= */
+
+.code-boxes {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.code-box {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  border: 1px solid #d8eee1;
+  background: #eef9f3;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0b4939;
+  text-transform: uppercase;
+}
+
+.code-box:focus {
+  outline: 2px solid #10a957;
+  outline-offset: 1px;
+}
+
+
+/* =========================
+   PESAGEM
+========================= */
+
+.field input:disabled {
+  color: #8b9994;
+  background: #f4f3ee;
+}
+
+.form-section .warning-box {
+  margin-top: 16px;
+}
+
+
+/* =========================
+   TRIAGEM
+========================= */
+
+.triagem-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.triagem-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 12px 15px;
+  border-radius: 11px;
+  border: 1px solid #e0dfd7;
+  cursor: pointer;
+}
+
+.triagem-row.checked {
+  border-color: #10a957;
+  background: #eef9f3;
+}
+
+.triagem-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #123d31;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.triagem-check input {
+  accent-color: #10a957;
+  width: 17px;
+  height: 17px;
+}
+
+.triagem-kg {
+  width: 90px;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid #d9d8d0;
+  background: #ffffff;
+  text-align: right;
+  font-family: inherit;
+  font-size: 13px;
+  color: #123d31;
+}
+
+
+/* =========================
+   AÇÕES
+========================= */
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+
+/* =========================
+   COLUNA LATERAL
+========================= */
+
+.summary-title {
+  margin: 0 0 4px;
+  color: #103f33;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.summary-list {
+  margin: 12px 0 0;
+}
+
+.summary-list div {
+  padding: 10px 0;
+  border-bottom: 1px solid #ece9e0;
+}
+
+.summary-list div:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.summary-list dt {
+  color: #8b9994;
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.summary-list dd {
+  margin: 0;
+  color: #122f27;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sem-codigo-card .link-btn {
+  display: block;
+  margin-top: 4px;
+}
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+@media (max-width: 760px) {
+  .field-row.three {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+  }
+}

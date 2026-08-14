@@ -1,19 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
-import { Solicitacoes } from './solicitacoes';
+import { CooperativaLayout } from './cooperativa-layout';
 
-describe('Solicitacoes', () => {
-  let component: Solicitacoes;
-  let fixture: ComponentFixture<Solicitacoes>;
+describe('CooperativaLayout', () => {
+  let component: CooperativaLayout;
+  let fixture: ComponentFixture<CooperativaLayout>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Solicitacoes],
+      imports: [CooperativaLayout],
       providers: [provideRouter([])],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(Solicitacoes);
+    fixture = TestBed.createComponent(CooperativaLayout);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

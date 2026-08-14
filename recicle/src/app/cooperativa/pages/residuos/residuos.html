@@ -1,1 +1,142 @@
-<p>residuos works!</p>
+<!-- CABEÇALHO -->
+<header class="page-header">
+  <div>
+    <h1>Tipos de resíduo</h1>
+    <p>A IA só oferece sua cooperativa para o que estiver ligado aqui.</p>
+  </div>
+
+  <div class="header-actions">
+    <button class="btn btn-outline" (click)="descartar()">Descartar</button>
+    <button class="btn btn-primary" (click)="salvarAlteracoes()">Salvar alterações</button>
+  </div>
+</header>
+
+
+<div class="content-grid">
+
+  <!-- ESQUERDA -->
+  <section class="side-card">
+
+    <div class="residuo-group">
+      <span class="section-label">Recicláveis secos</span>
+
+      <div class="option-grid">
+        @for (item of reciclaveis(); track item.nome; let i = $index) {
+          <div class="option-card" [class.on]="item.ligado">
+            <div class="option-card-top">
+              <strong>{{ item.nome }}</strong>
+              <label class="toggle-switch">
+                <input type="checkbox" [checked]="item.ligado" (change)="alternarReciclavel(i)" />
+                <span class="track"></span>
+              </label>
+            </div>
+            @if (item.detalhe) {
+              <p>{{ item.detalhe }}</p>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="residuo-group">
+      <span class="section-label">Volumosos</span>
+
+      <div class="option-grid">
+        @for (item of volumosos(); track item.nome; let i = $index) {
+          <div class="option-card" [class.on]="item.ligado">
+            <div class="option-card-top">
+              <strong>{{ item.nome }}</strong>
+              <label class="toggle-switch">
+                <input type="checkbox" [checked]="item.ligado" (change)="alternarVolumoso(i)" />
+                <span class="track"></span>
+              </label>
+            </div>
+            @if (item.detalhe) {
+              <p>{{ item.detalhe }}</p>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="residuo-group">
+      <span class="section-label">Resíduo perigoso · exige licença específica</span>
+
+      <div class="option-grid">
+        @for (item of perigosos; track item.nome) {
+          <div class="option-card locked">
+            <div class="option-card-top">
+              <strong>{{ item.nome }}</strong>
+              <label class="toggle-switch">
+                <input type="checkbox" [checked]="item.ligado" disabled />
+                <span class="track"></span>
+              </label>
+            </div>
+            @if (item.detalhe) {
+              <p>{{ item.detalhe }}</p>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- DIREITA -->
+  <aside class="right-column">
+
+    <div class="side-card">
+      <h3 class="summary-title">Capacidade de coleta</h3>
+      <p class="summary-hint">Usamos isso para não te mandar pedido que a equipe não dá conta.</p>
+
+      <div class="field">
+        <label for="peso-maximo">Peso máximo por coleta</label>
+        <input
+          id="peso-maximo"
+          type="text"
+          [value]="pesoMaximo() + ' kg'"
+          (input)="atualizarPesoMaximo($any($event.target).value)"
+        />
+      </div>
+
+      <div class="field">
+        <label for="coletas-dia">Coletas por dia</label>
+        <input id="coletas-dia" type="text" [value]="'até ' + coletasPorDia()" disabled />
+      </div>
+
+      <div class="field">
+        <label for="volume-maximo">Volume máximo</label>
+        <input id="volume-maximo" type="text" [value]="volumeMaximo() + ' m³ por viagem'" disabled />
+      </div>
+    </div>
+
+    <div class="info-card">
+      <strong>O que a IA responde</strong>
+      <p>
+        Quando o morador descreve um resíduo que vocês desligaram, a IA não oferece a sua cooperativa — ela indica
+        ecoponto ou outra cooperativa que aceita.
+      </p>
+    </div>
+
+    <div class="side-card">
+      <h3 class="summary-title">Pedidos recusados por tipo</h3>
+      <p class="summary-hint">Últimos 90 dias</p>
+
+      @if (pedidosRecusados.length === 0) {
+        <p class="empty-hint">Nenhum pedido recusado ainda.</p>
+      } @else {
+        <div class="material-list">
+          @for (item of pedidosRecusados; track item.tipo) {
+            <div>
+              <span>{{ item.tipo }}</span>
+              <strong>{{ item.pedidos }} pedidos</strong>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  </aside>
+
+</div>

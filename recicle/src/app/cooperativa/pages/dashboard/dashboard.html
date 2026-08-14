@@ -1,1 +1,249 @@
-<p>dashboard works!</p>
+<!-- CABEÇALHO -->
+<header class="page-header">
+  <div>
+    <h1>Bom dia</h1>
+    <p>{{ hoje }} · {{ rotaDeHoje.length }} coletas na agenda de hoje.</p>
+  </div>
+
+  <div class="header-actions">
+    <button class="btn btn-outline" routerLink="/cooperativa/cadastro">Editar cadastro</button>
+    <button class="btn btn-primary" routerLink="/cooperativa/solicitacoes">Ver solicitações</button>
+  </div>
+</header>
+
+
+<!-- INDICADORES -->
+<section class="stats-grid">
+
+  <div class="stat-card stat-warning">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M4 5h16v11H8l-4 4V5Z"/>
+      </svg>
+    </div>
+    <strong>{{ pendentes().length }}</strong>
+    <span>aguardando sua resposta</span>
+  </div>
+
+  <div class="stat-card stat-blue">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M3 7h12v10H3z"/>
+        <path d="M15 10h3l3 3v4h-6"/>
+        <circle cx="7" cy="18" r="2"/>
+        <circle cx="18" cy="18" r="2"/>
+      </svg>
+    </div>
+    <strong>{{ emRotaAgora().length }}</strong>
+    <span>coletas em rota agora</span>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg viewBox="0 0 24 24">
+        <path d="M20.2 4.2C14.5 3.7 8.1 5.1 5.1 9.2c-2 2.8-1.7 6.1.1 8.4 1.2-2.9 3.6-5.2 6.8-6.5-2.2 1.8-3.7 4.1-4.3 6.8 3.3.7 6.8-.7 8.7-3.7 1.7-2.7 2.1-6.4 3.8-10z"/>
+      </svg>
+    </div>
+    <strong>{{ materialRecebidoMes }}</strong>
+    <span>material recebido no mês</span>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 7v10M15.5 9.8c0-1.5-1.6-2.4-3.5-2.4s-3.5.9-3.5 2.2c0 1.4 1.3 2 3.5 2.4 2.2.4 3.5 1 3.5 2.4 0 1.3-1.6 2.2-3.5 2.2s-3.5-.9-3.5-2.4"/>
+      </svg>
+    </div>
+    <strong>{{ formatarPreco(receitaDoMes) }}</strong>
+    <span>recebido pelas coletas no mês</span>
+  </div>
+
+</section>
+
+
+<!-- ÁREA PRINCIPAL -->
+<div class="content-grid">
+
+  <!-- ESQUERDA -->
+  <section class="dashboard-main">
+
+    <!-- ROTA DE HOJE -->
+    <div class="side-card">
+      <div class="side-card-header">
+        <div>
+          <h3>Rota de hoje</h3>
+          <p class="subtitle">Nenhuma coleta agendada ainda</p>
+        </div>
+        <button (click)="mapaAberto.set(true)">Abrir no mapa</button>
+      </div>
+
+      @if (rotaDeHoje.length === 0) {
+        <p class="empty-hint">As coletas aceitas para hoje aparecem aqui.</p>
+      }
+
+      <div class="route-list">
+        @for (parada of rotaDeHoje; track parada.horario; let last = $last) {
+          <div class="route-item" [class.no-line]="last">
+            <div class="route-marker" [class.done]="parada.status === 'concluida'">
+              @if (parada.status === 'concluida') {
+                <svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg>
+              } @else {
+                {{ $index + 1 }}
+              }
+            </div>
+
+            <div class="route-info">
+              <strong>{{ parada.titulo }} <span>· {{ parada.responsavel }}</span></strong>
+              <p>{{ parada.endereco }} · {{ parada.detalhe }}</p>
+            </div>
+
+            <div class="route-time">
+              <span>{{ parada.horario }}</span>
+              <span
+                class="status-pill"
+                [class.good]="parada.status === 'concluida'"
+                [class.info]="parada.status === 'em-rota'"
+                [class.neutral]="parada.status === 'agendada'"
+              >
+                {{ statusLabel[parada.status] }}
+              </span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+
+    <!-- ESPERANDO RESPOSTA -->
+    <div class="side-card">
+      <div class="side-card-header">
+        <h3>Esperando sua resposta</h3>
+        <button routerLink="/cooperativa/solicitacoes">ver todas as {{ pendentes().length }}</button>
+      </div>
+
+      @if (proximasPendentes().length === 0) {
+        <p class="empty-hint">Nenhuma solicitação esperando resposta.</p>
+      }
+
+      <div class="waiting-list">
+        @for (s of proximasPendentes(); track s.id) {
+          <a class="waiting-row" routerLink="/cooperativa/solicitacoes">
+            <div class="request-image"></div>
+
+            <div class="waiting-info">
+              <strong>{{ s.titulo }} @if (s.nota) {<span class="badge badge-warning">{{ s.nota }}</span>}</strong>
+              <p>{{ s.solicitante }} · {{ s.bairro }} · {{ s.distanciaKm.toFixed(1).replace('.', ',') }} km · {{ s.janela }}</p>
+            </div>
+
+            <div class="waiting-price">{{ formatarPreco(s.preco) }}</div>
+          </a>
+        }
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- DIREITA -->
+  <aside class="right-column">
+
+    <div class="highlight-card">
+      <span>Capacidade de hoje</span>
+      <strong>{{ capacidadeUsada }} de {{ capacidadeTotal }}</strong>
+
+      <div class="capacity-bar">
+        <div class="capacity-fill" [style.width.%]="capacidadeTotal > 0 ? (capacidadeUsada / capacidadeTotal) * 100 : 0"></div>
+      </div>
+
+      <p>
+        Defina a capacidade diária em Equipe e veículos. Depois disso a IA para de oferecer sua cooperativa para
+        hoje quando o teto for atingido.
+      </p>
+    </div>
+
+    <div class="side-card">
+      <h3 class="summary-title">O que mais chegou este mês</h3>
+
+      @if (materialDoMes.length === 0) {
+        <p class="empty-hint">Ainda não há material recebido registrado.</p>
+      } @else {
+        <div class="material-list">
+          @for (item of materialDoMes; track item.material) {
+            <div>
+              <span>{{ item.material }}</span>
+              <strong>{{ formatarKg(item.kg) }}</strong>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="side-card">
+      <h3 class="summary-title">Situação do cadastro</h3>
+
+      <div class="material-list">
+        <div>
+          <span>Licença ambiental</span>
+          <span class="badge badge-neutral">Não enviada</span>
+        </div>
+        <div>
+          <span>Resíduo perigoso</span>
+          <span class="badge badge-neutral">Não enviado</span>
+        </div>
+        <div>
+          <span>Equipe cadastrada</span>
+          <strong>—</strong>
+        </div>
+        <div>
+          <span>Veículos</span>
+          <strong>—</strong>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+</div>
+
+
+<!-- MODAL — MAPA DA ROTA -->
+@if (mapaAberto()) {
+  <div class="modal-overlay" (click)="mapaAberto.set(false)">
+    <div class="modal-card wide" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="mapaAberto.set(false)">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
+
+      <h2>Rota de hoje no mapa</h2>
+      <p class="modal-description">
+        @if (rotaDeHoje.length === 0) {
+          Nenhuma coleta agendada para hoje ainda.
+        } @else {
+          {{ rotaDeHoje.length }} parada(s) na rota de hoje.
+        }
+      </p>
+
+      <div class="route-map-canvas">
+        <div class="map-grid"></div>
+
+        @for (parada of rotaDeHoje; track parada.horario; let i = $index) {
+          <span
+            class="route-map-pin"
+            [class.done]="parada.status === 'concluida'"
+            [class.active]="parada.status === 'em-rota'"
+            [style.top.%]="parada.top"
+            [style.left.%]="parada.left"
+          >
+            {{ i + 1 }}
+            <small>{{ parada.titulo }} · {{ parada.horario }}</small>
+          </span>
+        }
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-outline" (click)="mapaAberto.set(false)">Fechar</button>
+      </div>
+    </div>
+  </div>
+}
