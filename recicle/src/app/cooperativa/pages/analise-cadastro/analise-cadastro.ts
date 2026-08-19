@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../data/auth.service';
 
 type StatusDocumentoAnalise = 'em-conferencia' | 'validado';
 
@@ -34,6 +35,9 @@ const TAREFAS: TarefaEnquantoIsso[] = [
   styleUrls: ['../../shared/cooperativa-shared.css', './analise-cadastro.css'],
 })
 export class AnaliseCadastro {
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+
   readonly documentos = DOCUMENTOS_ANALISE;
   readonly tarefas = TAREFAS;
 
@@ -43,4 +47,9 @@ export class AnaliseCadastro {
     'em-conferencia': 'Em conferência',
     validado: 'Validado',
   };
+
+  sair(): void {
+    this.auth.sair();
+    this.router.navigate(['/cooperativa/entrar']);
+  }
 }

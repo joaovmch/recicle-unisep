@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { cooperativaAuthGuard } from './data/auth.guard';
 
 export const COOPERATIVA_ROUTES: Routes = [
   {
@@ -18,6 +19,7 @@ export const COOPERATIVA_ROUTES: Routes = [
   },
   {
     path: '',
+    canActivate: [cooperativaAuthGuard],
     loadComponent: () =>
       import('./layout/cooperativa-layout').then(m => m.CooperativaLayout),
     children: [

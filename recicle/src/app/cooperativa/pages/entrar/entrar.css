@@ -188,6 +188,16 @@
   cursor: pointer;
 }
 
+.entrar-erro {
+  margin: 14px 0 0;
+  padding: 10px 13px;
+  border-radius: 9px;
+  background: #fbdcd6;
+  color: #b13a28;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
 .entrar-remember input {
   accent-color: #10a957;
   width: 15px;

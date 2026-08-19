@@ -1,1 +1,54 @@
-<p>login works!</p>
+<div class="tipo-conta-shell">
+
+  <header class="tipo-conta-topbar">
+    <div class="tipo-conta-brand">
+      <div class="brand-icon">
+        <img src="/logo.png" alt="Re-cicle" />
+      </div>
+      <span>Re-cicle</span>
+    </div>
+  </header>
+
+  <main class="tipo-conta-main">
+    <div class="tipo-conta-card">
+      <h1>Como você quer entrar?</h1>
+      <p>Escolha o tipo de conta para continuar.</p>
+
+      <div class="tipo-opcoes">
+
+        <button class="tipo-opcao" (click)="selecionar('cooperativa')">
+          <span class="tipo-opcao-icon">
+            <svg viewBox="0 0 24 24">
+              <circle cx="9" cy="8" r="3" />
+              <circle cx="17" cy="10" r="2.5" />
+              <path d="M3 20c0-3.2 2.7-5 6-5s6 1.8 6 5" />
+              <path d="M14 15c3 0 5 1.5 5 4" />
+            </svg>
+          </span>
+          <span class="tipo-opcao-texto">
+            <strong>Cooperativa ou parceiro</strong>
+            <small>Gerencie coletas, equipe e documentos da sua cooperativa.</small>
+          </span>
+          <svg class="tipo-opcao-seta" viewBox="0 0 24 24">
+            <path d="m9 6 6 6-6 6" />
+          </svg>
+        </button>
+
+        <div class="tipo-opcao locked">
+          <span class="tipo-opcao-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="m4 11 8-7 8 7" />
+              <path d="M6 10v9h12v-9" />
+            </svg>
+          </span>
+          <span class="tipo-opcao-texto">
+            <strong>Morador <span class="badge-em-breve">em breve</span></strong>
+            <small>Solicite coletas e acompanhe seus pontos.</small>
+          </span>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+</div>

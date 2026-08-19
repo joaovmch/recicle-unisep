@@ -1,0 +1,218 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  color: #123d31;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.tipo-conta-shell {
+  min-height: 100vh;
+  background: #f7f6f1;
+}
+
+
+/* =========================
+   TOPO
+========================= */
+
+.tipo-conta-topbar {
+  padding: 20px 32px;
+}
+
+.tipo-conta-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-icon {
+  width: 40px;
+  height: 40px;
+  padding: 5px;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brand-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.tipo-conta-brand span {
+  color: #0b4939;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+
+/* =========================
+   CONTEÚDO
+========================= */
+
+.tipo-conta-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px 80px;
+}
+
+.tipo-conta-card {
+  width: 100%;
+  max-width: 460px;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 36px 34px;
+  box-shadow: 0 2px 5px rgba(20, 50, 40, 0.05);
+}
+
+.tipo-conta-card h1 {
+  margin: 0;
+  color: #0b4939;
+  font-size: 24px;
+  font-weight: 750;
+  letter-spacing: -0.4px;
+}
+
+.tipo-conta-card > p {
+  margin: 8px 0 26px;
+  color: #667871;
+  font-size: 13.5px;
+}
+
+
+/* =========================
+   OPÇÕES
+========================= */
+
+.tipo-opcoes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tipo-opcao {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 16px 17px;
+  border: 1.5px solid #e0dfd7;
+  border-radius: 14px;
+  background: #ffffff;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+button.tipo-opcao:hover {
+  border-color: #10a957;
+  background: #eef9f3;
+}
+
+.tipo-opcao-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  background: #d9f3e4;
+  color: #0c543f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tipo-opcao-icon svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tipo-opcao-texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.tipo-opcao-texto strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #122f27;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.tipo-opcao-texto small {
+  display: block;
+  margin-top: 3px;
+  color: #7f9089;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.tipo-opcao-seta {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: #8b9994;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+.tipo-opcao.locked {
+  background: #f4f3ee;
+  border-color: #e6e5de;
+  cursor: not-allowed;
+}
+
+.tipo-opcao.locked .tipo-opcao-icon {
+  background: #e6e5de;
+  color: #9aa39d;
+}
+
+.tipo-opcao.locked strong,
+.tipo-opcao.locked small {
+  color: #9aa39d;
+}
+
+.badge-em-breve {
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: #eceae2;
+  color: #6b7a73;
+  font-size: 9.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+@media (max-width: 480px) {
+  .tipo-conta-topbar {
+    padding: 16px 20px;
+  }
+
+  .tipo-conta-card {
+    padding: 28px 22px;
+  }
+}

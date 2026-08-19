@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { ToastHost } from '../shared/toast-host';
+import { AuthService } from '../data/auth.service';
 
 @Component({
   selector: 'app-cooperativa-layout',
@@ -8,4 +9,12 @@ import { ToastHost } from '../shared/toast-host';
   templateUrl: './cooperativa-layout.html',
   styleUrls: ['../shared/cooperativa-shared.css', './cooperativa-layout.css'],
 })
-export class CooperativaLayout {}
+export class CooperativaLayout {
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+
+  sair(): void {
+    this.auth.sair();
+    this.router.navigate(['/cooperativa/entrar']);
+  }
+}

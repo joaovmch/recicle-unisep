@@ -90,6 +90,10 @@
         <button class="link-btn" (click)="abrirRecuperarSenha()">Esqueci a senha</button>
       </div>
 
+      @if (erro()) {
+        <p class="entrar-erro">{{ erro() }}</p>
+      }
+
       <button class="btn btn-primary" style="width: 100%; margin-top: 18px;" (click)="entrar()">
         Entrar no painel
       </button>
