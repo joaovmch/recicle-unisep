@@ -1,0 +1,42 @@
+<header class="page-header">
+  <div>
+    <h1>Clientes</h1>
+    <p>
+      Ainda não existe login de morador no Re-cicle — esta lista é montada a partir de quem já pediu
+      coleta em alguma solicitação.
+    </p>
+  </div>
+</header>
+
+@if (carregando()) {
+  <p class="empty-hint">Carregando clientes...</p>
+} @else if (clientes().length === 0) {
+  <p class="empty-hint">Nenhum cliente ainda — aparece aqui assim que a primeira solicitação chegar.</p>
+} @else {
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Cliente</th>
+        <th>Endereço</th>
+        <th>Solicitações</th>
+        <th>Coletas concluídas</th>
+        <th>Material recebido</th>
+        <th>Total pago</th>
+        <th>Última solicitação</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (c of clientes(); track c.nome + c.endereco) {
+        <tr>
+          <td><strong>{{ c.nome }}</strong></td>
+          <td>{{ c.endereco }} — {{ c.bairro }}</td>
+          <td>{{ c.totalSolicitacoes }}</td>
+          <td>{{ c.coletasConcluidas }}</td>
+          <td>{{ c.pesoTotalKg.toLocaleString('pt-BR') }} kg</td>
+          <td>{{ formatarPreco(c.valorTotal) }}</td>
+          <td>{{ formatarData(c.ultimaSolicitacao) }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

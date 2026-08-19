@@ -66,8 +66,14 @@ export class Solicitacoes {
   readonly concluidas = this.store.concluidas;
   readonly recusadas = this.store.recusadas;
 
-  readonly totalColetasConcluidas = 0;
-  readonly materialRecebidoMes = '0 kg';
+  readonly totalColetasConcluidas = computed(() => this.concluidas().length);
+  readonly materialRecebidoMes = computed(
+    () => `${this.concluidas().reduce((total, s) => total + (s.dadosColeta?.pesoRecebidoKg ?? 0), 0)} kg`
+  );
+
+  constructor() {
+    this.store.carregar();
+  }
 
   readonly listaAtiva = computed<Solicitacao[]>(() => {
     const aba = this.abaAtiva();
@@ -87,8 +93,8 @@ export class Solicitacoes {
     this.abaAtiva.set(aba);
   }
 
-  aceitar(solicitacao: Solicitacao): void {
-    this.store.aceitar(solicitacao.id);
+  async aceitar(solicitacao: Solicitacao): Promise<void> {
+    await this.store.aceitar(solicitacao.id);
   }
 
   irParaConfirmacao(solicitacao: Solicitacao): void {
@@ -113,12 +119,12 @@ export class Solicitacoes {
     this.observacaoRecusa.set(valor);
   }
 
-  confirmarRecusa(): void {
+  async confirmarRecusa(): Promise<void> {
     const solicitacao = this.solicitacaoParaRecusar();
     if (!solicitacao) return;
 
     const motivo = this.motivos.find(m => m.valor === this.motivoSelecionado());
-    this.store.recusar(solicitacao.id, motivo?.label ?? '', this.observacaoRecusa());
+    await this.store.recusar(solicitacao.id, motivo?.label ?? '', this.observacaoRecusa());
     this.fecharRecusa();
   }
 
@@ -168,7 +174,7 @@ export class Solicitacoes {
       { autor: 'morador', texto: 'Perfeito, pode confirmar com eles.' },
       {
         autor: 'ia',
-        texto: `Prontinho. Solicitação #${s.id} enviada para a Cooperativa Reviver, valor combinado de ${this.formatarPreco(s.preco)}.`,
+        texto: `Prontinho. Solicitação #${s.numero} enviada para a Cooperativa Reviver, valor combinado de ${this.formatarPreco(s.preco)}.`,
       },
     ];
   }

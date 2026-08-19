@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ToastHost } from '../../shared/toast-host';
 import { ToastService } from '../../shared/toast.service';
+import { CooperativaService, NovaCooperativa } from '../../data/cooperativa.service';
 
 type TipoOrganizacao = 'cooperativa' | 'associacao' | 'empresa';
 
@@ -54,7 +55,7 @@ const RESIDUOS_INICIAL: ResiduoOpcao[] = [
   { nome: 'Metal', marcado: false },
   { nome: 'Vidro', marcado: false },
   { nome: 'Madeira', marcado: false },
-  { nome: 'Volumosos / móveis', marcado: false },
+  { nome: 'Móveis e estofados', marcado: false },
   { nome: 'Óleo de cozinha', marcado: false },
   { nome: 'Eletrônicos', marcado: false },
   { nome: 'Pilhas e baterias', marcado: false },
@@ -109,6 +110,7 @@ const POR_QUE_PEDIMOS = [
 export class Cadastro {
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  private readonly cooperativaService = inject(CooperativaService);
 
   readonly passos = PASSOS;
   readonly tiposOrganizacao = TIPOS_ORGANIZACAO;
@@ -160,6 +162,10 @@ export class Cadastro {
 
   readonly ataEnviada = signal(false);
   readonly confirmaVeracidade = signal(false);
+
+  readonly senha = signal('');
+  readonly enviando = signal(false);
+  readonly erroEnvio = signal<string | null>(null);
 
   readonly licencaArquivo = signal<{ nome: string; meta: string } | null>(null);
   readonly cnpjArquivo = signal<{ nome: string; meta: string } | null>(null);
@@ -219,9 +225,66 @@ export class Cadastro {
     this.ataEnviada.set(!this.ataEnviada());
   }
 
-  enviarParaAnalise(): void {
-    if (!this.confirmaVeracidade()) return;
+  async enviarParaAnalise(): Promise<void> {
+    if (!this.confirmaVeracidade() || this.enviando()) return;
+
+    if (this.senha().length < 6) {
+      this.erroEnvio.set('A senha precisa ter pelo menos 6 caracteres.');
+      return;
+    }
+
+    this.enviando.set(true);
+    this.erroEnvio.set(null);
+
+    const org = this.organizacao();
+    const end = this.endereco();
+    const cap = this.capacidade();
+
+    const dados: NovaCooperativa = {
+      tipo: org.tipo,
+      nome: org.nome,
+      cnpj: org.cnpj,
+      anoFundacao: org.anoFundacao,
+      pessoasOperacao: org.pessoasOperacao,
+      responsavelNome: org.responsavelNome,
+      responsavelCargo: org.responsavelCargo,
+      responsavelEmail: org.responsavelEmail,
+      responsavelTelefone: org.responsavelTelefone,
+      cep: end.cep,
+      rua: end.rua,
+      numero: end.numero,
+      complemento: end.complemento,
+      bairro: end.bairro,
+      cidade: end.cidade,
+      uf: end.uf,
+      raioKm: end.raioKm,
+      diasFuncionamento: end.diasFuncionamento,
+      horaAbre: end.horaAbre,
+      horaFecha: end.horaFecha,
+      pesoMaximoKg: cap.pesoMaximoKg,
+      coletasPorDia: cap.coletasPorDia,
+      confirmaVeracidade: this.confirmaVeracidade(),
+      residuosMarcados: this.residuos().filter(r => r.marcado).map(r => r.nome),
+    };
+
+    const { erro, pendenteConfirmacao } = await this.cooperativaService.criar(dados, this.senha());
+
+    this.enviando.set(false);
+
+    if (erro) {
+      this.erroEnvio.set(erro);
+      this.toast.mostrar(erro);
+      return;
+    }
+
     this.limparRascunho();
+
+    if (pendenteConfirmacao) {
+      this.toast.mostrar('Enviamos um link de confirmação para o seu e-mail. Confirme e depois entre no painel.');
+      this.router.navigate(['/cooperativa/entrar']);
+      return;
+    }
+
     this.router.navigate(['/cooperativa/cadastro/analise']);
   }
 

@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../data/auth.service';
+import { CooperativaService } from '../../data/cooperativa.service';
 
 const DESTAQUES = [
   { texto: 'Só pedidos do que vocês aceitam', icone: 'chat' },
@@ -17,6 +18,7 @@ const DESTAQUES = [
 export class Entrar {
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
+  private readonly cooperativaService = inject(CooperativaService);
 
   readonly destaques = DESTAQUES;
 
@@ -31,16 +33,28 @@ export class Entrar {
   readonly emailRecuperacao = signal('');
   readonly linkEnviado = signal(false);
 
-  entrar(): void {
-    const sucesso = this.auth.entrar(this.emailOuCnpj(), this.senha(), this.continuarConectado());
+  readonly entrando = signal(false);
 
-    if (!sucesso) {
-      this.erro.set('E-mail ou senha incorretos.');
+  async entrar(): Promise<void> {
+    if (this.entrando()) return;
+    this.entrando.set(true);
+
+    const erro = await this.auth.entrar(this.emailOuCnpj(), this.senha());
+
+    this.entrando.set(false);
+
+    if (erro) {
+      this.erro.set(erro);
       return;
     }
 
     this.erro.set(null);
-    this.router.navigate(['/cooperativa/dashboard']);
+    const cooperativa = this.cooperativaService.cooperativa();
+    if (cooperativa && cooperativa.statusCadastro !== 'aprovado') {
+      this.router.navigate(['/cooperativa/cadastro/analise']);
+    } else {
+      this.router.navigate(['/cooperativa/dashboard']);
+    }
   }
 
   abrirRecuperarSenha(): void {
@@ -53,8 +67,9 @@ export class Entrar {
     this.modalRecuperarAberto.set(false);
   }
 
-  enviarLinkRecuperacao(): void {
+  async enviarLinkRecuperacao(): Promise<void> {
     if (!this.emailRecuperacao().trim()) return;
+    await this.auth.enviarLinkRecuperacao(this.emailRecuperacao());
     this.linkEnviado.set(true);
   }
 }

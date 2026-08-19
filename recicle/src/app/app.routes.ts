@@ -22,5 +22,10 @@ export const routes: Routes = [
     import('./cooperativa/cooperativa.routes').then(
       m => m.COOPERATIVA_ROUTES
     )
-}
+},
+  {
+    path: 'admin',
+    loadChildren: () =>
+      import('./admin/admin.routes').then(m => m.ADMIN_ROUTES)
+  }
 ];

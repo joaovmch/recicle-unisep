@@ -52,7 +52,7 @@
         <path d="M20.2 4.2C14.5 3.7 8.1 5.1 5.1 9.2c-2 2.8-1.7 6.1.1 8.4 1.2-2.9 3.6-5.2 6.8-6.5-2.2 1.8-3.7 4.1-4.3 6.8 3.3.7 6.8-.7 8.7-3.7 1.7-2.7 2.1-6.4 3.8-10z"/>
       </svg>
     </div>
-    <strong>{{ totalColetasConcluidas }}</strong>
+    <strong>{{ totalColetasConcluidas() }}</strong>
     <span>coletas concluídas</span>
   </div>
 
@@ -65,7 +65,7 @@
         <path d="M3 20h18"/>
       </svg>
     </div>
-    <strong>{{ materialRecebidoMes }}</strong>
+    <strong>{{ materialRecebidoMes() }}</strong>
     <span>material recebido no mês</span>
   </div>
 
@@ -116,7 +116,7 @@
                 @if (s.novo) {
                   <span class="badge badge-new">novo</span>
                 }
-                <span class="request-id">#{{ s.id }}</span>
+                <span class="request-id">#{{ s.numero }}</span>
               </div>
               <p class="request-description">{{ s.categoria }} · ≈ {{ s.pesoEstimadoKg }} kg</p>
             </div>
@@ -227,7 +227,7 @@
         <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
       </button>
 
-      <h2>Conversa com a IA · #{{ s.id }}</h2>
+      <h2>Conversa com a IA · #{{ s.numero }}</h2>
       <p class="modal-description">{{ s.solicitante }} · {{ s.titulo }}</p>
 
       <div class="chat-thread">
@@ -252,7 +252,7 @@
   <div class="modal-overlay" (click)="fecharRecusa()">
     <div class="modal-card" (click)="$event.stopPropagation()">
 
-      <h2>Recusar a coleta #{{ s.id }}</h2>
+      <h2>Recusar a coleta #{{ s.numero }}</h2>
       <p class="modal-description">
         {{ s.categoria }} · {{ s.solicitante }} · ≈ {{ s.pesoEstimadoKg }} kg. O motivo não aparece para o
         solicitante — ele recebe uma mensagem neutra e outra opção de destino.

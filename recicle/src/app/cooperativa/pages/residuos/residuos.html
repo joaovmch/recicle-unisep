@@ -63,7 +63,7 @@
       <span class="section-label">Resíduo perigoso · exige licença específica</span>
 
       <div class="option-grid">
-        @for (item of perigosos; track item.nome) {
+        @for (item of perigosos(); track item.nome) {
           <div class="option-card locked">
             <div class="option-card-top">
               <strong>{{ item.nome }}</strong>

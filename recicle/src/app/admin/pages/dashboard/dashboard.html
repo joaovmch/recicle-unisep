@@ -1,0 +1,60 @@
+<header class="page-header">
+  <div>
+    <h1>Visão geral</h1>
+    <p>Panorama de cooperativas e clientes no Re-cicle.</p>
+  </div>
+</header>
+
+<section class="stats-grid">
+
+  <div class="stat-card stat-warning">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg>
+    </div>
+    <strong>{{ resumo().cooperativasEmAnalise }}</strong>
+    <span>cooperativas em análise</span>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg viewBox="0 0 24 24"><path d="M20 7 10 17l-5-5"/></svg>
+    </div>
+    <strong>{{ resumo().cooperativasAprovadas }}</strong>
+    <span>cooperativas aprovadas</span>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg viewBox="0 0 24 24"><path d="M5 8h14l1 11H4L5 8Z"/><path d="M8 8a4 4 0 0 1 8 0"/></svg>
+    </div>
+    <strong>{{ resumo().solicitacoesPendentes }}</strong>
+    <span>solicitações pendentes</span>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg viewBox="0 0 24 24"><path d="M3 7h12v10H3z"/><path d="M15 10h3l3 3v4h-6"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+    </div>
+    <strong>{{ resumo().solicitacoesConcluidas }}</strong>
+    <span>coletas concluídas</span>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c0-3.2 2.7-5 6-5s6 1.8 6 5"/><path d="M14 15c3 0 5 1.5 5 4"/></svg>
+    </div>
+    <strong>{{ resumo().totalClientes }}</strong>
+    <span>clientes distintos</span>
+  </div>
+
+</section>
+
+<section class="side-card" style="margin-top: 20px;">
+  <div class="side-card-header">
+    <h3>Atalhos</h3>
+  </div>
+  <div class="header-actions">
+    <a class="btn btn-outline" routerLink="/admin/cooperativas">Ver cooperativas</a>
+    <a class="btn btn-outline" routerLink="/admin/clientes">Ver clientes</a>
+  </div>
+</section>

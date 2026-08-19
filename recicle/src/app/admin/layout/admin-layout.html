@@ -1,0 +1,70 @@
+<div class="cooperativa-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <div class="brand">
+      <div class="brand-icon">
+        <img src="/logo.png" alt="Re-cicle" />
+      </div>
+
+      <div>
+        <div class="brand-name">Re-cicle</div>
+        <div class="brand-subtitle">área administrativa</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-menu">
+
+      <a class="menu-item" routerLink="dashboard" routerLinkActive="active">
+        <svg viewBox="0 0 24 24">
+          <rect x="4" y="4" width="6" height="6" rx="1"/>
+          <rect x="14" y="4" width="6" height="6" rx="1"/>
+          <rect x="4" y="14" width="6" height="6" rx="1"/>
+          <rect x="14" y="14" width="6" height="6" rx="1"/>
+        </svg>
+        <span>Visão geral</span>
+      </a>
+
+      <a class="menu-item" routerLink="cooperativas" routerLinkActive="active">
+        <svg viewBox="0 0 24 24">
+          <circle cx="9" cy="8" r="3"/>
+          <circle cx="17" cy="10" r="2.5"/>
+          <path d="M3 20c0-3.2 2.7-5 6-5s6 1.8 6 5"/>
+          <path d="M14 15c3 0 5 1.5 5 4"/>
+        </svg>
+        <span>Cooperativas</span>
+      </a>
+
+      <a class="menu-item" routerLink="clientes" routerLinkActive="active">
+        <svg viewBox="0 0 24 24">
+          <path d="M5 8h14l1 11H4L5 8Z"/>
+          <path d="M8 8a4 4 0 0 1 8 0"/>
+        </svg>
+        <span>Clientes</span>
+      </a>
+
+    </nav>
+
+    <div class="cooperativa-card">
+      <strong>{{ adminService.admin()?.nome ?? 'Admin' }}</strong>
+
+      <div class="license">
+        <span class="status-dot"></span>
+        {{ adminService.admin()?.email }}
+      </div>
+
+      <button class="logout-btn" (click)="sair()">Sair da conta</button>
+    </div>
+
+  </aside>
+
+
+  <!-- CONTEÚDO -->
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <app-toast-host></app-toast-host>
+
+</div>

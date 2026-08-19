@@ -1,7 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
 import { ToastService } from '../../shared/toast.service';
+import { SupabaseService } from '../../../supabase.service';
+import { CooperativaService } from '../../data/cooperativa.service';
 
 interface TipoResiduo {
+  id: string;
   nome: string;
   detalhe: string;
   ligado: boolean;
@@ -13,27 +16,6 @@ interface PedidoRecusado {
   pedidos: number;
 }
 
-const RECICLAVEIS_INICIAL: TipoResiduo[] = [
-  { nome: 'Papel e papelão', detalhe: '', ligado: false },
-  { nome: 'Plástico', detalhe: '', ligado: false },
-  { nome: 'Metal', detalhe: '', ligado: false },
-  { nome: 'Vidro', detalhe: '', ligado: false },
-  { nome: 'Óleo de cozinha', detalhe: '', ligado: false },
-  { nome: 'Têxteis', detalhe: '', ligado: false },
-];
-
-const VOLUMOSOS_INICIAL: TipoResiduo[] = [
-  { nome: 'Madeira', detalhe: '', ligado: false },
-  { nome: 'Móveis e estofados', detalhe: '', ligado: false },
-  { nome: 'Entulho classe A', detalhe: '', ligado: false },
-];
-
-const PERIGOSOS: TipoResiduo[] = [
-  { nome: 'Pilhas e baterias', detalhe: 'liberado quando a licença for validada', ligado: false, bloqueado: true },
-  { nome: 'Eletrônicos', detalhe: 'liberado quando a licença for validada', ligado: false, bloqueado: true },
-  { nome: 'Lâmpadas', detalhe: 'liberado quando a licença for validada', ligado: false, bloqueado: true },
-];
-
 const PEDIDOS_RECUSADOS: PedidoRecusado[] = [];
 
 @Component({
@@ -44,10 +26,12 @@ const PEDIDOS_RECUSADOS: PedidoRecusado[] = [];
 })
 export class Residuos {
   private readonly toast = inject(ToastService);
+  private readonly client = inject(SupabaseService).client;
+  private readonly cooperativaService = inject(CooperativaService);
 
-  readonly reciclaveis = signal(RECICLAVEIS_INICIAL);
-  readonly volumosos = signal(VOLUMOSOS_INICIAL);
-  readonly perigosos = PERIGOSOS;
+  readonly reciclaveis = signal<TipoResiduo[]>([]);
+  readonly volumosos = signal<TipoResiduo[]>([]);
+  readonly perigosos = signal<TipoResiduo[]>([]);
   readonly pedidosRecusados = PEDIDOS_RECUSADOS;
 
   readonly pesoMaximo = signal(0);
@@ -55,12 +39,58 @@ export class Residuos {
   readonly volumeMaximo = signal(0);
 
   private baseline = {
-    reciclaveis: RECICLAVEIS_INICIAL,
-    volumosos: VOLUMOSOS_INICIAL,
+    reciclaveis: [] as TipoResiduo[],
+    volumosos: [] as TipoResiduo[],
     pesoMaximo: 0,
     coletasPorDia: 0,
     volumeMaximo: 0,
   };
+
+  constructor() {
+    this.carregar();
+  }
+
+  private async carregar(): Promise<void> {
+    const cooperativa = this.cooperativaService.cooperativa();
+    if (!cooperativa) return;
+
+    this.pesoMaximo.set(cooperativa.pesoMaximoKg);
+    this.coletasPorDia.set(cooperativa.coletasPorDia);
+    this.volumeMaximo.set(cooperativa.volumeMaximoM3);
+
+    const { data: tipos } = await this.client
+      .from('tipos_residuo')
+      .select('id, nome, categoria, exige_licenca_especifica')
+      .order('ordem');
+
+    const { data: ligados } = await this.client
+      .from('cooperativa_tipos_residuo')
+      .select('tipo_residuo_id, ligado')
+      .eq('cooperativa_id', cooperativa.id);
+
+    const ligadoPorId = new Map((ligados ?? []).map((l: any) => [l.tipo_residuo_id, l.ligado]));
+
+    const paraItem = (t: any): TipoResiduo => ({
+      id: t.id,
+      nome: t.nome,
+      detalhe: t.exige_licenca_especifica ? 'liberado quando a licença for validada' : '',
+      ligado: ligadoPorId.get(t.id) ?? false,
+      bloqueado: t.exige_licenca_especifica,
+    });
+
+    const todos = (tipos ?? []).map(paraItem);
+    this.reciclaveis.set(todos.filter((_, i) => (tipos ?? [])[i].categoria === 'reciclavel_seco'));
+    this.volumosos.set(todos.filter((_, i) => (tipos ?? [])[i].categoria === 'volumoso'));
+    this.perigosos.set(todos.filter((_, i) => (tipos ?? [])[i].categoria === 'perigoso'));
+
+    this.baseline = {
+      reciclaveis: this.reciclaveis(),
+      volumosos: this.volumosos(),
+      pesoMaximo: this.pesoMaximo(),
+      coletasPorDia: this.coletasPorDia(),
+      volumeMaximo: this.volumeMaximo(),
+    };
+  }
 
   atualizarPesoMaximo(valor: string): void {
     const numero = Number(valor.replace(/[^0-9.]/g, ''));
@@ -83,7 +113,26 @@ export class Residuos {
     this.volumeMaximo.set(this.baseline.volumeMaximo);
   }
 
-  salvarAlteracoes(): void {
+  async salvarAlteracoes(): Promise<void> {
+    const cooperativa = this.cooperativaService.cooperativa();
+    if (!cooperativa) return;
+
+    const itens = [...this.reciclaveis(), ...this.volumosos()];
+    await this.client.from('cooperativa_tipos_residuo').upsert(
+      itens.map(item => ({
+        cooperativa_id: cooperativa.id,
+        tipo_residuo_id: item.id,
+        ligado: item.ligado,
+      })),
+      { onConflict: 'cooperativa_id,tipo_residuo_id' }
+    );
+
+    await this.cooperativaService.atualizar({
+      peso_maximo_kg: this.pesoMaximo(),
+      coletas_por_dia: this.coletasPorDia(),
+      volume_maximo_m3: this.volumeMaximo(),
+    });
+
     this.baseline = {
       reciclaveis: this.reciclaveis(),
       volumosos: this.volumosos(),

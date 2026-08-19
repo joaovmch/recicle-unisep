@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SolicitacoesStore } from '../../data/solicitacoes.store';
+import { CooperativaService } from '../../data/cooperativa.service';
 
 type StatusParada = 'concluida' | 'em-rota' | 'agendada';
 
@@ -27,13 +28,25 @@ const MATERIAL_DO_MES: { material: string; kg: number }[] = [];
 })
 export class Dashboard {
   private readonly store = inject(SolicitacoesStore);
+  private readonly cooperativaService = inject(CooperativaService);
 
   readonly rotaDeHoje = ROTA_DE_HOJE;
   readonly materialDoMes = MATERIAL_DO_MES;
-  readonly receitaDoMes = 0;
-  readonly materialRecebidoMes = '0 kg';
-  readonly capacidadeUsada = 0;
-  readonly capacidadeTotal = 0;
+
+  readonly receitaDoMes = computed(() =>
+    this.store.concluidas().reduce((total, s) => total + s.preco, 0)
+  );
+  readonly materialRecebidoMes = computed(
+    () => `${this.store.concluidas().reduce((total, s) => total + (s.dadosColeta?.pesoRecebidoKg ?? 0), 0)} kg`
+  );
+  readonly capacidadeUsada = computed(() =>
+    this.store.aceitas().reduce((total, s) => total + s.pesoEstimadoKg, 0)
+  );
+  readonly capacidadeTotal = computed(() => this.cooperativaService.cooperativa()?.pesoMaximoKg ?? 0);
+
+  constructor() {
+    this.store.carregar();
+  }
 
   readonly hoje = new Date().toLocaleDateString('pt-BR', {
     weekday: 'long',

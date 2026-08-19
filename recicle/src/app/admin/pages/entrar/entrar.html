@@ -1,0 +1,73 @@
+<div class="entrar-shell">
+
+  <!-- LADO ESQUERDO -->
+  <section class="entrar-hero">
+    <div class="auth-brand">
+      <div class="brand-icon">
+        <img src="/logo.png" alt="Re-cicle" />
+      </div>
+      <span>Re-cicle</span>
+    </div>
+
+    <h1>Área administrativa</h1>
+
+    <p class="entrar-lead">
+      Gerencie cadastros de cooperativas e acompanhe os clientes que usam o Re-cicle.
+    </p>
+  </section>
+
+
+  <!-- LADO DIREITO -->
+  <section class="entrar-form-side">
+    <div class="entrar-card">
+
+      <h2>Login de administrador</h2>
+      <p class="wizard-lead">Acesso restrito à equipe do Re-cicle.</p>
+
+      <div class="field">
+        <label for="admin-email">E-mail</label>
+        <input
+          id="admin-email"
+          type="email"
+          placeholder="voce@recicle.com"
+          [value]="email()"
+          (input)="email.set($any($event.target).value)"
+        />
+      </div>
+
+      <div class="field">
+        <label for="admin-senha">Senha</label>
+        <div class="senha-wrap">
+          <input
+            id="admin-senha"
+            [type]="senhaVisivel() ? 'text' : 'password'"
+            placeholder="Sua senha"
+            [value]="senha()"
+            (input)="senha.set($any($event.target).value)"
+          />
+          <button type="button" class="senha-toggle" (click)="senhaVisivel.set(!senhaVisivel())">
+            @if (senhaVisivel()) {
+              <svg viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.6 10.6 0 0 1 12 5c5.5 0 9.5 4 11 7-.6 1.2-1.6 2.6-2.9 3.8M6.6 6.6C4.4 8 2.9 10 2 12c1.5 3 5.5 7 10 7 1.5 0 2.9-.4 4.1-1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+            } @else {
+              <svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            }
+          </button>
+        </div>
+      </div>
+
+      @if (erro()) {
+        <p class="entrar-erro">{{ erro() }}</p>
+      }
+
+      <button class="btn btn-primary" style="width: 100%; margin-top: 18px;" [disabled]="entrando()" (click)="entrar()">
+        {{ entrando() ? 'Entrando...' : 'Entrar' }}
+      </button>
+
+      <p class="entrar-footer">
+        <a routerLink="/">Voltar ao site</a>
+      </p>
+
+    </div>
+  </section>
+
+</div>

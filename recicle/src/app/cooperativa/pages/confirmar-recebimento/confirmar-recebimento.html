@@ -1,7 +1,7 @@
 @if (solicitacao(); as s) {
 
   <p class="breadcrumb">
-    <a routerLink="/cooperativa/solicitacoes">Solicitações</a> › #{{ s.id }}
+    <a routerLink="/cooperativa/solicitacoes">Solicitações</a> › #{{ s.numero }}
   </p>
 
   <header class="page-header">
@@ -55,7 +55,7 @@
 
         @if (codigoCompleto().length === 4) {
           <span class="status-pill" [class.good]="codigoValido()" [class.bad]="!codigoValido()">
-            {{ codigoValido() ? 'Código confere com a solicitação #' + s.id : 'Código não confere' }}
+            {{ codigoValido() ? 'Código confere com a solicitação #' + s.numero : 'Código não confere' }}
           </span>
         }
       </div>
@@ -143,7 +143,7 @@
     <aside class="right-column">
 
       <div class="side-card">
-        <h3 class="summary-title">Solicitação #{{ s.id }}</h3>
+        <h3 class="summary-title">Solicitação #{{ s.numero }}</h3>
 
         <dl class="summary-list">
           <div>
@@ -189,7 +189,7 @@
               <svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" /></svg>
             </span>
             <div class="upload-info">
-              <strong>foto-coleta-{{ s.id }}.jpg</strong>
+              <strong>foto-coleta-{{ s.numero }}.jpg</strong>
               <p>anexada agora</p>
             </div>
           </div>

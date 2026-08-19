@@ -40,7 +40,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (m of equipe(); track m.nome) {
+            @for (m of equipe(); track m.id) {
               <tr>
                 <td>
                   <div class="pessoa-cell">
@@ -83,7 +83,7 @@
       }
 
       <div class="veiculo-grid">
-        @for (v of veiculos(); track v.nome) {
+        @for (v of veiculos(); track v.id) {
           <div class="veiculo-card">
             <div class="veiculo-top">
               <div class="veiculo-icon">
@@ -147,11 +147,11 @@
         <p class="empty-hint">Adicione pessoas à equipe para definir quem confirma.</p>
       } @else {
         <div class="toggle-row-list">
-          @for (m of coletores(); track m.nome) {
+          @for (m of coletores(); track m.id) {
             <div class="toggle-row">
               <span>{{ m.nome }}</span>
               <label class="toggle-switch">
-                <input type="checkbox" [checked]="m.podeConfirmar" (change)="alternarConfirmacao(m.nome)" />
+                <input type="checkbox" [checked]="m.podeConfirmar" (change)="alternarConfirmacao(m.id)" />
                 <span class="track"></span>
               </label>
             </div>
@@ -302,11 +302,11 @@
         <p class="empty-hint">Nenhuma pessoa cadastrada ainda.</p>
       } @else {
         <div class="toggle-row-list">
-          @for (m of equipe(); track m.nome) {
+          @for (m of equipe(); track m.id) {
             <div class="toggle-row">
               <span>{{ m.nome }} <small>· {{ m.funcao }}</small></span>
               <label class="toggle-switch">
-                <input type="checkbox" [checked]="m.acessoPainel" (change)="alternarAcessoPainel(m.nome)" />
+                <input type="checkbox" [checked]="m.acessoPainel" (change)="alternarAcessoPainel(m.id)" />
                 <span class="track"></span>
               </label>
             </div>

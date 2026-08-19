@@ -1,50 +1,47 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { Session } from '@supabase/supabase-js';
+import { SupabaseService } from '../../supabase.service';
+import { CooperativaService } from './cooperativa.service';
 
-const CREDENCIAL = { email: 'admin@gmail.com', senha: '1234' };
-const SESSAO_STORAGE_KEY = 'recicle-cooperativa-sessao';
+function traduzirErro(mensagem: string): string {
+  if (mensagem.includes('Invalid login credentials')) return 'E-mail ou senha incorretos.';
+  if (mensagem.includes('User already registered')) return 'Já existe uma conta com esse e-mail.';
+  return mensagem;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly _autenticado = signal(this.lerSessaoSalva());
-  readonly autenticado = this._autenticado.asReadonly();
+  private readonly client = inject(SupabaseService).client;
+  private readonly cooperativaService = inject(CooperativaService);
 
-  entrar(email: string, senha: string, manterConectado: boolean): boolean {
-    const valido = email.trim().toLowerCase() === CREDENCIAL.email && senha === CREDENCIAL.senha;
-    if (!valido) return false;
+  private readonly _sessao = signal<Session | null>(null);
+  readonly autenticado = computed(() => this._sessao() !== null);
 
-    this._autenticado.set(true);
-    if (manterConectado) {
-      this.salvarSessao();
-    }
-    return true;
+  constructor() {
+    this.client.auth.getSession().then(({ data }) => this._sessao.set(data.session));
+    this.client.auth.onAuthStateChange((_evento, sessao) => this._sessao.set(sessao));
   }
 
-  sair(): void {
-    this._autenticado.set(false);
-    this.limparSessao();
+  async entrar(email: string, senha: string): Promise<string | null> {
+    const { error } = await this.client.auth.signInWithPassword({ email: email.trim(), password: senha });
+    if (error) return traduzirErro(error.message);
+
+    await this.cooperativaService.carregar();
+    return null;
   }
 
-  private lerSessaoSalva(): boolean {
-    try {
-      return localStorage.getItem(SESSAO_STORAGE_KEY) === '1';
-    } catch {
-      return false;
-    }
+  async sair(): Promise<void> {
+    await this.client.auth.signOut();
+    this.cooperativaService.limpar();
   }
 
-  private salvarSessao(): void {
-    try {
-      localStorage.setItem(SESSAO_STORAGE_KEY, '1');
-    } catch {
-      /* navegador sem localStorage disponível */
-    }
+  async sessaoAtual(): Promise<Session | null> {
+    const { data } = await this.client.auth.getSession();
+    return data.session;
   }
 
-  private limparSessao(): void {
-    try {
-      localStorage.removeItem(SESSAO_STORAGE_KEY);
-    } catch {
-      /* navegador sem localStorage disponível */
-    }
+  async enviarLinkRecuperacao(email: string): Promise<string | null> {
+    const { error } = await this.client.auth.resetPasswordForEmail(email.trim());
+    return error ? traduzirErro(error.message) : null;
   }
 }

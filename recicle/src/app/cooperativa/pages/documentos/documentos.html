@@ -110,11 +110,11 @@
     <div class="side-card">
       <h3 class="summary-title">Histórico</h3>
 
-      @if (historico.length === 0) {
+      @if (historico().length === 0) {
         <p class="empty-hint">Nenhuma movimentação registrada ainda.</p>
       } @else {
         <div class="historico-list">
-          @for (evento of historico; track evento.data + evento.titulo) {
+          @for (evento of historico(); track evento.data + evento.titulo) {
             <div class="historico-item">
               <span class="historico-dot" [class.recente]="evento.recente"></span>
               <div>
@@ -135,21 +135,21 @@
         <div class="toggle-row">
           <span>E-mail da cooperativa</span>
           <label class="toggle-switch">
-            <input type="checkbox" [checked]="avisoEmail()" (change)="avisoEmail.set(!avisoEmail())" />
+            <input type="checkbox" [checked]="avisoEmail()" (change)="atualizarAvisoEmail()" />
             <span class="track"></span>
           </label>
         </div>
         <div class="toggle-row">
           <span>WhatsApp da cooperativa</span>
           <label class="toggle-switch">
-            <input type="checkbox" [checked]="avisoWhatsapp()" (change)="avisoWhatsapp.set(!avisoWhatsapp())" />
+            <input type="checkbox" [checked]="avisoWhatsapp()" (change)="atualizarAvisoWhatsapp()" />
             <span class="track"></span>
           </label>
         </div>
         <div class="toggle-row">
           <span>Aviso no painel</span>
           <label class="toggle-switch">
-            <input type="checkbox" [checked]="avisoPainel()" (change)="avisoPainel.set(!avisoPainel())" />
+            <input type="checkbox" [checked]="avisoPainel()" (change)="atualizarAvisoPainel()" />
             <span class="track"></span>
           </label>
         </div>

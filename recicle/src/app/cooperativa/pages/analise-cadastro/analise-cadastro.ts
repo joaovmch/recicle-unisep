@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../data/auth.service';
+import { CooperativaService } from '../../data/cooperativa.service';
 
 type StatusDocumentoAnalise = 'em-conferencia' | 'validado';
 
@@ -36,6 +37,7 @@ const TAREFAS: TarefaEnquantoIsso[] = [
 })
 export class AnaliseCadastro {
   private readonly auth = inject(AuthService);
+  private readonly cooperativaService = inject(CooperativaService);
   private readonly router = inject(Router);
 
   readonly documentos = DOCUMENTOS_ANALISE;
@@ -48,8 +50,22 @@ export class AnaliseCadastro {
     validado: 'Validado',
   };
 
-  sair(): void {
-    this.auth.sair();
+  constructor() {
+    this.redirecionarSeAprovado();
+  }
+
+  private async redirecionarSeAprovado(): Promise<void> {
+    const sessao = await this.auth.sessaoAtual();
+    if (!sessao) return;
+
+    const cooperativa = await this.cooperativaService.carregar();
+    if (cooperativa?.statusCadastro === 'aprovado') {
+      this.router.navigate(['/cooperativa/dashboard']);
+    }
+  }
+
+  async sair(): Promise<void> {
+    await this.auth.sair();
     this.router.navigate(['/cooperativa/entrar']);
   }
 }

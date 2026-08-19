@@ -13,8 +13,8 @@ export class CooperativaLayout {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
-  sair(): void {
-    this.auth.sair();
+  async sair(): Promise<void> {
+    await this.auth.sair();
     this.router.navigate(['/cooperativa/entrar']);
   }
 }

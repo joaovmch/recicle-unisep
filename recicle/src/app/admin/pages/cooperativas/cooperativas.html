@@ -1,0 +1,131 @@
+<header class="page-header">
+  <div>
+    <h1>Cooperativas</h1>
+    <p>Aprove, reprove ou revise os cadastros das cooperativas parceiras.</p>
+  </div>
+
+  <div class="header-actions">
+    <div class="tabs no-margin">
+      <button class="tab" [class.active]="abaAtiva() === 'todas'" (click)="setAba('todas')">Todas</button>
+      <button class="tab" [class.active]="abaAtiva() === 'em_analise'" (click)="setAba('em_analise')">Em análise</button>
+      <button class="tab" [class.active]="abaAtiva() === 'aprovado'" (click)="setAba('aprovado')">Aprovadas</button>
+      <button class="tab" [class.active]="abaAtiva() === 'reprovado'" (click)="setAba('reprovado')">Reprovadas</button>
+    </div>
+  </div>
+</header>
+
+@if (carregando()) {
+  <p class="empty-hint">Carregando cooperativas...</p>
+} @else if (listaAtiva().length === 0) {
+  <p class="empty-hint">Nenhuma cooperativa nessa categoria ainda.</p>
+} @else {
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Cooperativa</th>
+        <th>CNPJ</th>
+        <th>Responsável</th>
+        <th>Cidade</th>
+        <th>Cadastrada em</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (c of listaAtiva(); track c.id) {
+        <tr>
+          <td><strong>{{ c.nome }}</strong></td>
+          <td>{{ c.cnpj }}</td>
+          <td>{{ c.responsavelNome }}</td>
+          <td>{{ c.cidade || '—' }}{{ c.uf ? ' / ' + c.uf : '' }}</td>
+          <td>{{ formatarData(c.criadoEm) }}</td>
+          <td>
+            <span
+              class="badge"
+              [class.badge-warning]="c.statusCadastro === 'em_analise'"
+              [class.badge-good]="c.statusCadastro === 'aprovado'"
+              [class.badge-bad]="c.statusCadastro === 'reprovado'"
+            >
+              {{ statusLabel[c.statusCadastro] }}
+            </span>
+          </td>
+          <td>
+            <button class="link-btn" (click)="abrirDetalhe(c)">Ver detalhes</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
+
+
+<!-- MODAL — DETALHE DA COOPERATIVA -->
+@if (detalheAberto(); as c) {
+  <div class="modal-overlay" (click)="fecharDetalhe()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="fecharDetalhe()">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
+
+      <h2>{{ c.nome }}</h2>
+      <p class="modal-description">{{ c.tipo }} · CNPJ {{ c.cnpj }}</p>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Responsável</label>
+          <p>{{ c.responsavelNome }}</p>
+        </div>
+        <div class="field">
+          <label>Contato</label>
+          <p>{{ c.responsavelEmail }}{{ c.responsavelTelefone ? ' · ' + c.responsavelTelefone : '' }}</p>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Endereço do galpão</label>
+          <p>{{ c.rua || '—' }}{{ c.numero ? ', ' + c.numero : '' }}{{ c.bairro ? ' — ' + c.bairro : '' }}</p>
+        </div>
+        <div class="field">
+          <label>Cidade</label>
+          <p>{{ c.cidade || '—' }}{{ c.uf ? ' / ' + c.uf : '' }}</p>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Raio de atendimento</label>
+          <p>{{ c.raioKm }} km</p>
+        </div>
+        <div class="field">
+          <label>Capacidade máxima</label>
+          <p>{{ c.pesoMaximoKg }} kg</p>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Status atual</label>
+        <span
+          class="badge"
+          [class.badge-warning]="c.statusCadastro === 'em_analise'"
+          [class.badge-good]="c.statusCadastro === 'aprovado'"
+          [class.badge-bad]="c.statusCadastro === 'reprovado'"
+        >
+          {{ statusLabel[c.statusCadastro] }}
+        </span>
+      </div>
+
+      <div class="modal-actions">
+        @if (c.statusCadastro !== 'aprovado') {
+          <button class="btn btn-primary" (click)="definirStatus(c, 'aprovado')">Aprovar cadastro</button>
+        }
+        @if (c.statusCadastro !== 'reprovado') {
+          <button class="btn btn-danger" (click)="definirStatus(c, 'reprovado')">Reprovar cadastro</button>
+        }
+        @if (c.statusCadastro !== 'em_analise') {
+          <button class="btn btn-outline" (click)="definirStatus(c, 'em_analise')">Voltar para análise</button>
+        }
+      </div>
+    </div>
+  </div>
+}

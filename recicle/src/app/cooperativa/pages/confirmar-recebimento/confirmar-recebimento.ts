@@ -40,7 +40,8 @@ export class ConfirmarRecebimento {
   readonly motivosProblema = MOTIVOS_PROBLEMA;
 
   readonly id = this.route.snapshot.paramMap.get('id') ?? '';
-  readonly solicitacao = signal<Solicitacao | undefined>(this.store.buscarPorId(this.id));
+  readonly solicitacao = signal<Solicitacao | undefined>(undefined);
+  readonly carregando = signal(true);
   readonly codigoEsperado = gerarCodigo(this.id);
 
   readonly codigoDigitado = signal<string[]>(['', '', '', '']);
@@ -49,16 +50,10 @@ export class ConfirmarRecebimento {
     () => this.codigoCompleto().length === 4 && this.codigoCompleto() === this.codigoEsperado
   );
 
-  private readonly dadosIniciais = this.solicitacao()?.dadosColeta;
-
-  readonly pesoRecebido = signal(this.dadosIniciais?.pesoRecebidoKg ?? this.solicitacao()?.pesoEstimadoKg ?? 0);
-  readonly rejeitoKg = signal(this.dadosIniciais?.rejeitoKg ?? 0);
-  readonly rejeitoNota = signal(this.dadosIniciais ? 'espuma' : '');
-  readonly triagem = signal<TriagemItem[]>(
-    this.dadosIniciais?.triagem ?? [
-      { material: 'Material triado', kg: this.solicitacao()?.pesoEstimadoKg ?? 0, checado: true },
-    ]
-  );
+  readonly pesoRecebido = signal(0);
+  readonly rejeitoKg = signal(0);
+  readonly rejeitoNota = signal('');
+  readonly triagem = signal<TriagemItem[]>([]);
 
   readonly pesoEstimado = computed(() => this.solicitacao()?.pesoEstimadoKg ?? 0);
 
@@ -73,6 +68,27 @@ export class ConfirmarRecebimento {
   readonly descricaoProblema = signal('');
 
   readonly fotoSelecionada = signal(false);
+
+  constructor() {
+    this.carregar();
+  }
+
+  private async carregar(): Promise<void> {
+    const solicitacao = await this.store.buscarPorId(this.id);
+    this.solicitacao.set(solicitacao);
+
+    const dadosIniciais = solicitacao?.dadosColeta;
+    this.pesoRecebido.set(dadosIniciais?.pesoRecebidoKg ?? solicitacao?.pesoEstimadoKg ?? 0);
+    this.rejeitoKg.set(dadosIniciais?.rejeitoKg ?? 0);
+    this.rejeitoNota.set(dadosIniciais ? 'espuma' : '');
+    this.triagem.set(
+      dadosIniciais?.triagem?.length
+        ? dadosIniciais.triagem
+        : [{ material: 'Material triado', kg: solicitacao?.pesoEstimadoKg ?? 0, checado: true }]
+    );
+
+    this.carregando.set(false);
+  }
 
   formatarDivergencia(): string {
     const abs = Math.abs(this.divergenciaKg());
@@ -112,7 +128,7 @@ export class ConfirmarRecebimento {
     this.triagem.update(itens => itens.map((item, i) => (i === index ? { ...item, kg } : item)));
   }
 
-  confirmar(): void {
+  async confirmar(): Promise<void> {
     if (!this.codigoValido()) return;
 
     const dados: DadosColeta = {
@@ -121,7 +137,7 @@ export class ConfirmarRecebimento {
       triagem: this.triagem(),
     };
 
-    this.store.confirmarRecebimento(this.id, dados);
+    await this.store.confirmarRecebimento(this.id, dados);
     this.toast.mostrar('Recebimento confirmado e pontos creditados.');
     this.router.navigate(['/cooperativa/solicitacoes']);
   }
@@ -136,8 +152,8 @@ export class ConfirmarRecebimento {
     this.problemaAberto.set(false);
   }
 
-  enviarProblema(): void {
-    this.store.registrarProblema(this.id, this.motivoProblema(), this.descricaoProblema());
+  async enviarProblema(): Promise<void> {
+    await this.store.registrarProblema(this.id, this.motivoProblema(), this.descricaoProblema());
     this.fecharProblema();
     this.toast.mostrar('Problema registrado. Nossa equipe vai revisar.');
     this.router.navigate(['/cooperativa/solicitacoes']);
@@ -147,7 +163,7 @@ export class ConfirmarRecebimento {
     this.fotoSelecionada.set(true);
   }
 
-  confirmarPorFoto(): void {
+  async confirmarPorFoto(): Promise<void> {
     if (!this.fotoSelecionada()) return;
 
     const dados: DadosColeta = {
@@ -157,7 +173,7 @@ export class ConfirmarRecebimento {
       viaFoto: true,
     };
 
-    this.store.confirmarRecebimento(this.id, dados);
+    await this.store.confirmarRecebimento(this.id, dados);
     this.toast.mostrar('Enviado por foto. A coleta fica marcada para conferência.');
     this.router.navigate(['/cooperativa/solicitacoes']);
   }
