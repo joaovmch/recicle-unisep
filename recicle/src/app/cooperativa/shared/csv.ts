@@ -1,5 +1,13 @@
+/**
+ * Além de escapar aspas/separadores, neutraliza "CSV injection": um campo que comece
+ * com =, +, - ou @ vira fórmula executável ao abrir no Excel/Google Sheets. Prefixamos
+ * com aspas simples (padrão OWASP) para forçar leitura como texto.
+ */
 function escaparCampo(valor: unknown): string {
-  const texto = String(valor ?? '');
+  let texto = String(valor ?? '');
+  if (/^[=+\-@\t\r]/.test(texto)) {
+    texto = `'${texto}`;
+  }
   return /[",;\n]/.test(texto) ? `"${texto.replace(/"/g, '""')}"` : texto;
 }
 

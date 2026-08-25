@@ -1,17 +1,12 @@
-import { Component, ElementRef, ViewChild, inject, signal } from '@angular/core';
+import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { ToastService } from '../../shared/toast.service';
 import { SupabaseService } from '../../../supabase.service';
 import { CooperativaService } from '../../data/cooperativa.service';
+import { erroArquivoInvalido } from '../../shared/upload';
+import { NOME_TIPO_DOCUMENTO, TipoDocumentoDb } from '../../shared/documento-tipos';
 
-type StatusDocumento = 'validado' | 'em-analise' | 'nao-enviado';
+type StatusDocumento = 'validado' | 'em-analise' | 'nao-enviado' | 'reprovado';
 type IconeDocumento = 'doc' | 'clock' | 'upload';
-type TipoDocumentoDb =
-  | 'licenca_operacao'
-  | 'licenca_residuo_perigoso'
-  | 'cartao_cnpj'
-  | 'ata_eleicao_diretoria'
-  | 'comprovante_endereco'
-  | 'outro';
 
 interface Documento {
   id: string | null;
@@ -22,6 +17,7 @@ interface Documento {
   acaoLabel: string;
   icone: IconeDocumento;
   caminhoArquivo: string | null;
+  motivoRecusa: string | null;
 }
 
 interface ItemAnalise {
@@ -37,13 +33,13 @@ interface EventoHistorico {
 }
 
 const TIPOS_FIXOS: { tipo: TipoDocumentoDb; nome: string; metaVazia: string }[] = [
-  { tipo: 'licenca_operacao', nome: 'Licença ambiental de operação', metaVazia: '' },
-  { tipo: 'licenca_residuo_perigoso', nome: 'Licença para resíduo perigoso', metaVazia: '' },
-  { tipo: 'cartao_cnpj', nome: 'Cartão CNPJ', metaVazia: '' },
-  { tipo: 'ata_eleicao_diretoria', nome: 'Ata de eleição da diretoria', metaVazia: '' },
+  { tipo: 'licenca_operacao', nome: NOME_TIPO_DOCUMENTO.licenca_operacao, metaVazia: '' },
+  { tipo: 'licenca_residuo_perigoso', nome: NOME_TIPO_DOCUMENTO.licenca_residuo_perigoso, metaVazia: '' },
+  { tipo: 'cartao_cnpj', nome: NOME_TIPO_DOCUMENTO.cartao_cnpj, metaVazia: '' },
+  { tipo: 'ata_eleicao_diretoria', nome: NOME_TIPO_DOCUMENTO.ata_eleicao_diretoria, metaVazia: '' },
   {
     tipo: 'comprovante_endereco',
-    nome: 'Comprovante de endereço do galpão',
+    nome: NOME_TIPO_DOCUMENTO.comprovante_endereco,
     metaVazia: 'opcional · ajuda quando a licença estiver perto de vencer',
   },
 ];
@@ -52,6 +48,7 @@ const STATUS_DB_PARA_UI: Record<string, StatusDocumento> = {
   validado: 'validado',
   em_analise: 'em-analise',
   nao_enviado: 'nao-enviado',
+  reprovado: 'reprovado',
 };
 
 const ANALISE_CONFERE: ItemAnalise[] = [
@@ -92,6 +89,18 @@ export class Documentos {
     validado: 'Validado',
     'em-analise': 'Em análise',
     'nao-enviado': 'Não enviado',
+    reprovado: 'Reprovado',
+  };
+
+  readonly licencaOperacaoStatus = computed<StatusDocumento>(
+    () => this.documentos().find(d => d.tipo === 'licenca_operacao')?.status ?? 'nao-enviado'
+  );
+
+  readonly licencaOperacaoTitulo: Record<StatusDocumento, string> = {
+    validado: 'Validada',
+    'em-analise': 'Em análise',
+    'nao-enviado': 'Ainda não enviada',
+    reprovado: 'Reprovada — reenvie',
   };
 
   private uploadAlvo: number | 'novo' | null = null;
@@ -132,6 +141,7 @@ export class Documentos {
           acaoLabel: 'Enviar',
           icone: 'upload',
           caminhoArquivo: null,
+          motivoRecusa: null,
         };
       }
       const status = STATUS_DB_PARA_UI[row.status] ?? 'nao-enviado';
@@ -141,9 +151,10 @@ export class Documentos {
         nome: row.nome_arquivo ?? fixo.nome,
         meta: row.tamanho_bytes ? `${formatarTamanho(row.tamanho_bytes)} · enviado` : fixo.metaVazia,
         status,
-        acaoLabel: status === 'nao-enviado' ? 'Enviar' : 'Ver arquivo',
+        acaoLabel: status === 'nao-enviado' || status === 'reprovado' ? 'Enviar' : 'Ver arquivo',
         icone: status === 'em-analise' ? 'clock' : status === 'validado' ? 'doc' : 'upload',
         caminhoArquivo: row.arquivo_url,
+        motivoRecusa: row.motivo_recusa ?? null,
       };
     });
 
@@ -160,6 +171,7 @@ export class Documentos {
           acaoLabel: 'Ver arquivo',
           icone: status === 'em-analise' ? ('clock' as const) : ('doc' as const),
           caminhoArquivo: row.arquivo_url,
+          motivoRecusa: row.motivo_recusa ?? null,
         };
       });
 
@@ -187,7 +199,7 @@ export class Documentos {
         const { data } = await this.client.storage
           .from('documentos-cooperativa')
           .createSignedUrl(doc.caminhoArquivo, 60);
-        if (data?.signedUrl) window.open(data.signedUrl, '_blank');
+        if (data?.signedUrl) window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
       } else {
         this.toast.mostrar('Documento em conferência — aguarde o retorno da equipe.');
       }
@@ -202,6 +214,13 @@ export class Documentos {
     const arquivo = (event.target as HTMLInputElement).files?.[0];
     const cooperativa = this.cooperativaService.cooperativa();
     if (!arquivo || this.uploadAlvo === null || !cooperativa) return;
+
+    const erroArquivo = erroArquivoInvalido(arquivo);
+    if (erroArquivo) {
+      this.toast.mostrar(erroArquivo);
+      this.uploadAlvo = null;
+      return;
+    }
 
     const alvo = this.uploadAlvo;
     this.uploadAlvo = null;
@@ -226,6 +245,7 @@ export class Documentos {
       arquivo_url: caminho,
       tamanho_bytes: arquivo.size,
       status: 'em_analise',
+      motivo_recusa: null,
       enviado_em: new Date().toISOString(),
     };
 

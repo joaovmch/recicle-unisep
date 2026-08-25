@@ -22,6 +22,12 @@ export class Entrar {
 
   async entrar(): Promise<void> {
     if (this.entrando()) return;
+
+    if (!this.email().trim() || !this.senha()) {
+      this.erro.set('Preencha e-mail e senha.');
+      return;
+    }
+
     this.entrando.set(true);
     this.erro.set(null);
 

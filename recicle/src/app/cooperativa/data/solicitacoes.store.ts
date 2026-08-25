@@ -37,6 +37,7 @@ export interface Solicitacao {
   dadosColeta?: DadosColeta;
   problemaMotivo?: string;
   problemaDescricao?: string;
+  confirmadoEm?: string;
 }
 
 function paraSolicitacao(row: any): Solicitacao {
@@ -59,6 +60,7 @@ function paraSolicitacao(row: any): Solicitacao {
     observacaoRecusa: row.observacao_recusa ?? undefined,
     problemaMotivo: row.problema_motivo ?? undefined,
     problemaDescricao: row.problema_descricao ?? undefined,
+    confirmadoEm: row.confirmado_em ?? undefined,
     dadosColeta:
       row.peso_recebido_kg !== null
         ? {
@@ -161,7 +163,7 @@ export class SolicitacoesStore {
       );
     }
 
-    this.atualizarLocal(id, { status: 'concluida', dadosColeta: dados });
+    this.atualizarLocal(id, { status: 'concluida', dadosColeta: dados, confirmadoEm: new Date().toISOString() });
   }
 
   async registrarProblema(id: string, motivo: string, descricao: string): Promise<void> {

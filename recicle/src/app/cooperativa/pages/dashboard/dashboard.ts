@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SolicitacoesStore } from '../../data/solicitacoes.store';
 import { CooperativaService } from '../../data/cooperativa.service';
+import { formatarPreco } from '../../shared/format';
 
 type StatusParada = 'concluida' | 'em-rota' | 'agendada';
 
@@ -33,11 +34,20 @@ export class Dashboard {
   readonly rotaDeHoje = ROTA_DE_HOJE;
   readonly materialDoMes = MATERIAL_DO_MES;
 
+  private readonly concluidasDoMes = computed(() => {
+    const agora = new Date();
+    return this.store.concluidas().filter(s => {
+      if (!s.confirmadoEm) return false;
+      const data = new Date(s.confirmadoEm);
+      return data.getFullYear() === agora.getFullYear() && data.getMonth() === agora.getMonth();
+    });
+  });
+
   readonly receitaDoMes = computed(() =>
-    this.store.concluidas().reduce((total, s) => total + s.preco, 0)
+    this.concluidasDoMes().reduce((total, s) => total + s.preco, 0)
   );
   readonly materialRecebidoMes = computed(
-    () => `${this.store.concluidas().reduce((total, s) => total + (s.dadosColeta?.pesoRecebidoKg ?? 0), 0)} kg`
+    () => `${this.concluidasDoMes().reduce((total, s) => total + (s.dadosColeta?.pesoRecebidoKg ?? 0), 0)} kg`
   );
   readonly capacidadeUsada = computed(() =>
     this.store.aceitas().reduce((total, s) => total + s.pesoEstimadoKg, 0)
@@ -66,9 +76,7 @@ export class Dashboard {
 
   readonly mapaAberto = signal(false);
 
-  formatarPreco(valor: number): string {
-    return `R$ ${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  }
+  readonly formatarPreco = formatarPreco;
 
   formatarKg(kg: number): string {
     return `${kg.toLocaleString('pt-BR')} kg`;

@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { DadosColeta, Solicitacao, SolicitacoesStore, TriagemItem } from '../../data/solicitacoes.store';
+import { DadosColeta, Solicitacao, SolicitacaoStatus, SolicitacoesStore, TriagemItem } from '../../data/solicitacoes.store';
 import { ToastService } from '../../shared/toast.service';
 
 const PONTOS_POR_KG = 4.2;
@@ -56,6 +56,19 @@ export class ConfirmarRecebimento {
   readonly triagem = signal<TriagemItem[]>([]);
 
   readonly pesoEstimado = computed(() => this.solicitacao()?.pesoEstimadoKg ?? 0);
+
+  readonly podeConfirmar = computed(() => this.solicitacao()?.status === 'aceita');
+
+  private readonly STATUS_LABEL: Record<SolicitacaoStatus, string> = {
+    pendente: 'Pendente',
+    aceita: 'Em rota',
+    concluida: 'Concluída',
+    recusada: 'Recusada',
+  };
+
+  rotuloStatus(status: SolicitacaoStatus): string {
+    return this.STATUS_LABEL[status];
+  }
 
   readonly divergenciaKg = computed(() => +(this.pesoEstimado() - this.pesoRecebido()).toFixed(1));
 
@@ -129,7 +142,7 @@ export class ConfirmarRecebimento {
   }
 
   async confirmar(): Promise<void> {
-    if (!this.codigoValido()) return;
+    if (!this.codigoValido() || !this.podeConfirmar()) return;
 
     const dados: DadosColeta = {
       pesoRecebidoKg: this.pesoRecebido(),
@@ -164,7 +177,7 @@ export class ConfirmarRecebimento {
   }
 
   async confirmarPorFoto(): Promise<void> {
-    if (!this.fotoSelecionada()) return;
+    if (!this.fotoSelecionada() || !this.podeConfirmar()) return;
 
     const dados: DadosColeta = {
       pesoRecebidoKg: this.pesoRecebido(),

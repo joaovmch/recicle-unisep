@@ -1,0 +1,106 @@
+<header class="page-header">
+  <div>
+    <h1>Administradores</h1>
+    <p>Quem tem acesso à área administrativa do Re-cicle.</p>
+  </div>
+
+  <div class="header-actions">
+    <button class="btn btn-primary" (click)="abrirModal()">Adicionar admin</button>
+  </div>
+</header>
+
+@if (carregando()) {
+  <p class="empty-hint">Carregando administradores...</p>
+} @else {
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>E-mail</th>
+        <th>Desde</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (a of adminService.admins(); track a.id) {
+        <tr>
+          <td><strong>{{ a.nome }}</strong></td>
+          <td>{{ a.email }}</td>
+          <td>{{ formatarData(a.criadoEm) }}</td>
+          <td>
+            @if (a.userId !== adminService.admin()?.userId) {
+              <button class="link-btn" (click)="remover(a.id, a.nome)">Remover acesso</button>
+            } @else {
+              <span class="badge badge-neutral">Você</span>
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
+
+
+<!-- MODAL — NOVO ADMIN -->
+@if (modalAberto()) {
+  <div class="modal-overlay" (click)="fecharModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="fecharModal()">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
+
+      <h2>Adicionar admin</h2>
+      <p class="modal-description">Cria o login e já libera acesso total à área administrativa.</p>
+
+      <div class="field">
+        <label for="admin-novo-nome">Nome</label>
+        <input
+          id="admin-novo-nome"
+          type="text"
+          required
+          placeholder="Nome completo"
+          [value]="novoNome()"
+          (input)="novoNome.set($any($event.target).value)"
+        />
+      </div>
+
+      <div class="field">
+        <label for="admin-novo-email">E-mail</label>
+        <input
+          id="admin-novo-email"
+          type="email"
+          autocomplete="off"
+          required
+          placeholder="pessoa@recicle.com"
+          [value]="novoEmail()"
+          (input)="novoEmail.set($any($event.target).value)"
+        />
+      </div>
+
+      <div class="field">
+        <label for="admin-nova-senha">Senha</label>
+        <input
+          id="admin-nova-senha"
+          type="password"
+          autocomplete="new-password"
+          required
+          [attr.minlength]="senhaMinCaracteres"
+          [placeholder]="'Mínimo ' + senhaMinCaracteres + ' caracteres'"
+          [value]="novaSenha()"
+          (input)="novaSenha.set($any($event.target).value)"
+        />
+      </div>
+
+      @if (erro()) {
+        <p class="entrar-erro">{{ erro() }}</p>
+      }
+
+      <div class="modal-actions">
+        <button class="btn btn-outline" (click)="fecharModal()">Cancelar</button>
+        <button class="btn btn-primary" [disabled]="salvando()" (click)="salvar()">
+          {{ salvando() ? 'Criando...' : 'Criar admin' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

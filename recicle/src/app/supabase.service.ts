@@ -3,6 +3,18 @@ import { isPlatformBrowser } from '@angular/common';
 import { SupabaseClient, createClient } from '@supabase/supabase-js';
 import { environment } from '../environments/environment';
 
+/** Traduz as mensagens de erro mais comuns da autenticação do Supabase para português. */
+export function traduzirErroAuth(mensagem: string): string {
+  if (mensagem.includes('Invalid login credentials')) return 'E-mail ou senha incorretos.';
+  if (mensagem.includes('User already registered')) return 'Já existe uma conta com esse e-mail.';
+  if (mensagem.includes('Email not confirmed')) return 'Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.';
+  const senhaCurta = mensagem.match(/Password should be at least (\d+) characters/);
+  if (senhaCurta) return `A senha precisa ter pelo menos ${senhaCurta[1]} caracteres.`;
+  if (mensagem.includes('Unable to validate email address')) return 'Digite um e-mail válido.';
+  if (mensagem.includes('rate limit')) return 'Muitas tentativas. Aguarde um pouco antes de tentar de novo.';
+  return mensagem;
+}
+
 @Injectable({
   providedIn: 'root',
 })

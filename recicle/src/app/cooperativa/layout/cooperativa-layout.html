@@ -82,11 +82,11 @@
     </nav>
 
     <div class="cooperativa-card">
-      <strong>Sua cooperativa</strong>
+      <strong>{{ cooperativa()?.nome ?? 'Sua cooperativa' }}</strong>
 
       <div class="license">
-        <span class="status-dot pendente"></span>
-        cadastro em andamento
+        <span class="status-dot" [class]="statusInfo().classe"></span>
+        {{ statusInfo().texto }}
       </div>
 
       <button class="logout-btn" (click)="sair()">Sair da conta</button>

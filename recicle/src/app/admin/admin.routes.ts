@@ -28,6 +28,11 @@ export const ADMIN_ROUTES: Routes = [
         path: 'clientes',
         loadComponent: () => import('./pages/clientes/clientes').then(m => m.Clientes),
       },
+      {
+        path: 'administradores',
+        loadComponent: () =>
+          import('./pages/administradores/administradores').then(m => m.Administradores),
+      },
     ],
   },
 ];

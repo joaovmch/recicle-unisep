@@ -1,33 +1,20 @@
-import { Component, inject } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../data/auth.service';
 import { CooperativaService } from '../../data/cooperativa.service';
+import { SupabaseService } from '../../../supabase.service';
+import { NOME_TIPO_DOCUMENTO, ordenarPorTipoDocumento, TipoDocumentoDb } from '../../shared/documento-tipos';
 
-type StatusDocumentoAnalise = 'em-conferencia' | 'validado';
+/** Reconferido nesse intervalo pra tela sair sozinha de "em análise" assim que o admin aprovar ou reprovar. */
+const INTERVALO_VERIFICACAO_MS = 10_000;
+
+type StatusDocumentoAnalise = 'em-conferencia' | 'validado' | 'reprovado';
 
 interface DocumentoAnalise {
   nome: string;
   status: StatusDocumentoAnalise;
+  motivo: string | null;
 }
-
-interface TarefaEnquantoIsso {
-  texto: string;
-  feita: boolean;
-}
-
-const DOCUMENTOS_ANALISE: DocumentoAnalise[] = [
-  { nome: 'Licença ambiental de operação', status: 'em-conferencia' },
-  { nome: 'Cartão CNPJ', status: 'em-conferencia' },
-  { nome: 'Ata de eleição da diretoria', status: 'em-conferencia' },
-  { nome: 'Licença para resíduo perigoso', status: 'em-conferencia' },
-];
-
-const TAREFAS: TarefaEnquantoIsso[] = [
-  { texto: 'Marcar os resíduos aceitos', feita: false },
-  { texto: 'Definir a área de cobertura', feita: false },
-  { texto: 'Cadastrar equipe e veículos', feita: false },
-  { texto: 'Definir quem confirma recebimento', feita: false },
-];
 
 @Component({
   selector: 'app-analise-cadastro',
@@ -39,29 +26,66 @@ export class AnaliseCadastro {
   private readonly auth = inject(AuthService);
   private readonly cooperativaService = inject(CooperativaService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly client = inject(SupabaseService).client;
 
-  readonly documentos = DOCUMENTOS_ANALISE;
-  readonly tarefas = TAREFAS;
+  readonly documentos = signal<DocumentoAnalise[]>([]);
 
-  readonly enviadoEm = `hoje, ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+  /** Hora real do envio (criado_em da cooperativa) — não pode mudar a cada F5. */
+  readonly enviadoEm = computed(() => {
+    const iso = this.cooperativaService.cooperativa()?.criadoEm;
+    if (!iso) return '';
+
+    const data = new Date(iso);
+    const hora = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const mesmoDia = data.toDateString() === new Date().toDateString();
+    return mesmoDia ? `hoje, ${hora}` : `${data.toLocaleDateString('pt-BR')}, ${hora}`;
+  });
+
+  readonly reprovado = computed(() => this.cooperativaService.cooperativa()?.statusCadastro === 'reprovado');
+  readonly aprovado = computed(() => this.cooperativaService.cooperativa()?.statusCadastro === 'aprovado');
+  readonly algumDocumentoReprovado = computed(() => this.documentos().some(d => d.status === 'reprovado'));
 
   readonly statusLabel: Record<StatusDocumentoAnalise, string> = {
     'em-conferencia': 'Em conferência',
     validado: 'Validado',
+    reprovado: 'Reprovado',
   };
 
   constructor() {
-    this.redirecionarSeAprovado();
+    this.verificarStatus();
+
+    const intervalId = setInterval(() => this.verificarStatus(), INTERVALO_VERIFICACAO_MS);
+    this.destroyRef.onDestroy(() => clearInterval(intervalId));
   }
 
-  private async redirecionarSeAprovado(): Promise<void> {
+  /**
+   * Reconfere status do cadastro e dos documentos no Supabase. Se o admin aprovou (ou
+   * validou/reprovou algum documento) enquanto a pessoa estava parada nessa tela, os sinais
+   * são atualizados e a UI (incluindo os 3 estágios do progresso) reage sozinha. Não navega
+   * pro painel automaticamente — quem decide ir é a pessoa, clicando no botão que aparece
+   * quando `aprovado()` vira true.
+   */
+  private async verificarStatus(): Promise<void> {
     const sessao = await this.auth.sessaoAtual();
     if (!sessao) return;
 
     const cooperativa = await this.cooperativaService.carregar();
-    if (cooperativa?.statusCadastro === 'aprovado') {
-      this.router.navigate(['/cooperativa/dashboard']);
-    }
+    if (!cooperativa) return;
+
+    const { data } = await this.client
+      .from('documentos')
+      .select('tipo, status, motivo_recusa')
+      .eq('cooperativa_id', cooperativa.id)
+      .neq('tipo', 'outro');
+
+    this.documentos.set(
+      ordenarPorTipoDocumento(data ?? []).map((d: any) => ({
+        nome: NOME_TIPO_DOCUMENTO[d.tipo as Exclude<TipoDocumentoDb, 'outro'>] ?? d.tipo,
+        status: d.status === 'validado' || d.status === 'reprovado' ? d.status : 'em-conferencia',
+        motivo: d.motivo_recusa ?? null,
+      }))
+    );
   }
 
   async sair(): Promise<void> {

@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Allow: /cooperativa/entrar
+Allow: /cooperativa/cadastro
+
+Disallow: /admin
+Disallow: /cooperativa/dashboard
+Disallow: /cooperativa/solicitacoes
+Disallow: /cooperativa/residuos
+Disallow: /cooperativa/area-cobertura
+Disallow: /cooperativa/equipe
+Disallow: /cooperativa/documentos
+Disallow: /cooperativa/relatorios
+Disallow: /cooperativa/cadastro/analise

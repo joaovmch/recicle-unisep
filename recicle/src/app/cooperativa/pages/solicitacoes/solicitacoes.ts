@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { baixarCsv } from '../../shared/csv';
 import { ToastService } from '../../shared/toast.service';
 import { Solicitacao, SolicitacoesStore } from '../../data/solicitacoes.store';
+import { formatarPreco } from '../../shared/format';
 
 type Aba = 'pendente' | 'aceita' | 'concluida' | 'recusada';
 
@@ -128,9 +129,7 @@ export class Solicitacoes {
     this.fecharRecusa();
   }
 
-  formatarPreco(valor: number): string {
-    return `R$ ${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  }
+  readonly formatarPreco = formatarPreco;
 
   formatarDistancia(km: number): string {
     return `${km.toFixed(1).replace('.', ',')} km`;

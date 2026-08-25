@@ -93,8 +93,15 @@ export class Residuos {
   }
 
   atualizarPesoMaximo(valor: string): void {
-    const numero = Number(valor.replace(/[^0-9.]/g, ''));
-    this.pesoMaximo.set(numero || 0);
+    this.pesoMaximo.set(Math.max(0, Number(valor) || 0));
+  }
+
+  atualizarColetasPorDia(valor: string): void {
+    this.coletasPorDia.set(Math.max(0, Math.round(Number(valor) || 0)));
+  }
+
+  atualizarVolumeMaximo(valor: string): void {
+    this.volumeMaximo.set(Math.max(0, Number(valor) || 0));
   }
 
   alternarReciclavel(index: number): void {

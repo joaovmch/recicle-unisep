@@ -17,87 +17,139 @@
       <!-- ESQUERDA -->
       <section class="wizard-card analise-card">
 
-        <div class="analise-icon">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
-        </div>
-
-        <h1>Cadastro em análise</h1>
-        <p class="analise-lead">
-          Recebemos os documentos da sua cooperativa. A conferência da licença junto ao órgão ambiental leva até
-          3 dias úteis — avisamos por e-mail e WhatsApp assim que terminar.
-        </p>
-
-        <div class="analise-steps">
-          <div class="analise-step">
-            <span class="stepper-dot done"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></span>
-            <strong>Cadastro enviado</strong>
-            <small>{{ enviadoEm }}</small>
+        @if (reprovado()) {
+          <div class="analise-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
           </div>
 
-          <div class="analise-step-line done"></div>
+          <h1>Cadastro não aprovado</h1>
+          <p class="analise-lead">
+            A conferência encontrou algo que precisa de ajuste — documento ilegível, licença vencida ou dado
+            divergente. Revise o cadastro e envie de novo; não precisa refazer tudo, só o que for apontado.
+          </p>
 
-          <div class="analise-step">
-            <span class="stepper-dot active">2</span>
-            <strong>Conferência</strong>
-            <small>até 3 dias úteis</small>
-          </div>
+          <h3 class="summary-title analise-section-title">O que enviamos para conferência</h3>
 
-          <div class="analise-step-line"></div>
-
-          <div class="analise-step">
-            <span class="stepper-dot">3</span>
-            <strong>Painel liberado</strong>
-            <small>após aprovação</small>
-          </div>
-        </div>
-
-        <h3 class="summary-title analise-section-title">O que enviamos para conferência</h3>
-
-        <div class="documento-list">
-          @for (doc of documentos; track doc.nome) {
-            <div class="documento-row analise-doc-row">
-              <div class="documento-info">
-                <strong>{{ doc.nome }}</strong>
+          <div class="documento-list">
+            @for (doc of documentos(); track doc.nome) {
+              <div class="documento-row analise-doc-row">
+                <div class="documento-info">
+                  <strong>{{ doc.nome }}</strong>
+                </div>
+                <span class="badge badge-bad">Não aprovado</span>
               </div>
-              <span class="badge" [class.badge-good]="doc.status === 'validado'" [class.badge-warning]="doc.status === 'em-conferencia'">
-                {{ statusLabel[doc.status] }}
-              </span>
-            </div>
-          }
-        </div>
+            }
+          </div>
+        } @else {
+          <div class="analise-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+          </div>
 
-        <div class="analise-footer">
-          <span>Precisa corrigir alguma coisa?</span>
-          <button class="btn btn-outline small" routerLink="/cooperativa/cadastro">Revisar cadastro</button>
-        </div>
+          @if (aprovado()) {
+            <h1>Cadastro aprovado!</h1>
+            <p class="analise-lead">
+              Sua cooperativa já pode receber solicitações pelo Re-cicle. É só seguir para o painel.
+            </p>
+          } @else {
+            <h1>Cadastro em análise</h1>
+            <p class="analise-lead">
+              Recebemos os documentos da sua cooperativa. A conferência da licença junto ao órgão ambiental leva até
+              3 dias úteis — avisamos por e-mail e WhatsApp assim que terminar.
+            </p>
+          }
+
+          <div class="analise-steps">
+            <div class="analise-step">
+              <span class="stepper-dot done"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></span>
+              <strong>Cadastro enviado</strong>
+              <small>{{ enviadoEm() }}</small>
+            </div>
+
+            <div class="analise-step-line done"></div>
+
+            <div class="analise-step">
+              <span class="stepper-dot" [class.done]="aprovado()" [class.active]="!aprovado()">
+                @if (aprovado()) {
+                  <svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg>
+                } @else {
+                  2
+                }
+              </span>
+              <strong>Conferência</strong>
+              <small>até 3 dias úteis</small>
+            </div>
+
+            <div class="analise-step-line" [class.done]="aprovado()"></div>
+
+            <div class="analise-step">
+              <span class="stepper-dot" [class.active]="aprovado()">
+                @if (aprovado()) {
+                  <svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg>
+                } @else {
+                  3
+                }
+              </span>
+              <strong>Painel liberado</strong>
+              <small>{{ aprovado() ? 'liberado' : 'após aprovação' }}</small>
+            </div>
+          </div>
+
+          @if (aprovado()) {
+            <button class="btn btn-primary" style="width: 100%; margin-top: 18px;" routerLink="/cooperativa/dashboard">
+              Ir para o Dashboard
+            </button>
+          } @else {
+            <h3 class="summary-title analise-section-title">O que enviamos para conferência</h3>
+
+            <div class="documento-list">
+              @for (doc of documentos(); track doc.nome) {
+                <div class="documento-row analise-doc-row">
+                  <div class="documento-info">
+                    <strong>{{ doc.nome }}</strong>
+                    @if (doc.status === 'reprovado' && doc.motivo) {
+                      <p>{{ doc.motivo }}</p>
+                    }
+                  </div>
+                  <span
+                    class="badge"
+                    [class.badge-good]="doc.status === 'validado'"
+                    [class.badge-warning]="doc.status === 'em-conferencia'"
+                    [class.badge-bad]="doc.status === 'reprovado'"
+                  >
+                    {{ statusLabel[doc.status] }}
+                  </span>
+                </div>
+              }
+            </div>
+
+            @if (algumDocumentoReprovado()) {
+              <div class="warning-box" style="margin-top: 12px;">
+                <strong>Um ou mais documentos precisam ser reenviados</strong>
+                <p>
+                  Vá em "Documentos e licença", troque só o(s) arquivo(s) apontado(s) acima e pronto — volta pra
+                  conferência automaticamente. Precisando corrigir dados (nome, CNPJ, endereço), use "Revisar
+                  cadastro" abaixo.
+                </p>
+                <a routerLink="/cooperativa/documentos" style="display: inline-block; margin-top: 8px;">
+                  Ir para Documentos e licença →
+                </a>
+              </div>
+            }
+          }
+        }
+
+        @if (!aprovado()) {
+          <div class="analise-footer">
+            <span>Precisa corrigir alguma coisa?</span>
+            <button class="btn btn-outline small" routerLink="/cooperativa/cadastro">Revisar cadastro</button>
+          </div>
+        }
 
       </section>
 
 
       <!-- DIREITA -->
       <aside class="right-column">
-
-        <div class="side-card">
-          <h3 class="summary-title">Enquanto isso</h3>
-          <p class="summary-hint">Dá para adiantar o que não depende da análise.</p>
-
-          <div class="tarefa-list">
-            @for (t of tarefas; track t.texto) {
-              <div class="tarefa-item" [class.feita]="t.feita">
-                <span class="tarefa-check">
-                  @if (t.feita) {
-                    <svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg>
-                  }
-                </span>
-                {{ t.texto }}
-              </div>
-            }
-          </div>
-
-          <button class="btn btn-primary" style="width: 100%; margin-top: 16px;" routerLink="/cooperativa/equipe">
-            Cadastrar equipe agora
-          </button>
-        </div>
 
         <div class="info-card">
           <strong>Se algo estiver errado</strong>

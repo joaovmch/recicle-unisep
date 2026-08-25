@@ -91,23 +91,39 @@
       <p class="summary-hint">Usamos isso para não te mandar pedido que a equipe não dá conta.</p>
 
       <div class="field">
-        <label for="peso-maximo">Peso máximo por coleta</label>
+        <label for="peso-maximo">Peso máximo por coleta (kg)</label>
         <input
           id="peso-maximo"
-          type="text"
-          [value]="pesoMaximo() + ' kg'"
+          type="number"
+          min="0"
+          step="1"
+          [value]="pesoMaximo()"
           (input)="atualizarPesoMaximo($any($event.target).value)"
         />
       </div>
 
       <div class="field">
         <label for="coletas-dia">Coletas por dia</label>
-        <input id="coletas-dia" type="text" [value]="'até ' + coletasPorDia()" disabled />
+        <input
+          id="coletas-dia"
+          type="number"
+          min="0"
+          step="1"
+          [value]="coletasPorDia()"
+          (input)="atualizarColetasPorDia($any($event.target).value)"
+        />
       </div>
 
       <div class="field">
-        <label for="volume-maximo">Volume máximo</label>
-        <input id="volume-maximo" type="text" [value]="volumeMaximo() + ' m³ por viagem'" disabled />
+        <label for="volume-maximo">Volume máximo (m³ por viagem)</label>
+        <input
+          id="volume-maximo"
+          type="number"
+          min="0"
+          step="0.1"
+          [value]="volumeMaximo()"
+          (input)="atualizarVolumeMaximo($any($event.target).value)"
+        />
       </div>
     </div>
 

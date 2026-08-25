@@ -10,8 +10,17 @@
       <p>Preencha na hora da retirada. É isso que fecha a solicitação e credita os pontos do morador.</p>
     </div>
 
-    <span class="status-pill info">Em rota</span>
+    <span class="status-pill" [class.info]="s.status === 'aceita'" [class.bad]="s.status !== 'aceita'">
+      {{ rotuloStatus(s.status) }}
+    </span>
   </header>
+
+  @if (!podeConfirmar()) {
+    <p class="empty-hint">
+      Essa solicitação não está em rota — só é possível confirmar o recebimento de pedidos aceitos.
+      <a routerLink="/cooperativa/solicitacoes">Voltar para solicitações</a>
+    </p>
+  } @else {
 
   <div class="content-grid">
 
@@ -202,6 +211,8 @@
     </aside>
 
   </div>
+
+  }
 
 } @else {
   <p>Solicitação não encontrada. <a routerLink="/cooperativa/solicitacoes">Voltar para solicitações</a></p>

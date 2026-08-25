@@ -57,7 +57,9 @@
 
             <div class="documento-info">
               <strong>{{ doc.nome }}</strong>
-              @if (doc.meta) {
+              @if (doc.status === 'reprovado') {
+                <p>{{ doc.motivoRecusa || 'Reprovado — envie um novo arquivo.' }}</p>
+              } @else if (doc.meta) {
                 <p>{{ doc.meta }}</p>
               }
             </div>
@@ -67,6 +69,7 @@
               [class.badge-good]="doc.status === 'validado'"
               [class.badge-warning]="doc.status === 'em-analise'"
               [class.badge-neutral]="doc.status === 'nao-enviado'"
+              [class.badge-bad]="doc.status === 'reprovado'"
             >
               {{ statusLabel[doc.status] }}
             </span>
@@ -99,12 +102,20 @@
 
     <div class="highlight-card">
       <span>Licença de operação</span>
-      <strong>Ainda não enviada</strong>
+      <strong>{{ licencaOperacaoTitulo[licencaOperacaoStatus()] }}</strong>
 
-      <p>
-        Envie a licença ambiental para começar a receber solicitações. Depois de validada, avisamos por e-mail
-        90 dias antes do vencimento.
-      </p>
+      @if (licencaOperacaoStatus() === 'nao-enviado') {
+        <p>
+          Envie a licença ambiental para começar a receber solicitações. Depois de validada, avisamos por e-mail
+          90 dias antes do vencimento.
+        </p>
+      } @else if (licencaOperacaoStatus() === 'em-analise') {
+        <p>Recebemos o documento e a equipe do Re-cicle está conferindo junto ao órgão ambiental.</p>
+      } @else if (licencaOperacaoStatus() === 'reprovado') {
+        <p>A equipe do Re-cicle não conseguiu validar esse documento — envie um novo arquivo.</p>
+      } @else {
+        <p>Avisamos por e-mail 90 dias antes do vencimento.</p>
+      }
     </div>
 
     <div class="side-card">

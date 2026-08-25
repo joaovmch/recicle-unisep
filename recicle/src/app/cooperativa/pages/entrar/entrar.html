@@ -52,13 +52,15 @@
       <p class="wizard-lead">Acesso para cooperativas, associações e empresas licenciadas.</p>
 
       <div class="field">
-        <label for="entrar-email">E-mail ou CNPJ</label>
+        <label for="entrar-email">E-mail</label>
         <input
           id="entrar-email"
-          type="text"
+          type="email"
+          autocomplete="username"
+          required
           placeholder="contato@suacooperativa.org.br"
-          [value]="emailOuCnpj()"
-          (input)="emailOuCnpj.set($any($event.target).value)"
+          [value]="email()"
+          (input)="email.set($any($event.target).value)"
         />
       </div>
 
@@ -68,6 +70,8 @@
           <input
             id="entrar-senha"
             [type]="senhaVisivel() ? 'text' : 'password'"
+            autocomplete="current-password"
+            required
             placeholder="Sua senha"
             [value]="senha()"
             (input)="senha.set($any($event.target).value)"
@@ -128,11 +132,17 @@
           <input
             id="email-recuperacao"
             type="email"
+            autocomplete="email"
+            required
             placeholder="contato@suacooperativa.org.br"
             [value]="emailRecuperacao()"
             (input)="emailRecuperacao.set($any($event.target).value)"
           />
         </div>
+
+        @if (erroRecuperacao()) {
+          <p class="entrar-erro">{{ erroRecuperacao() }}</p>
+        }
 
         <div class="modal-actions">
           <button class="btn btn-outline" (click)="fecharRecuperarSenha()">Cancelar</button>

@@ -3,8 +3,8 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    loadComponent: () =>
-      import('./pages/home/home').then(m => m.Home)
+    pathMatch: 'full',
+    redirectTo: 'cooperativa/entrar'
   },
   {
     path: 'login',
@@ -13,8 +13,8 @@ export const routes: Routes = [
   },
   {
     path: 'cadastro',
-    loadComponent: () =>
-      import('./pages/cadastro/cadastro').then(m => m.Cadastro)
+    pathMatch: 'full',
+    redirectTo: 'cooperativa/cadastro'
   },
   {
   path: 'cooperativa',

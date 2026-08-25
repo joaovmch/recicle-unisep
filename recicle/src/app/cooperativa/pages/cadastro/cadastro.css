@@ -216,6 +216,19 @@
    RESPONSIVIDADE
 ========================= */
 
+/* =========================
+   VALIDAÇÃO
+========================= */
+
+.residuo-chips.campo-invalido,
+.upload-dropzone.campo-invalido {
+  border-color: #c0392b;
+  outline: 1.5px solid #c0392b;
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+
 @media (max-width: 900px) {
   .wizard-grid {
     grid-template-columns: 1fr;

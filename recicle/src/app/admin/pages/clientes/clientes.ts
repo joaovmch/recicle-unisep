@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { SupabaseService } from '../../../supabase.service';
+import { formatarPreco, formatarData } from '../../../cooperativa/shared/format';
 
 interface Cliente {
   nome: string;
@@ -51,11 +52,6 @@ export class Clientes {
     this.carregando.set(false);
   }
 
-  formatarPreco(valor: number): string {
-    return `R$ ${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  }
-
-  formatarData(iso: string): string {
-    return new Date(iso).toLocaleDateString('pt-BR');
-  }
+  readonly formatarPreco = formatarPreco;
+  readonly formatarData = formatarData;
 }

@@ -104,6 +104,48 @@
       </div>
 
       <div class="field">
+        <label>Documentos enviados</label>
+        @if (carregandoDocumentos()) {
+          <p class="empty-hint">Carregando documentos...</p>
+        } @else if (documentosDetalhe().length === 0) {
+          <p class="empty-hint">Nenhum documento enviado ainda.</p>
+        } @else {
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+            @for (doc of documentosDetalhe(); track doc.id) {
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #eee;">
+                <div>
+                  <strong style="display: block;">{{ doc.nome }}</strong>
+                  <span
+                    class="badge"
+                    [class.badge-good]="doc.status === 'validado'"
+                    [class.badge-warning]="doc.status === 'em_analise'"
+                    [class.badge-neutral]="doc.status === 'nao_enviado'"
+                    [class.badge-bad]="doc.status === 'reprovado'"
+                  >
+                    {{ statusDocumentoLabel[doc.status] }}
+                  </span>
+                  @if (doc.status === 'reprovado' && doc.motivoRecusa) {
+                    <p class="empty-hint" style="margin-top: 4px;">{{ doc.motivoRecusa }}</p>
+                  }
+                </div>
+                <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                  @if (doc.arquivoUrl) {
+                    <button class="link-btn" (click)="verDocumento(doc)">Ver arquivo</button>
+                  }
+                  @if (doc.status === 'em_analise' || doc.status === 'reprovado') {
+                    <button class="btn btn-outline small" (click)="validarDocumento(doc)">Validar</button>
+                  }
+                  @if (doc.status !== 'reprovado') {
+                    <button class="btn btn-danger small" (click)="reprovarDocumento(doc)">Reprovar</button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="field">
         <label>Status atual</label>
         <span
           class="badge"

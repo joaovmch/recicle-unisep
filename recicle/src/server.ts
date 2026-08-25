@@ -5,12 +5,39 @@ import {
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
 import express from 'express';
+import helmet from 'helmet';
 import { join } from 'node:path';
+import { environment } from './environments/environment';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
+
+/**
+ * Cabeçalhos de segurança (OWASP): CSP restrita a este domínio + Supabase,
+ * sem permitir iframe de terceiros embutir o painel (clickjacking) e forçando HTTPS.
+ * script-src/style-src precisam de 'unsafe-inline' porque o Angular SSR injeta
+ * o estado transferido (TransferState) e o CSS crítico como tags inline na página.
+ */
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'blob:'],
+        connectSrc: ["'self'", environment.supabaseUrl, environment.supabaseUrl.replace('https://', 'wss://')],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+      },
+    },
+    crossOriginEmbedderPolicy: false,
+  }),
+);
 
 /**
  * Example Express Rest API endpoints can be defined here.

@@ -29,6 +29,8 @@
         <input
           id="admin-email"
           type="email"
+          autocomplete="username"
+          required
           placeholder="voce@recicle.com"
           [value]="email()"
           (input)="email.set($any($event.target).value)"
@@ -41,6 +43,8 @@
           <input
             id="admin-senha"
             [type]="senhaVisivel() ? 'text' : 'password'"
+            autocomplete="current-password"
+            required
             placeholder="Sua senha"
             [value]="senha()"
             (input)="senha.set($any($event.target).value)"
