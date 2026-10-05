@@ -1,0 +1,51 @@
+<div class="morador-shell">
+
+  <!-- TOPBAR -->
+  <header class="morador-topbar">
+    <a class="topbar-brand" routerLink="/painel">
+      <span class="brand-icon"><img src="/logo.png" alt="Re-cicle" /></span>
+      <span class="brand-name">Re-cicle</span>
+    </a>
+
+    <nav class="topbar-nav">
+      <a routerLink="/chat" routerLinkActive="active">Chat</a>
+      <a routerLink="/ecopontos" routerLinkActive="active">Ecopontos</a>
+      <a routerLink="/solicitacoes" routerLinkActive="active">Minhas solicitações</a>
+      <a routerLink="/painel" routerLinkActive="active">Painel</a>
+    </nav>
+
+    <div class="topbar-direita">
+      @if (morador()) {
+        <a class="pontos-pill" routerLink="/pontos">★ {{ saldo() }} pontos</a>
+
+        <div class="avatar-wrap">
+          <button class="avatar-btn" (click)="alternarMenu()" [attr.aria-expanded]="menuAberto()">
+            {{ iniciais() }}
+          </button>
+
+          @if (menuAberto()) {
+            <div class="avatar-menu-overlay" (click)="fecharMenu()"></div>
+            <div class="avatar-menu">
+              <div class="avatar-menu-info">
+                <strong>{{ morador()?.nome }}</strong>
+                <span>{{ morador()?.email }}</span>
+              </div>
+              <a routerLink="/perfil" (click)="fecharMenu()">Perfil e conta</a>
+              <a routerLink="/pontos" (click)="fecharMenu()">Meus pontos</a>
+              <button (click)="sair()">Sair da conta</button>
+            </div>
+          }
+        </div>
+      } @else {
+        <!-- Visitante sem conta vendo /ecopontos — convite pra entrar em vez do pill/avatar de quem já tem perfil. -->
+        <a class="link-btn" routerLink="/entrar" [queryParams]="{ aba: 'entrar' }">Entrar</a>
+        <button class="btn btn-primary small" routerLink="/entrar">Criar conta</button>
+      }
+    </div>
+  </header>
+
+  <main class="morador-conteudo">
+    <router-outlet></router-outlet>
+  </main>
+
+</div>

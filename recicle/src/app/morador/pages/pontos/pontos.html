@@ -1,0 +1,198 @@
+<p class="breadcrumb">
+  <a routerLink="/painel">Painel</a> / Meus pontos
+</p>
+
+<div class="content-grid">
+
+  <!-- ESQUERDA -->
+  <section class="pontos-main">
+
+    <!-- SALDO -->
+    <div class="saldo-card">
+      <div class="saldo-topo">
+        <div>
+          <span class="saldo-rotulo">Saldo disponível</span>
+          <strong class="saldo-valor">{{ saldo() }} pontos</strong>
+          <p class="saldo-resumo">
+            Você acumulou {{ acumulado() }} pontos e resgatou {{ resgatado() }}.
+          </p>
+        </div>
+
+        <div class="saldo-nivel">
+          <span>Nível atual</span>
+          <strong>{{ nivel().atual.nome }}</strong>
+          @if (nivel().proximo; as proximo) {
+            <small>próximo: {{ proximo.nome }} · {{ proximo.minimo }} pts</small>
+          } @else {
+            <small>nível máximo alcançado</small>
+          }
+        </div>
+      </div>
+
+      <div class="capacity-bar">
+        <div class="capacity-fill" [style.width.%]="progressoNivel()"></div>
+      </div>
+
+      <div class="saldo-progresso">
+        <span>{{ saldo() }}{{ nivel().proximo ? ' de ' + nivel().proximo!.minimo : '' }}</span>
+        @if (nivel().proximo) {
+          <span>faltam {{ nivel().faltam }} pontos</span>
+        }
+      </div>
+    </div>
+
+
+    <!-- COMO SÃO CALCULADOS -->
+    <div class="side-card">
+      <h3 class="summary-title">Como os pontos são calculados</h3>
+      <p class="summary-hint">Sempre sobre o peso conferido na triagem, nunca sobre a estimativa.</p>
+
+      <div class="regras-grid">
+        @for (r of regras; track r.titulo) {
+          <div class="regra-card">
+            <strong>{{ r.titulo }}</strong>
+            <span class="regra-valor">{{ r.valor }}</span>
+            <p>{{ r.detalhe }}</p>
+          </div>
+        }
+      </div>
+    </div>
+
+
+    <!-- HISTÓRICO -->
+    <div class="side-card">
+      <div class="side-card-header">
+        <h3>Histórico</h3>
+        @if (movimentos().length > 0) {
+          <button (click)="exportarHistorico()">Exportar</button>
+        }
+      </div>
+
+      @if (movimentos().length === 0) {
+        <p class="empty-hint">
+          Nenhum lançamento ainda. Os pontos entram quando a cooperativa confirma a triagem.
+        </p>
+      } @else {
+        <div class="extrato-lista">
+          @for (m of movimentos(); track m.id) {
+            <div class="extrato-item">
+              <div>
+                <strong>{{ m.descricao }}</strong>
+                <p>{{ formatarData(m.criadoEm) }}@if (m.detalhe) { · {{ m.detalhe }} }</p>
+              </div>
+              <span class="extrato-pontos" [class.negativo]="m.pontos < 0">
+                {{ m.pontos > 0 ? '+' : '−' }}{{ m.pontos < 0 ? -m.pontos : m.pontos }}
+              </span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  </section>
+
+
+  <!-- DIREITA -->
+  <aside class="right-column">
+
+    <div class="side-card">
+      <h3 class="summary-title">Benefícios</h3>
+      <p class="summary-hint">Oferecidos pela rede parceira do projeto.</p>
+
+      @if (beneficios().length === 0) {
+        <p class="empty-hint">Nenhum benefício cadastrado ainda.</p>
+      } @else {
+        <div class="beneficio-lista">
+          @for (b of beneficios(); track b.id) {
+            <div class="beneficio-card" [class.indisponivel]="!b.disponivel">
+              <div class="beneficio-topo">
+                <strong>{{ b.nome }}</strong>
+                <span class="beneficio-custo">{{ b.custoPontos }} pts</span>
+              </div>
+
+              <p>
+                {{ b.descricao }}
+                @if (!b.disponivel) { · esgotado no mês }
+                @else if (!podeResgatar(b)) { · faltam {{ b.custoPontos - saldo() }} pontos }
+              </p>
+
+              @if (podeResgatar(b)) {
+                <button class="btn btn-primary small" style="width: 100%;" (click)="abrirResgate(b)">
+                  Resgatar
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="warning-box">
+      <strong>Pontos não expiram</strong>
+      <p>
+        Mas os benefícios têm estoque limitado e mudam conforme os acordos com as
+        cooperativas parceiras.
+      </p>
+    </div>
+
+  </aside>
+
+</div>
+
+
+<!-- MODAL — RESGATE -->
+@if (beneficioParaResgatar(); as b) {
+  <div class="modal-overlay" (click)="fecharResgate()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="fecharResgate()">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
+
+      @if (codigoResgate(); as codigo) {
+        <h2>Resgate confirmado</h2>
+        <p class="modal-description">
+          Mostre o código abaixo na retirada de <strong>{{ b.nome }}</strong>.
+        </p>
+
+        <div class="codigo-resgate">{{ codigo }}</div>
+
+        <div class="info-box">
+          <strong>Saldo atualizado</strong>
+          <p>Seu saldo agora é de {{ saldo() }} pontos.</p>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-primary" (click)="fecharResgate()">Entendi</button>
+        </div>
+      } @else {
+        <h2>Resgatar benefício</h2>
+        <p class="modal-description">
+          {{ b.nome }} custa {{ b.custoPontos }} pontos. Depois de confirmar, o valor sai do seu
+          saldo e você recebe um código para a retirada.
+        </p>
+
+        <div class="material-list" style="margin-bottom: 18px;">
+          <div>
+            <span>Saldo atual</span>
+            <strong>{{ saldo() }} pontos</strong>
+          </div>
+          <div>
+            <span>Custo do benefício</span>
+            <strong>− {{ b.custoPontos }} pontos</strong>
+          </div>
+          <div>
+            <span>Saldo depois</span>
+            <strong>{{ saldo() - b.custoPontos }} pontos</strong>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-outline" (click)="fecharResgate()">Cancelar</button>
+          <button class="btn btn-primary" [disabled]="resgatando()" (click)="confirmarResgate()">
+            {{ resgatando() ? 'Resgatando...' : 'Confirmar resgate' }}
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+}

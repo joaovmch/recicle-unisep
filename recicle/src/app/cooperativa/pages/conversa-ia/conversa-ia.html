@@ -1,0 +1,131 @@
+@if (carregando()) {
+  <p class="empty-hint">Carregando a conversa…</p>
+} @else if (solicitacao(); as s) {
+
+  <!-- CABEÇALHO -->
+  <nav class="breadcrumb">
+    <a routerLink="/cooperativa/solicitacoes">Solicitações</a>
+    <span>›</span>
+    <span>#{{ s.numero }}</span>
+    <span>›</span>
+    <span>Conversa com a IA</span>
+  </nav>
+
+  <header class="page-header">
+    <div>
+      <h1>Como o pedido chegou até vocês</h1>
+      <p>Conversa de {{ s.solicitante }} com a IA em {{ quando(s.criadoEm) }}, que gerou a solicitação #{{ s.numero }}.</p>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-outline" routerLink="/cooperativa/solicitacoes">Voltar às solicitações</button>
+    </div>
+  </header>
+
+  <div class="aviso-leitura">
+    Somente leitura. A conversa serve para vocês entenderem o resíduo antes de aceitar — o morador não é
+    notificado e não há como responder por aqui.
+  </div>
+
+
+  <div class="content-grid">
+
+    <!-- CONVERSA -->
+    <section class="side-card conversa">
+
+      <div class="conversa-topo">
+        <strong>Descarte #{{ s.numero }}</strong>
+        <span>{{ quando(s.criadoEm) }} · {{ mensagens().length }} mensagens</span>
+      </div>
+
+      <div class="thread">
+        @for (m of mensagens(); track $index) {
+          <div class="bolha" [class.morador]="m.autor === 'morador'">{{ m.texto }}</div>
+        }
+
+        @if (classificacao(); as c) {
+          @if (c.passos.length > 0) {
+            <div class="passos-card">
+              <strong>O que a IA orientou antes da entrega</strong>
+              <ol>
+                @for (passo of c.passos; track passo.titulo) {
+                  <li>
+                    <strong>{{ passo.titulo }}</strong>
+                    <p>{{ passo.descricao }}</p>
+                  </li>
+                }
+              </ol>
+            </div>
+          }
+        }
+
+        <div class="destino">
+          <strong>Destino escolhido: coleta em casa</strong>
+          <p>{{ destino() }}</p>
+        </div>
+      </div>
+
+      <p class="conversa-fim">
+        A conversa termina aqui. Mensagens posteriores do morador com a IA não aparecem para a cooperativa.
+      </p>
+
+    </section>
+
+
+    <!-- RESUMO -->
+    <aside class="right-column">
+
+      @if (classificacao(); as c) {
+        <div class="side-card">
+          <h3>Resumo do resíduo</h3>
+
+          <dl class="resumo-lista">
+            <div>
+              <dt>Categoria</dt>
+              <dd>{{ c.categoria }}</dd>
+            </div>
+            <div>
+              <dt>Materiais</dt>
+              <dd>{{ c.materiais }}</dd>
+            </div>
+            <div>
+              <dt>Peso estimado</dt>
+              <dd>≈ {{ s.pesoEstimadoKg }} kg</dd>
+            </div>
+            <div>
+              <dt>Reciclável</dt>
+              <dd>{{ c.reciclavel }}</dd>
+            </div>
+          </dl>
+        </div>
+
+        @if (c.atencao) {
+          <div class="atencao-card">
+            <strong>Atenção da IA</strong>
+            <p>{{ c.atencao }}</p>
+          </div>
+        }
+      }
+
+      <div class="side-card">
+        <h3>{{ rotuloStatus() }}</h3>
+        <p class="empty-hint" style="text-align: left; padding: 6px 0 14px;">{{ detalheStatus() }}</p>
+
+        @if (aindaPendente()) {
+          <div class="acoes-empilhadas">
+            <button class="btn btn-primary" (click)="aceitar()">Aceitar coleta</button>
+            <button class="btn btn-outline" (click)="recusar()">Recusar</button>
+          </div>
+        }
+      </div>
+
+    </aside>
+
+  </div>
+
+} @else {
+  <div class="side-card empty-state">
+    <p>Solicitação não encontrada.</p>
+    <button class="btn btn-outline" routerLink="/cooperativa/solicitacoes">Voltar às solicitações</button>
+  </div>
+}

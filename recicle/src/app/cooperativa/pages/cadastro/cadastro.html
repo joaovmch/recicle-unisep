@@ -251,7 +251,12 @@
             </div>
             <div class="field campo-obrigatorio" [class.campo-invalido]="invalido('uf')">
               <label for="end-uf">UF</label>
-              <input id="end-uf" type="text" required maxlength="2" placeholder="UF" [value]="endereco().uf" (input)="atualizarEndereco('uf', $any($event.target).value)" />
+              <select id="end-uf" required (change)="atualizarEndereco('uf', $any($event.target).value)">
+                <option value="" [selected]="!endereco().uf">UF</option>
+                @for (uf of ufs; track uf) {
+                  <option [value]="uf" [selected]="uf === endereco().uf.toUpperCase()">{{ uf }}</option>
+                }
+              </select>
             </div>
           </div>
 
@@ -305,9 +310,9 @@
           <h2>Resíduos que vocês aceitam</h2>
           <p class="wizard-lead">Marque tudo que a triagem recebe hoje. Dá para mudar depois no painel.</p>
 
-          <div class="residuo-chips" [class.campo-invalido]="invalido('residuos')">
+          <div class="chip-list" [class.campo-invalido]="invalido('residuos')">
             @for (r of residuos(); track r.nome; let i = $index) {
-              <button class="residuo-chip" [class.on]="r.marcado" (click)="alternarResiduo(i)">
+              <button class="chip" [class.on]="r.marcado" (click)="alternarResiduo(i)">
                 <span class="chip-check">
                   @if (r.marcado) {
                     <svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg>
@@ -323,7 +328,7 @@
             usamos isso para não te mandar pedido que vocês não conseguem atender
           </p>
 
-          <div class="field-row three">
+          <div class="field-row">
             <div class="field">
               <label for="cap-peso">Peso máximo por coleta (kg)</label>
               <input
@@ -333,16 +338,6 @@
                 step="1"
                 [value]="capacidade().pesoMaximoKg"
                 (input)="atualizarPesoMaximo($any($event.target).value)"
-              />
-            </div>
-            <div class="field">
-              <label for="cap-veiculos">Veículos disponíveis</label>
-              <input
-                id="cap-veiculos"
-                type="text"
-                placeholder="Ex.: 1 caminhonete"
-                [value]="capacidade().veiculosDisponiveis"
-                (input)="atualizarCapacidade('veiculosDisponiveis', $any($event.target).value)"
               />
             </div>
             <div class="field">
@@ -357,6 +352,10 @@
               />
             </div>
           </div>
+          <p class="wizard-lead" style="margin-top: -8px;">
+            Veículos da frota são cadastrados depois, em "Equipe e veículos" — a capacidade de cada um entra na
+            conta automaticamente.
+          </p>
 
           <div class="warning-box" style="margin-top: 18px;">
             <strong>Resíduo perigoso exige licença específica</strong>
@@ -516,7 +515,9 @@
           }
 
           @if (etapaAtual() < 4) {
-            <button class="btn btn-primary" (click)="avancar()">{{ ctaLabels[etapaAtual() - 1] }}</button>
+            <button class="btn btn-primary" [disabled]="verificandoDuplicidade()" (click)="avancar()">
+              {{ verificandoDuplicidade() ? 'Verificando...' : ctaLabels[etapaAtual() - 1] }}
+            </button>
           } @else {
             <button class="btn btn-primary" [disabled]="!confirmaVeracidade() || enviando()" (click)="enviarParaAnalise()">
               {{ enviando() ? 'Enviando...' : (modoEdicao() ? 'Salvar e reenviar para análise' : 'Enviar para análise') }}
@@ -530,5 +531,3 @@
   </div>
 
 </div>
-
-<app-toast-host></app-toast-host>

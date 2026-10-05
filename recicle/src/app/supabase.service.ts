@@ -12,6 +12,8 @@ export function traduzirErroAuth(mensagem: string): string {
   if (senhaCurta) return `A senha precisa ter pelo menos ${senhaCurta[1]} caracteres.`;
   if (mensagem.includes('Unable to validate email address')) return 'Digite um e-mail válido.';
   if (mensagem.includes('rate limit')) return 'Muitas tentativas. Aguarde um pouco antes de tentar de novo.';
+  if (mensagem.includes('should be different')) return 'A nova senha precisa ser diferente da atual.';
+  if (/session|jwt|reauthenticat/i.test(mensagem)) return 'Sua sessão expirou. Entre de novo e tente outra vez.';
   return mensagem;
 }
 

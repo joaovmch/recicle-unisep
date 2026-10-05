@@ -1,6 +1,18 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
 
 export const serverRoutes: ServerRoute[] = [
+  // Rotas do morador — todas dependem da sessão no navegador, então são
+  // renderizadas só no cliente (o detalhe ainda tem :id, que não dá para
+  // pré-renderizar sem saber os ids de antemão).
+  { path: 'painel', renderMode: RenderMode.Client },
+  { path: 'chat', renderMode: RenderMode.Client },
+  { path: 'ecopontos', renderMode: RenderMode.Client },
+  { path: 'solicitacoes', renderMode: RenderMode.Client },
+  { path: 'solicitacoes/:id', renderMode: RenderMode.Client },
+  { path: 'pontos', renderMode: RenderMode.Client },
+  { path: 'perfil', renderMode: RenderMode.Client },
+  { path: 'entrar', renderMode: RenderMode.Client },
+
   // Rotas protegidas pelo login da cooperativa — dependem de estado do
   // navegador (localStorage), então não fazem sentido pré-renderizadas.
   {
@@ -9,6 +21,14 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: 'cooperativa/solicitacoes',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'cooperativa/solicitacoes/:id/conversa',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'cooperativa/solicitacoes/:id/aceita',
     renderMode: RenderMode.Client
   },
   {
@@ -40,6 +60,10 @@ export const serverRoutes: ServerRoute[] = [
   // sem isso, ficava servindo uma versão pré-renderizada em branco, sem dados de ninguém.
   {
     path: 'cooperativa/cadastro',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'cooperativa/cadastro/editar',
     renderMode: RenderMode.Client
   },
   {

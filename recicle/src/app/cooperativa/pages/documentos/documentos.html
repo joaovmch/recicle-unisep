@@ -2,11 +2,7 @@
 <header class="page-header">
   <div>
     <h1>Documentos e licença</h1>
-    <p>O que mantém sua cooperativa recebendo solicitação pelo Re-cicle.</p>
-  </div>
-
-  <div class="header-actions">
-    <button class="btn btn-primary" (click)="acionarNovoDocumento(fileInput)">Enviar documento</button>
+    <p>É o que sustenta o selo "licença verificada" que os moradores veem.</p>
   </div>
 </header>
 
@@ -14,19 +10,29 @@
 
 
 <!-- ALERTA -->
-<div class="alert-banner">
-  <svg viewBox="0 0 24 24">
-    <path d="M12 3 2 20h20L12 3Z"/>
-    <path d="M12 10v4M12 17h.01"/>
-  </svg>
+@if (licencaOperacaoStatus() !== 'validado') {
+  <div class="alert-banner">
+    <svg viewBox="0 0 24 24">
+      <path d="M12 3 2 20h20L12 3Z"/>
+      <path d="M12 10v4M12 17h.01"/>
+    </svg>
 
-  <p>
-    Nenhum documento foi enviado ainda. Sem a licença ambiental validada, sua cooperativa não recebe solicitações
-    pelo Re-cicle.
-  </p>
+    <p>
+      @if (licencaOperacaoStatus() === 'nao-enviado') {
+        Nenhum documento foi enviado ainda. Sem a licença ambiental validada, sua cooperativa não recebe
+        solicitações pelo Re-cicle.
+      } @else if (licencaOperacaoStatus() === 'em-analise') {
+        A licença ambiental está em análise. Sua cooperativa só recebe solicitações pelo Re-cicle depois que ela
+        for validada.
+      } @else {
+        A licença ambiental foi reprovada — envie um novo arquivo para continuar recebendo solicitações pelo
+        Re-cicle.
+      }
+    </p>
 
-  <button class="btn btn-outline small" (click)="verOQueEnviamos()">Ver documentos</button>
-</div>
+    <button class="btn btn-outline small" (click)="verOQueEnviamos()">Ver documentos</button>
+  </div>
+}
 
 
 <div class="content-grid">
@@ -34,8 +40,53 @@
   <!-- ESQUERDA -->
   <section class="documentos-main">
 
+    <!-- LICENÇA DE OPERAÇÃO -->
     <div class="side-card">
-      <h3>Documentos no cadastro</h3>
+      <div class="side-card-header">
+        <div>
+          <h3>Licença ambiental de operação</h3>
+          <p class="subtitle">Conferida pela equipe do Re-cicle junto ao órgão emissor.</p>
+        </div>
+
+        <span
+          class="badge"
+          [class.badge-good]="licencaOperacaoStatus() === 'validado'"
+          [class.badge-warning]="licencaOperacaoStatus() === 'em-analise'"
+          [class.badge-neutral]="licencaOperacaoStatus() === 'nao-enviado'"
+          [class.badge-bad]="licencaOperacaoStatus() === 'reprovado'"
+        >
+          {{ licencaOperacaoTitulo[licencaOperacaoStatus()] }}
+        </span>
+      </div>
+
+      <div class="licenca-dados">
+        <div>
+          <span>Número</span>
+          <strong>{{ cooperativa()?.licencaNumero || '—' }}</strong>
+        </div>
+        <div>
+          <span>Órgão emissor</span>
+          <strong>{{ cooperativa()?.licencaOrgao || '—' }}</strong>
+        </div>
+        <div>
+          <span>Válida até</span>
+          <strong>{{ licencaValidadeFormatada() }}</strong>
+        </div>
+        <div>
+          <span>CNPJ</span>
+          <strong>{{ cooperativa()?.cnpj || '—' }}</strong>
+        </div>
+      </div>
+
+      <div class="licenca-acoes">
+        <button class="btn btn-outline btn-sm" (click)="verArquivoLicenca(fileInput)">Ver arquivo</button>
+        <button class="btn btn-outline btn-sm" (click)="enviarRenovacao(fileInput)">Enviar renovação</button>
+      </div>
+    </div>
+
+
+    <div class="side-card">
+      <h3>Documentos do cadastro</h3>
       <p class="summary-hint">Substituir um arquivo abre nova análise só daquele item</p>
 
       <div class="documento-list" #listaDocumentos>
@@ -80,43 +131,45 @@
       </div>
     </div>
 
-    <div class="side-card">
-      <h3>O que a análise confere</h3>
-      <p class="summary-hint">Feita pela equipe do Re-cicle junto ao órgão ambiental.</p>
-
-      <div class="analise-grid">
-        @for (item of analiseConfere; track item.titulo) {
-          <div class="analise-tile">
-            <strong>{{ item.titulo }}</strong>
-            <p>{{ item.descricao }}</p>
-          </div>
-        }
-      </div>
-    </div>
-
   </section>
 
 
   <!-- DIREITA -->
   <aside class="right-column">
 
-    <div class="highlight-card">
-      <span>Licença de operação</span>
-      <strong>{{ licencaOperacaoTitulo[licencaOperacaoStatus()] }}</strong>
-
-      @if (licencaOperacaoStatus() === 'nao-enviado') {
-        <p>
-          Envie a licença ambiental para começar a receber solicitações. Depois de validada, avisamos por e-mail
-          90 dias antes do vencimento.
-        </p>
-      } @else if (licencaOperacaoStatus() === 'em-analise') {
-        <p>Recebemos o documento e a equipe do Re-cicle está conferindo junto ao órgão ambiental.</p>
-      } @else if (licencaOperacaoStatus() === 'reprovado') {
-        <p>A equipe do Re-cicle não conseguiu validar esse documento — envie um novo arquivo.</p>
-      } @else {
-        <p>Avisamos por e-mail 90 dias antes do vencimento.</p>
-      }
+    <div class="side-card">
+      <h3 class="summary-title">Renovação da licença</h3>
+      <p class="summary-hint">
+        Avisamos 60 dias antes do vencimento. Se a validade expirar, a cooperativa para de receber pedidos novos
+        até a renovação ser enviada — as coletas já aceitas continuam.
+      </p>
     </div>
+
+    <div class="side-card">
+      <h3 class="summary-title">O que o morador vê</h3>
+      <p class="summary-hint">
+        Número da licença, órgão emissor, validade e CNPJ aparecem na página da cooperativa e em cada comprovante
+        de destinação.
+      </p>
+    </div>
+
+    @if (todosEntregues()) {
+      <div class="success-box">
+        <strong>Cadastro completo</strong>
+        <p>
+          Os {{ documentos().length }} documentos foram entregues. As conferências pendentes não bloqueiam o
+          recebimento de pedidos.
+        </p>
+      </div>
+    } @else {
+      <div class="warning-box">
+        <strong>Faltam documentos</strong>
+        <p>
+          {{ totalEntregues() }} de {{ documentos().length }} entregues. Envie os que faltam para a equipe do
+          Re-cicle concluir a conferência.
+        </p>
+      </div>
+    }
 
     <div class="side-card">
       <h3 class="summary-title">Histórico</h3>

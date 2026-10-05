@@ -1,8 +1,19 @@
-.residuo-group + .residuo-group {
-  margin-top: 26px;
+.residuos-table td {
+  vertical-align: middle;
 }
 
-.field input:disabled {
+.residuo-detalhe {
+  margin: 3px 0 0;
   color: #8b9994;
-  background: #f4f3ee;
+  font-size: 11px;
+}
+
+.residuo-recusados {
+  color: var(--rc-aviso-texto);
+  font-weight: 600;
+}
+
+/* Tipo desligado: o motivo fica em laranja, como nas telas. */
+.residuo-detalhe.alerta {
+  color: var(--rc-aviso-texto);
 }

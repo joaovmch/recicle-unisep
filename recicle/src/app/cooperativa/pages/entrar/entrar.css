@@ -10,7 +10,7 @@
 ========================= */
 
 .entrar-hero {
-  background: #073f31;
+  background: var(--rc-verde-900);
   color: #ffffff;
   padding: 40px 46px;
   display: flex;
@@ -82,7 +82,7 @@
 ========================= */
 
 .entrar-form-side {
-  background: #f7f6f1;
+  background: var(--rc-fundo);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -121,13 +121,13 @@
 
 .entrar-tab.active {
   background: #ffffff;
-  color: #0b4939;
+  color: var(--rc-texto);
   box-shadow: 0 1px 3px rgba(20, 50, 40, 0.12);
 }
 
 .entrar-card h2 {
   margin: 0;
-  color: #0b4939;
+  color: var(--rc-texto);
   font-size: 19px;
   font-weight: 750;
 }
@@ -189,7 +189,7 @@
 }
 
 .entrar-remember input {
-  accent-color: #10a957;
+  accent-color: var(--rc-verde-600);
   width: 15px;
   height: 15px;
 }

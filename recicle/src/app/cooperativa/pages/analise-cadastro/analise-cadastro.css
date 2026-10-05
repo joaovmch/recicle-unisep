@@ -25,11 +25,16 @@
   height: 62px;
   margin: 0 auto 18px;
   border-radius: 50%;
-  background: #fbe3c7;
-  color: #a15d09;
+  background: var(--rc-aviso-bg);
+  color: var(--rc-aviso-texto);
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.analise-icon.aprovado {
+  background: var(--rc-sucesso-bg);
+  color: var(--rc-sucesso-texto);
 }
 
 .analise-icon svg {
@@ -44,7 +49,7 @@
 
 .analise-card h1 {
   margin: 0;
-  color: #0b4939;
+  color: var(--rc-texto);
   font-size: 24px;
   font-weight: 750;
 }
@@ -97,7 +102,7 @@
 }
 
 .analise-step-line.done {
-  background: #10a957;
+  background: var(--rc-verde-600);
 }
 
 
@@ -150,56 +155,6 @@
 .analise-footer span {
   color: #667871;
   font-size: 12.5px;
-}
-
-
-/* =========================
-   TAREFAS
-========================= */
-
-.tarefa-list {
-  display: flex;
-  flex-direction: column;
-  gap: 13px;
-}
-
-.tarefa-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #556961;
-  font-size: 12.5px;
-  font-weight: 600;
-}
-
-.tarefa-item.feita {
-  color: #24413a;
-}
-
-.tarefa-check {
-  width: 18px;
-  height: 18px;
-  border-radius: 5px;
-  border: 1.5px solid #d9d8d0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.tarefa-item.feita .tarefa-check {
-  border-color: #10a957;
-  background: #10a957;
-}
-
-.tarefa-check svg {
-  width: 12px;
-  height: 12px;
-  fill: none;
-  stroke: #ffffff;
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }
 
 

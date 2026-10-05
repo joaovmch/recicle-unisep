@@ -1,0 +1,247 @@
+<div class="entrada-shell">
+
+  <!-- LADO ESQUERDO -->
+  <section class="entrada-hero">
+    <a class="auth-brand" routerLink="/">
+      <span class="brand-icon"><img src="/logo.png" alt="Re-cicle" /></span>
+      <span>Re-cicle</span>
+    </a>
+
+    <div class="hero-texto">
+      <h1>Descartar direito<br />devia ser simples.</h1>
+
+      <p class="hero-lead">
+        Crie sua conta para conversar com a IA, encontrar cooperativas licenciadas e
+        acompanhar seus descartes.
+      </p>
+
+      <ul class="hero-destaques">
+        @for (d of destaques; track d) {
+          <li>
+            <span class="destaque-check">
+              <svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" /></svg>
+            </span>
+            {{ d }}
+          </li>
+        }
+      </ul>
+    </div>
+
+    <blockquote class="hero-depoimento">
+      <p>
+        "Eu guardava óleo usado embaixo da pia porque não sabia onde entregar. Em duas
+        semanas a cooperativa já veio buscar duas vezes."
+      </p>
+      <footer>Ana Ribeiro · moradora · Centro</footer>
+    </blockquote>
+  </section>
+
+
+  <!-- LADO DIREITO -->
+  <section class="entrada-form-side">
+    <div class="entrada-card">
+
+      <div class="entrada-abas">
+        <button [class.active]="aba() === 'criar'" (click)="setAba('criar')">Criar conta</button>
+        <button [class.active]="aba() === 'entrar'" (click)="setAba('entrar')">Entrar</button>
+      </div>
+
+      @if (aba() === 'criar') {
+        <h2>Criar sua conta</h2>
+        <p class="entrada-lead">Leva menos de um minuto.</p>
+
+        <span class="section-label">Você é</span>
+        <div class="perfil-grid">
+          <button
+            class="perfil-card"
+            [class.on]="perfil() === 'morador'"
+            (click)="selecionarPerfil('morador')"
+          >
+            <strong>Morador</strong>
+            <span>descarto resíduos</span>
+          </button>
+
+          <button class="perfil-card" (click)="selecionarPerfil('cooperativa')">
+            <strong>Cooperativa / empresa</strong>
+            <span>abre o cadastro de parceiro</span>
+          </button>
+        </div>
+
+        <div class="field">
+          <label for="criar-nome">Nome completo</label>
+          <input
+            id="criar-nome"
+            type="text"
+            autocomplete="name"
+            placeholder="Nome e sobrenome"
+            [value]="nome()"
+            (input)="nome.set($any($event.target).value)"
+          />
+        </div>
+
+        <div class="field">
+          <label for="criar-email">E-mail</label>
+          <input
+            id="criar-email"
+            type="email"
+            autocomplete="email"
+            placeholder="voce@email.com"
+            [value]="email()"
+            (input)="email.set($any($event.target).value)"
+          />
+        </div>
+
+        <div class="field">
+          <label for="criar-senha">Senha</label>
+          <input
+            id="criar-senha"
+            type="password"
+            autocomplete="new-password"
+            [placeholder]="'Mínimo ' + senhaMinCaracteres + ' caracteres'"
+            [value]="senha()"
+            (input)="senha.set($any($event.target).value)"
+          />
+        </div>
+
+        <label class="confirm-checkbox">
+          <input
+            type="checkbox"
+            [checked]="aceitouTermos()"
+            (change)="aceitouTermos.set($any($event.target).checked)"
+          />
+          Li e aceito os termos de uso e a política de privacidade.
+        </label>
+
+        @if (erro()) {
+          <p class="entrar-erro">{{ erro() }}</p>
+        }
+
+        <button
+          class="btn btn-primary"
+          style="width: 100%; margin-top: 18px;"
+          [disabled]="processando()"
+          (click)="criarConta()"
+        >
+          {{ processando() ? 'Criando conta...' : 'Criar conta' }}
+        </button>
+
+        <p class="entrada-rodape">
+          Já tem conta?
+          <button class="link-btn" (click)="setAba('entrar')">Entrar</button>
+        </p>
+
+      } @else {
+        <h2>Entrar</h2>
+        <p class="entrada-lead">Acesse seus descartes e seus pontos.</p>
+
+        <div class="field">
+          <label for="login-email">E-mail</label>
+          <input
+            id="login-email"
+            type="email"
+            autocomplete="username"
+            placeholder="voce@email.com"
+            [value]="email()"
+            (input)="email.set($any($event.target).value)"
+          />
+        </div>
+
+        <div class="field">
+          <label for="login-senha">Senha</label>
+          <input
+            id="login-senha"
+            type="password"
+            autocomplete="current-password"
+            placeholder="Sua senha"
+            [value]="senha()"
+            (input)="senha.set($any($event.target).value)"
+            (keydown.enter)="entrar()"
+          />
+        </div>
+
+        <div class="entrada-linha">
+          <label class="entrada-lembrar">
+            <input
+              type="checkbox"
+              [checked]="continuarConectado()"
+              (change)="continuarConectado.set($any($event.target).checked)"
+            />
+            Continuar conectado
+          </label>
+          <button class="link-btn" (click)="abrirRecuperar()">Esqueci a senha</button>
+        </div>
+
+        @if (erro()) {
+          <p class="entrar-erro">{{ erro() }}</p>
+        }
+
+        <button
+          class="btn btn-primary"
+          style="width: 100%; margin-top: 18px;"
+          [disabled]="processando()"
+          (click)="entrar()"
+        >
+          {{ processando() ? 'Entrando...' : 'Entrar' }}
+        </button>
+
+        <p class="entrada-rodape">
+          É uma cooperativa?
+          <a routerLink="/cooperativa/entrar">Entrar no painel do parceiro</a>
+        </p>
+      }
+
+    </div>
+  </section>
+
+</div>
+
+
+<!-- MODAL — ESQUECI A SENHA -->
+@if (modalRecuperar()) {
+  <div class="modal-overlay" (click)="modalRecuperar.set(false)">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="modalRecuperar.set(false)">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
+
+      @if (!linkEnviado()) {
+        <h2>Esqueci a senha</h2>
+        <p class="modal-description">
+          Informe o e-mail do cadastro. Enviamos um link para criar uma senha nova — ele
+          vale por 30 minutos e só pode ser usado uma vez.
+        </p>
+
+        <div class="field">
+          <label for="email-recuperacao">E-mail</label>
+          <input
+            id="email-recuperacao"
+            type="email"
+            autocomplete="email"
+            placeholder="voce@email.com"
+            [value]="emailRecuperacao()"
+            (input)="emailRecuperacao.set($any($event.target).value)"
+          />
+        </div>
+
+        @if (erroRecuperacao()) {
+          <p class="entrar-erro">{{ erroRecuperacao() }}</p>
+        }
+
+        <div class="modal-actions">
+          <button class="btn btn-outline" (click)="modalRecuperar.set(false)">Cancelar</button>
+          <button class="btn btn-primary" (click)="enviarLinkRecuperacao()">Enviar link</button>
+        </div>
+      } @else {
+        <h2>Link enviado</h2>
+        <p class="modal-description">
+          Se {{ emailRecuperacao() }} estiver cadastrado, o link chega em alguns minutos.
+          Verifique também o spam.
+        </p>
+
+        <div class="modal-actions">
+          <button class="btn btn-primary" (click)="modalRecuperar.set(false)">Entendi</button>
+        </div>
+      }
+    </div>
+  </div>
+}

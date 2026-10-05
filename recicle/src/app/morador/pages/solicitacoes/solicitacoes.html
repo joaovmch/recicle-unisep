@@ -1,0 +1,86 @@
+<!-- CABEÇALHO -->
+<header class="page-header">
+  <div>
+    <h1>Minhas solicitações</h1>
+    <p>{{ todas().length }} solicitações · {{ emAndamento().length }} em andamento</p>
+  </div>
+
+  <div class="header-actions">
+    <button class="btn btn-primary" routerLink="/chat">+ Novo descarte</button>
+  </div>
+</header>
+
+
+<!-- ABAS -->
+<div class="abas-sublinhadas">
+  <button [class.active]="abaAtiva() === 'todas'" (click)="setAba('todas')">
+    Todas ({{ todas().length }})
+  </button>
+  <button [class.active]="abaAtiva() === 'andamento'" (click)="setAba('andamento')">
+    Em andamento ({{ emAndamento().length }})
+  </button>
+  <button [class.active]="abaAtiva() === 'concluidas'" (click)="setAba('concluidas')">
+    Concluídas ({{ concluidas().length }})
+  </button>
+  <button [class.active]="abaAtiva() === 'canceladas'" (click)="setAba('canceladas')">
+    Canceladas ({{ canceladas().length }})
+  </button>
+</div>
+
+
+@if (carregando()) {
+  <p class="empty-hint">Carregando suas solicitações...</p>
+} @else if (listaAtiva().length === 0) {
+  <div class="side-card" style="text-align: center;">
+    <p class="empty-hint">Nenhuma solicitação nesta aba.</p>
+  </div>
+} @else {
+
+  <div class="solicitacao-lista">
+    @for (d of paginaAtual(); track d.id) {
+      <article class="solicitacao-linha" [class.inativa]="d.status === 'cancelada' || d.status === 'recusada'">
+
+        <div class="solicitacao-identificacao">
+          <strong>{{ d.titulo }}</strong>
+          <p>{{ subtitulo(d) }}</p>
+        </div>
+
+        <div class="solicitacao-coluna">
+          <span>{{ rotuloData(d) }}</span>
+          <strong>{{ valorData(d) }}</strong>
+        </div>
+
+        <div class="solicitacao-coluna">
+          <span>Valor</span>
+          <strong>{{ valorCobrado(d) }}</strong>
+        </div>
+
+        <div class="solicitacao-coluna">
+          <span>Pontos</span>
+          <strong [class.pontos-creditados]="d.pontosCreditados !== null">{{ valorPontos(d) }}</strong>
+        </div>
+
+        <div class="solicitacao-acoes">
+          <span class="status-pill" [class]="statusLabel[d.status].tom">
+            {{ statusLabel[d.status].label }}
+          </span>
+          <a class="link-btn" [routerLink]="['/solicitacoes', d.id]">
+            {{ d.status === 'concluida' ? 'Ver comprovante' : 'Ver detalhes' }}
+          </a>
+        </div>
+
+      </article>
+    }
+  </div>
+
+  @if (totalPaginas() > 1) {
+    <nav class="paginacao">
+      @for (n of paginas(); track n) {
+        <button [class.active]="pagina() === n" (click)="irParaPagina(n)">{{ n }}</button>
+      }
+      @if (pagina() < totalPaginas()) {
+        <button class="proxima" (click)="irParaPagina(pagina() + 1)">Próxima →</button>
+      }
+    </nav>
+  }
+}

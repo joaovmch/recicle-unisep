@@ -2,12 +2,12 @@
 <header class="page-header">
   <div>
     <h1>Equipe e veículos</h1>
-    <p>Quem sai para coletar e com o quê. Só quem está aqui confirma recebimento.</p>
+    <p>Quem pode ser designado para uma coleta e com qual veículo.</p>
   </div>
 
   <div class="header-actions">
-    <button class="btn btn-outline" (click)="abrirModalVeiculo()">Adicionar veículo</button>
-    <button class="btn btn-primary" (click)="abrirModalPessoa()">Adicionar pessoa</button>
+    <button class="btn btn-outline" (click)="abrirModalVeiculo()">+ Veículo</button>
+    <button class="btn btn-primary" (click)="abrirModalPessoa()">+ Membro</button>
   </div>
 </header>
 
@@ -20,54 +20,34 @@
     <!-- EQUIPE -->
     <div class="side-card">
       <div class="side-card-header">
-        <div>
-          <h3>Equipe</h3>
-          <p class="subtitle">{{ pessoasComAcesso() }} de {{ equipe().length }} pessoas com acesso ao painel</p>
-        </div>
-        <button (click)="abrirModalPermissoes()">gerenciar permissões</button>
+        <h3>Equipe com acesso ao painel</h3>
+        <span class="contagem">{{ pessoasComAcesso() }} de {{ equipe().length }} associados</span>
       </div>
 
       @if (equipe().length === 0) {
         <p class="empty-hint">Nenhuma pessoa cadastrada ainda.</p>
-      } @else {
-        <table class="data-table equipe-table">
-          <thead>
-            <tr>
-              <th>Pessoa</th>
-              <th>Função</th>
-              <th>Coletas</th>
-              <th>Situação</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (m of equipe(); track m.id) {
-              <tr>
-                <td>
-                  <div class="pessoa-cell">
-                    <span class="avatar">{{ m.iniciais }}</span>
-                    <div>
-                      <strong>{{ m.nome }}</strong>
-                      <p>{{ m.telefone }}@if (m.observacao) { · {{ m.observacao }} }</p>
-                    </div>
-                  </div>
-                </td>
-                <td>{{ m.funcao }}</td>
-                <td>{{ m.coletas ?? '—' }}</td>
-                <td>
-                  <span
-                    class="status-pill"
-                    [class.good]="m.situacaoTipo === 'good'"
-                    [class.info]="m.situacaoTipo === 'info'"
-                    [class.neutral]="m.situacaoTipo === 'neutral'"
-                  >
-                    {{ m.situacao }}
-                  </span>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
       }
+
+      <div class="membro-lista">
+        @for (m of equipe(); track m.id) {
+          <div class="membro-row">
+            <span class="avatar">{{ m.iniciais }}</span>
+
+            <div class="membro-info">
+              <div class="membro-nome">
+                <strong>{{ m.nome }}</strong>
+                <span class="funcao-badge">{{ m.funcao.toLowerCase() }}</span>
+              </div>
+              <p>{{ permissoesDe(m) }}</p>
+            </div>
+
+            <div class="membro-acoes">
+              <button class="link-acao" (click)="abrirModalPermissoes()">Permissões</button>
+              <button class="link-acao remover" (click)="removerPessoa(m)">Remover</button>
+            </div>
+          </div>
+        }
+      </div>
 
       <button class="add-row-btn" (click)="abrirModalPessoa()">+ Adicionar pessoa à equipe</button>
     </div>
@@ -76,7 +56,7 @@
     <!-- VEÍCULOS -->
     <div class="side-card">
       <h3>Veículos</h3>
-      <p class="subtitle" style="margin-bottom: 16px;">A capacidade define o peso máximo que a IA pode oferecer</p>
+      <p class="subtitle" style="margin-bottom: 16px;">A capacidade limita quais pedidos a IA envia: nada acima do maior veículo disponível.</p>
 
       @if (veiculos().length === 0) {
         <p class="empty-hint">Nenhum veículo cadastrado ainda.</p>
@@ -130,13 +110,22 @@
   <!-- DIREITA -->
   <aside class="right-column">
 
-    <div class="highlight-card">
-      <span>Capacidade somada</span>
-      <strong>{{ capacidadeSomada().toLocaleString('pt-BR') }} kg</strong>
-      <p>
-        É o teto que a IA considera ao montar a rota do dia. Coleta acima disso é oferecida para outra
-        cooperativa.
-      </p>
+    <div class="side-card">
+      <h3 class="summary-title">Quem pode o quê</h3>
+
+      <div class="papel-lista">
+        @for (papel of papeis; track papel.nome) {
+          <div>
+            <strong>{{ papel.nome }}</strong>
+            <p>{{ papel.descricao }}</p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="side-card">
+      <h3 class="summary-title">Capacidade da semana</h3>
+      <p class="summary-hint">{{ resumoCapacidade() }}</p>
     </div>
 
     <div class="side-card">
@@ -154,24 +143,6 @@
                 <input type="checkbox" [checked]="m.podeConfirmar" (change)="alternarConfirmacao(m.id)" />
                 <span class="track"></span>
               </label>
-            </div>
-          }
-        </div>
-      }
-    </div>
-
-    <div class="side-card">
-      <h3 class="summary-title">Coletas por pessoa</h3>
-      <p class="summary-hint">Últimos 30 dias</p>
-
-      @if (coletasPorPessoa.length === 0) {
-        <p class="empty-hint">Nenhuma coleta registrada ainda.</p>
-      } @else {
-        <div class="material-list">
-          @for (item of coletasPorPessoa; track item.nome) {
-            <div>
-              <span>{{ item.nome }}</span>
-              <strong>{{ item.coletas }}</strong>
             </div>
           }
         </div>

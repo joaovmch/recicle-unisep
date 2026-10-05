@@ -1,0 +1,309 @@
+.entrada-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+
+/* =========================
+   LADO ESQUERDO
+========================= */
+
+.entrada-hero {
+  display: flex;
+  flex-direction: column;
+  padding: 40px 56px 48px;
+  background: var(--rc-verde-900);
+  color: #ffffff;
+}
+
+.entrada-hero .auth-brand {
+  text-decoration: none;
+}
+
+.entrada-hero .auth-brand span:last-child {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.hero-texto {
+  margin: auto 0;
+}
+
+.hero-texto h1 {
+  margin: 0;
+  font-size: 42px;
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: -1.2px;
+}
+
+.hero-lead {
+  margin: 20px 0 0;
+  max-width: 430px;
+  color: #b7d3c8;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.hero-destaques {
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hero-destaques li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #d8ebe4;
+  font-size: 14px;
+}
+
+.destaque-check {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  background: var(--rc-verde-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.destaque-check svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hero-depoimento {
+  margin: 0;
+  padding-top: 26px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.hero-depoimento p {
+  margin: 0;
+  color: #b7d3c8;
+  font-size: 13.5px;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+.hero-depoimento footer {
+  margin-top: 8px;
+  color: #7fa294;
+  font-size: 12px;
+}
+
+
+/* =========================
+   LADO DIREITO
+========================= */
+
+.entrada-form-side {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 32px;
+  background: var(--rc-fundo);
+}
+
+.entrada-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 28px 30px 30px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 2px 6px rgba(20, 50, 40, 0.07);
+}
+
+.entrada-abas {
+  display: flex;
+  gap: 26px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid #e3e1d8;
+}
+
+.entrada-abas button {
+  position: relative;
+  padding: 0 0 12px;
+  border: 0;
+  background: transparent;
+  color: #7f9089;
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.entrada-abas button.active {
+  color: var(--rc-texto);
+  font-weight: 750;
+}
+
+.entrada-abas button.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2.5px;
+  border-radius: 2px;
+  background: var(--rc-verde-600);
+}
+
+.entrada-card h2 {
+  margin: 0;
+  color: var(--rc-texto);
+  font-size: 22px;
+  font-weight: 750;
+  letter-spacing: -0.5px;
+}
+
+.entrada-lead {
+  margin: 5px 0 20px;
+  color: #8b9994;
+  font-size: 13px;
+}
+
+.entrada-card .field {
+  margin-bottom: 15px;
+}
+
+
+/* =========================
+   SELETOR DE PERFIL
+========================= */
+
+.perfil-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.perfil-card {
+  padding: 14px 16px;
+  border: 1px solid var(--rc-borda);
+  border-radius: 12px;
+  background: #ffffff;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.perfil-card:hover {
+  border-color: var(--rc-verde-600);
+}
+
+.perfil-card.on {
+  border-color: var(--rc-verde-600);
+  background: var(--rc-verde-claro-bg);
+}
+
+.perfil-card strong {
+  display: block;
+  color: var(--rc-texto);
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.perfil-card span {
+  display: block;
+  margin-top: 3px;
+  color: #7f9089;
+  font-size: 11.5px;
+}
+
+.perfil-card.on span {
+  color: var(--rc-verde-600);
+}
+
+
+/* =========================
+   LINHA DE LOGIN
+========================= */
+
+.entrada-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.entrada-lembrar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #48625a;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.entrada-lembrar input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--rc-verde-600);
+}
+
+.entrada-rodape {
+  margin: 16px 0 0;
+  text-align: center;
+  color: #8b9994;
+  font-size: 12.5px;
+}
+
+.entrada-rodape a,
+.entrada-rodape .link-btn {
+  color: var(--rc-verde-600);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+@media (max-width: 960px) {
+  .entrada-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .entrada-hero {
+    padding: 28px 24px 32px;
+  }
+
+  .hero-texto h1 {
+    font-size: 32px;
+  }
+
+  .hero-depoimento {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .entrada-form-side {
+    padding: 28px 16px;
+  }
+
+  .entrada-card {
+    padding: 22px 18px 24px;
+  }
+
+  .perfil-grid {
+    grid-template-columns: 1fr;
+  }
+}

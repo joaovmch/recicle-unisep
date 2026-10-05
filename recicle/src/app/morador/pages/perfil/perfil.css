@@ -1,0 +1,135 @@
+.perfil-main {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+
+/* =========================
+   ABAS SUBLINHADAS
+========================= */
+
+.abas-sublinhadas {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid #e3e1d8;
+  overflow-x: auto;
+}
+
+.abas-sublinhadas button {
+  position: relative;
+  padding: 0 0 12px;
+  border: 0;
+  background: transparent;
+  color: #7f9089;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.abas-sublinhadas button:hover {
+  color: var(--rc-texto);
+}
+
+.abas-sublinhadas button.active {
+  color: var(--rc-texto);
+  font-weight: 750;
+}
+
+.abas-sublinhadas button.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2.5px;
+  border-radius: 2px;
+  background: var(--rc-verde-600);
+}
+
+
+/* =========================
+   ENDEREÇOS
+========================= */
+
+.endereco-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.endereco-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 17px;
+  border: 1px solid var(--rc-borda);
+  border-radius: 12px;
+}
+
+.endereco-item strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--rc-texto);
+  font-size: 13.5px;
+  font-weight: 750;
+}
+
+.endereco-item p {
+  margin: 5px 0 0;
+  color: #61736d;
+  font-size: 12.5px;
+}
+
+.endereco-cidade {
+  color: #8b9994 !important;
+  font-size: 12px !important;
+}
+
+.endereco-acoes {
+  display: flex;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.endereco-acoes .remover {
+  color: var(--rc-erro-texto);
+}
+
+
+/* =========================
+   CAMPOS
+========================= */
+
+.side-card .field,
+.side-card .field-row {
+  margin-bottom: 14px;
+}
+
+.side-card .field:last-of-type,
+.side-card .field-row:last-of-type {
+  margin-bottom: 0;
+}
+
+.field input:disabled {
+  color: #8b9994;
+  background: #f4f3ee;
+}
+
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+@media (max-width: 560px) {
+  .endereco-item {
+    flex-direction: column;
+  }
+}

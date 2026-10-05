@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { createClient } from '@supabase/supabase-js';
 import { environment } from '../../../environments/environment';
 import { SupabaseService, traduzirErroAuth } from '../../supabase.service';
+import { AuthService } from '../../shared/data/auth.service';
 
 export interface Admin {
   id: string;
@@ -24,6 +25,12 @@ export class AdminService {
 
   private readonly _admins = signal<Admin[]>([]);
   readonly admins = this._admins.asReadonly();
+
+  constructor() {
+    // Mesmo padrão do CooperativaService/MoradorService: sair da conta limpa o
+    // perfil carregado aqui, sem o AuthService precisar conhecer cada módulo.
+    inject(AuthService).registrarLimpeza(() => this.limpar());
+  }
 
   /** Busca (ou recarrega) o admin ligado ao usuário autenticado no momento. */
   async carregar(): Promise<Admin | null> {

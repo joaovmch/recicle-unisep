@@ -63,8 +63,8 @@
         </div>
 
         @if (codigoCompleto().length === 4) {
-          <span class="status-pill" [class.good]="codigoValido()" [class.bad]="!codigoValido()">
-            {{ codigoValido() ? 'Código confere com a solicitação #' + s.numero : 'Código não confere' }}
+          <span class="status-pill" [class.good]="codigoPreenchido()" [class.bad]="!codigoPreenchido()">
+            {{ codigoPreenchido() ? 'Código preenchido — conferido ao confirmar' : 'Digite os 4 caracteres que o morador mostrar' }}
           </span>
         }
       </div>
@@ -116,7 +116,41 @@
       </div>
 
       <div class="side-card form-section">
-        <h3>3. Triagem</h3>
+        <h3>3. Quem recebeu</h3>
+        <p>Confere quem fez a retirada e o valor combinado com o morador.</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="confirm-coletor">Coletor</label>
+            @if (equipeDisponivel().length === 0) {
+              <input id="confirm-coletor" type="text" value="Nenhuma pessoa cadastrada" disabled />
+            } @else {
+              <select id="confirm-coletor" [value]="coletorId()" (change)="coletorId.set($any($event.target).value)">
+                @for (m of equipeDisponivel(); track m.id) {
+                  <option [value]="m.id">{{ m.nome }}</option>
+                }
+              </select>
+            }
+          </div>
+
+          <div class="field">
+            <label for="confirm-valor">Valor combinado</label>
+            <input id="confirm-valor" type="text" [value]="'R$ ' + s.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })" disabled />
+          </div>
+        </div>
+
+        <label class="confirm-checkbox">
+          <input
+            type="checkbox"
+            [checked]="valorRecebidoConfirmado()"
+            (change)="valorRecebidoConfirmado.set(!valorRecebidoConfirmado())"
+          />
+          Recebi o valor combinado com o morador na retirada.
+        </label>
+      </div>
+
+      <div class="side-card form-section">
+        <h3>4. Triagem</h3>
         <p>Marque o que entrou de fato em cada fluxo.</p>
 
         <div class="triagem-list">
@@ -141,7 +175,7 @@
 
       <div class="form-actions">
         <button class="btn btn-outline" (click)="abrirProblema()">Registrar problema na coleta</button>
-        <button class="btn btn-primary" [disabled]="!codigoValido()" (click)="confirmar()">
+        <button class="btn btn-primary" [disabled]="!codigoPreenchido() || !valorRecebidoConfirmado()" (click)="confirmar()">
           Confirmar e creditar pontos
         </button>
       </div>
@@ -183,7 +217,7 @@
       <div class="side-card sem-codigo-card">
         <h3 class="summary-title">Sem o código?</h3>
         <p>
-          Dá para confirmar com foto do material na retirada, mas a solicitação fica marcada para conferência.
+          Dá para confirmar com foto do material na retirada, mas a solicitação fica marcada para conferência e os pontos do morador não são creditados automaticamente.
         </p>
 
         @if (!fotoSelecionada()) {

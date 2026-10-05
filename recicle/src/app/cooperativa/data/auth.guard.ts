@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { AuthService } from './auth.service';
+import { AuthService } from '../../shared/data/auth.service';
 import { CooperativaService } from './cooperativa.service';
 
 /**
@@ -19,10 +19,13 @@ export const cooperativaAuthGuard: CanActivateFn = async (_route, state) => {
   if (!sessao) return router.createUrlTree(['/cooperativa/entrar']);
 
   let cooperativa = cooperativaService.cooperativa();
-  if (!cooperativa) {
+  if (!cooperativa || cooperativa.statusCadastro !== 'aprovado') {
+    // Reconfere no banco enquanto não está aprovado — sem isso, uma aba que já tinha
+    // carregado "em análise" antes nunca via a aprovação do admin ao navegar direto
+    // pra uma rota interna (só um F5 resolvia).
     cooperativa = await cooperativaService.carregar();
   }
-  if (!cooperativa) return router.createUrlTree(['/cooperativa/entrar']);
+  if (!cooperativa) return router.createUrlTree(['/cooperativa/cadastro']);
 
   const rotaLiberada = ROTAS_LIBERADAS_PRE_APROVACAO.some(rota => state.url.startsWith(rota));
   if (cooperativa.statusCadastro !== 'aprovado' && !rotaLiberada) {

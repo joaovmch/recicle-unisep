@@ -2,11 +2,10 @@
 <header class="page-header">
   <div>
     <h1>Tipos de resíduo</h1>
-    <p>A IA só oferece sua cooperativa para o que estiver ligado aqui.</p>
+    <p>Só os tipos ligados recebem pedidos da IA. A mudança vale a partir do próximo pedido.</p>
   </div>
 
   <div class="header-actions">
-    <button class="btn btn-outline" (click)="descartar()">Descartar</button>
     <button class="btn btn-primary" (click)="salvarAlteracoes()">Salvar alterações</button>
   </div>
 </header>
@@ -17,68 +16,48 @@
   <!-- ESQUERDA -->
   <section class="side-card">
 
-    <div class="residuo-group">
-      <span class="section-label">Recicláveis secos</span>
-
-      <div class="option-grid">
-        @for (item of reciclaveis(); track item.nome; let i = $index) {
-          <div class="option-card" [class.on]="item.ligado">
-            <div class="option-card-top">
+    <table class="data-table residuos-table">
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Recebido no mês</th>
+          <th>Pedidos em 90 dias</th>
+          <th>Ativo</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of tipos(); track item.id) {
+          <tr>
+            <td>
               <strong>{{ item.nome }}</strong>
+              <p class="residuo-detalhe" [class.alerta]="!item.ligado">{{ descricaoDe(item) }}</p>
+            </td>
+
+            <td>{{ item.recebidoMesKg > 0 ? (item.recebidoMesKg.toLocaleString('pt-BR') + ' kg') : '—' }}</td>
+
+            <td>
+              @if (!item.ligado && item.recusados90d > 0) {
+                <span class="residuo-recusados">{{ item.recusados90d }} recusados</span>
+              } @else {
+                {{ item.pedidos90d > 0 ? item.pedidos90d : '—' }}
+              }
+            </td>
+
+            <td>
               <label class="toggle-switch">
-                <input type="checkbox" [checked]="item.ligado" (change)="alternarReciclavel(i)" />
+                <input
+                  type="checkbox"
+                  [checked]="item.ligado"
+                  [disabled]="item.bloqueado"
+                  (change)="alternarTipo(item.id)"
+                />
                 <span class="track"></span>
               </label>
-            </div>
-            @if (item.detalhe) {
-              <p>{{ item.detalhe }}</p>
-            }
-          </div>
+            </td>
+          </tr>
         }
-      </div>
-    </div>
-
-    <div class="residuo-group">
-      <span class="section-label">Volumosos</span>
-
-      <div class="option-grid">
-        @for (item of volumosos(); track item.nome; let i = $index) {
-          <div class="option-card" [class.on]="item.ligado">
-            <div class="option-card-top">
-              <strong>{{ item.nome }}</strong>
-              <label class="toggle-switch">
-                <input type="checkbox" [checked]="item.ligado" (change)="alternarVolumoso(i)" />
-                <span class="track"></span>
-              </label>
-            </div>
-            @if (item.detalhe) {
-              <p>{{ item.detalhe }}</p>
-            }
-          </div>
-        }
-      </div>
-    </div>
-
-    <div class="residuo-group">
-      <span class="section-label">Resíduo perigoso · exige licença específica</span>
-
-      <div class="option-grid">
-        @for (item of perigosos(); track item.nome) {
-          <div class="option-card locked">
-            <div class="option-card-top">
-              <strong>{{ item.nome }}</strong>
-              <label class="toggle-switch">
-                <input type="checkbox" [checked]="item.ligado" disabled />
-                <span class="track"></span>
-              </label>
-            </div>
-            @if (item.detalhe) {
-              <p>{{ item.detalhe }}</p>
-            }
-          </div>
-        }
-      </div>
-    </div>
+      </tbody>
+    </table>
 
   </section>
 
@@ -86,71 +65,35 @@
   <!-- DIREITA -->
   <aside class="right-column">
 
+    @if (totalRecusados90d() > 0) {
+      <div class="warning-box">
+        <strong>{{ totalRecusados90d() }} pedidos recusados em 90 dias</strong>
+        <p>
+          @if (tipoMaisRecusado(); as tipo) {
+            A maior parte era {{ tipo.nome.toLowerCase() }}. Ligar esse tipo faz a IA voltar a oferecer esses
+            pedidos para vocês.
+          } @else {
+            Ligar os tipos correspondentes faz a IA voltar a oferecer esses pedidos para vocês.
+          }
+        </p>
+      </div>
+    }
+
     <div class="side-card">
-      <h3 class="summary-title">Capacidade de coleta</h3>
-      <p class="summary-hint">Usamos isso para não te mandar pedido que a equipe não dá conta.</p>
-
-      <div class="field">
-        <label for="peso-maximo">Peso máximo por coleta (kg)</label>
-        <input
-          id="peso-maximo"
-          type="number"
-          min="0"
-          step="1"
-          [value]="pesoMaximo()"
-          (input)="atualizarPesoMaximo($any($event.target).value)"
-        />
-      </div>
-
-      <div class="field">
-        <label for="coletas-dia">Coletas por dia</label>
-        <input
-          id="coletas-dia"
-          type="number"
-          min="0"
-          step="1"
-          [value]="coletasPorDia()"
-          (input)="atualizarColetasPorDia($any($event.target).value)"
-        />
-      </div>
-
-      <div class="field">
-        <label for="volume-maximo">Volume máximo (m³ por viagem)</label>
-        <input
-          id="volume-maximo"
-          type="number"
-          min="0"
-          step="0.1"
-          [value]="volumeMaximo()"
-          (input)="atualizarVolumeMaximo($any($event.target).value)"
-        />
-      </div>
-    </div>
-
-    <div class="info-card">
-      <strong>O que a IA responde</strong>
-      <p>
-        Quando o morador descreve um resíduo que vocês desligaram, a IA não oferece a sua cooperativa — ela indica
-        ecoponto ou outra cooperativa que aceita.
+      <h3 class="summary-title">Desligar um tipo não cancela nada</h3>
+      <p class="summary-hint">
+        As coletas já aceitas continuam na agenda. A mudança só afeta os pedidos que a IA enviar a partir de agora.
       </p>
     </div>
 
     <div class="side-card">
-      <h3 class="summary-title">Pedidos recusados por tipo</h3>
-      <p class="summary-hint">Últimos 90 dias</p>
-
-      @if (pedidosRecusados.length === 0) {
-        <p class="empty-hint">Nenhum pedido recusado ainda.</p>
-      } @else {
-        <div class="material-list">
-          @for (item of pedidosRecusados; track item.tipo) {
-            <div>
-              <span>{{ item.tipo }}</span>
-              <strong>{{ item.pedidos }} pedidos</strong>
-            </div>
-          }
-        </div>
-      }
+      <h3 class="summary-title">Limitado pela licença</h3>
+      <p class="summary-hint">
+        @if (licencaNumero()) {
+          A licença {{ licencaNumero() }} define o que vocês podem receber.
+        }
+        Tipos que exigem licença específica ficam bloqueados até a equipe do Re-cicle validar o documento.
+      </p>
     </div>
 
   </aside>

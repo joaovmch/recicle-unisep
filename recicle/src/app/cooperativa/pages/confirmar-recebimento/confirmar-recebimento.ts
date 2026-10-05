@@ -1,10 +1,12 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DadosColeta, Solicitacao, SolicitacaoStatus, SolicitacoesStore, TriagemItem } from '../../data/solicitacoes.store';
-import { ToastService } from '../../shared/toast.service';
+import { CooperativaService } from '../../data/cooperativa.service';
+import { SupabaseService } from '../../../supabase.service';
+import { ToastService } from '../../../shared/ui/toast.service';
+import { MembroSelecionavel } from '../../shared/equipe-basico';
 
 const PONTOS_POR_KG = 4.2;
-const CODIGO_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 const MOTIVOS_PROBLEMA = [
   'Endereço não encontrado ou morador ausente',
@@ -13,47 +15,38 @@ const MOTIVOS_PROBLEMA = [
   'Outro',
 ];
 
-function gerarCodigo(id: string): string {
-  let hash = 0;
-  for (const c of id) hash = (hash * 31 + c.charCodeAt(0)) >>> 0;
-
-  let codigo = '';
-  for (let i = 0; i < 4; i++) {
-    codigo += CODIGO_CHARS[hash % CODIGO_CHARS.length];
-    hash = Math.floor(hash / CODIGO_CHARS.length);
-  }
-  return codigo;
-}
-
 @Component({
   selector: 'app-confirmar-recebimento',
   imports: [RouterLink],
   templateUrl: './confirmar-recebimento.html',
-  styleUrls: ['../../shared/cooperativa-shared.css', './confirmar-recebimento.css'],
+  styleUrls: ['../../../shared/ui/design-system.css', './confirmar-recebimento.css'],
 })
 export class ConfirmarRecebimento {
   private readonly store = inject(SolicitacoesStore);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  private readonly cooperativaService = inject(CooperativaService);
+  private readonly client = inject(SupabaseService).client;
 
   readonly motivosProblema = MOTIVOS_PROBLEMA;
 
   readonly id = this.route.snapshot.paramMap.get('id') ?? '';
   readonly solicitacao = signal<Solicitacao | undefined>(undefined);
   readonly carregando = signal(true);
-  readonly codigoEsperado = gerarCodigo(this.id);
 
   readonly codigoDigitado = signal<string[]>(['', '', '', '']);
   readonly codigoCompleto = computed(() => this.codigoDigitado().join(''));
-  readonly codigoValido = computed(
-    () => this.codigoCompleto().length === 4 && this.codigoCompleto() === this.codigoEsperado
-  );
+  /** Só confere o formato aqui — se o código bate quem decide é o banco, ao confirmar. */
+  readonly codigoPreenchido = computed(() => /^[A-Z0-9]{4}$/.test(this.codigoCompleto()));
 
   readonly pesoRecebido = signal(0);
   readonly rejeitoKg = signal(0);
-  readonly rejeitoNota = signal('');
   readonly triagem = signal<TriagemItem[]>([]);
+
+  readonly equipeDisponivel = signal<MembroSelecionavel[]>([]);
+  readonly coletorId = signal<string | null>(null);
+  readonly valorRecebidoConfirmado = signal(false);
 
   readonly pesoEstimado = computed(() => this.solicitacao()?.pesoEstimadoKg ?? 0);
 
@@ -64,6 +57,7 @@ export class ConfirmarRecebimento {
     aceita: 'Em rota',
     concluida: 'Concluída',
     recusada: 'Recusada',
+    cancelada: 'Cancelada pelo morador',
   };
 
   rotuloStatus(status: SolicitacaoStatus): string {
@@ -93,12 +87,18 @@ export class ConfirmarRecebimento {
     const dadosIniciais = solicitacao?.dadosColeta;
     this.pesoRecebido.set(dadosIniciais?.pesoRecebidoKg ?? solicitacao?.pesoEstimadoKg ?? 0);
     this.rejeitoKg.set(dadosIniciais?.rejeitoKg ?? 0);
-    this.rejeitoNota.set(dadosIniciais ? 'espuma' : '');
     this.triagem.set(
       dadosIniciais?.triagem?.length
         ? dadosIniciais.triagem
         : [{ material: 'Material triado', kg: solicitacao?.pesoEstimadoKg ?? 0, checado: true }]
     );
+
+    const cooperativa = this.cooperativaService.cooperativa();
+    if (cooperativa) {
+      const { data } = await this.client.from('equipe').select('id, nome').eq('cooperativa_id', cooperativa.id).order('nome');
+      this.equipeDisponivel.set((data ?? []).map((m: any) => ({ id: m.id, nome: m.nome })));
+    }
+    this.coletorId.set(solicitacao?.atribuidoEquipeId ?? this.equipeDisponivel()[0]?.id ?? null);
 
     this.carregando.set(false);
   }
@@ -126,10 +126,6 @@ export class ConfirmarRecebimento {
     this.rejeitoKg.set(Number(valor) || 0);
   }
 
-  atualizarRejeitoNota(valor: string): void {
-    this.rejeitoNota.set(valor);
-  }
-
   alternarTriagem(index: number): void {
     this.triagem.update(itens =>
       itens.map((item, i) => (i === index ? { ...item, checado: !item.checado } : item))
@@ -142,7 +138,7 @@ export class ConfirmarRecebimento {
   }
 
   async confirmar(): Promise<void> {
-    if (!this.codigoValido() || !this.podeConfirmar()) return;
+    if (!this.codigoPreenchido() || !this.podeConfirmar() || !this.valorRecebidoConfirmado()) return;
 
     const dados: DadosColeta = {
       pesoRecebidoKg: this.pesoRecebido(),
@@ -150,7 +146,11 @@ export class ConfirmarRecebimento {
       triagem: this.triagem(),
     };
 
-    await this.store.confirmarRecebimento(this.id, dados);
+    const { erro } = await this.store.confirmarRecebimento(this.id, dados, this.coletorId(), this.codigoCompleto());
+    if (erro) {
+      this.toast.mostrar(erro);
+      return;
+    }
     this.toast.mostrar('Recebimento confirmado e pontos creditados.');
     this.router.navigate(['/cooperativa/solicitacoes']);
   }
@@ -166,7 +166,11 @@ export class ConfirmarRecebimento {
   }
 
   async enviarProblema(): Promise<void> {
-    await this.store.registrarProblema(this.id, this.motivoProblema(), this.descricaoProblema());
+    const { erro } = await this.store.registrarProblema(this.id, this.motivoProblema(), this.descricaoProblema());
+    if (erro) {
+      this.toast.mostrar(erro);
+      return;
+    }
     this.fecharProblema();
     this.toast.mostrar('Problema registrado. Nossa equipe vai revisar.');
     this.router.navigate(['/cooperativa/solicitacoes']);
@@ -186,7 +190,11 @@ export class ConfirmarRecebimento {
       viaFoto: true,
     };
 
-    await this.store.confirmarRecebimento(this.id, dados);
+    const { erro } = await this.store.confirmarRecebimento(this.id, dados, this.coletorId(), null);
+    if (erro) {
+      this.toast.mostrar(erro);
+      return;
+    }
     this.toast.mostrar('Enviado por foto. A coleta fica marcada para conferência.');
     this.router.navigate(['/cooperativa/solicitacoes']);
   }

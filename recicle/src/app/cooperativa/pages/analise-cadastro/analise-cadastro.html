@@ -41,14 +41,19 @@
             }
           </div>
         } @else {
-          <div class="analise-icon">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+          <div class="analise-icon" [class.aprovado]="aprovado()">
+            @if (aprovado()) {
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>
+            } @else {
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+            }
           </div>
 
           @if (aprovado()) {
             <h1>Cadastro aprovado!</h1>
             <p class="analise-lead">
-              Sua cooperativa já pode receber solicitações pelo Re-cicle. É só seguir para o painel.
+              Sua cooperativa já pode receber solicitações pelo Re-cicle. Volte para a tela de login e entre de
+              novo com seu e-mail e senha para acessar o painel.
             </p>
           } @else {
             <h1>Cadastro em análise</h1>
@@ -95,8 +100,8 @@
           </div>
 
           @if (aprovado()) {
-            <button class="btn btn-primary" style="width: 100%; margin-top: 18px;" routerLink="/cooperativa/dashboard">
-              Ir para o Dashboard
+            <button class="btn btn-primary" style="width: 100%; margin-top: 18px;" (click)="sair()">
+              Voltar para o login
             </button>
           } @else {
             <h3 class="summary-title analise-section-title">O que enviamos para conferência</h3>
@@ -141,7 +146,7 @@
         @if (!aprovado()) {
           <div class="analise-footer">
             <span>Precisa corrigir alguma coisa?</span>
-            <button class="btn btn-outline small" routerLink="/cooperativa/cadastro">Revisar cadastro</button>
+            <button class="btn btn-outline small" routerLink="/cooperativa/cadastro/editar">Revisar cadastro</button>
           </div>
         }
 

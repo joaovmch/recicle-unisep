@@ -1,0 +1,201 @@
+/* =========================
+   ABAS SUBLINHADAS
+========================= */
+
+.abas-sublinhadas {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e3e1d8;
+  overflow-x: auto;
+}
+
+.abas-sublinhadas button {
+  position: relative;
+  padding: 0 0 12px;
+  border: 0;
+  background: transparent;
+  color: #7f9089;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.abas-sublinhadas button:hover {
+  color: var(--rc-texto);
+}
+
+.abas-sublinhadas button.active {
+  color: var(--rc-texto);
+  font-weight: 750;
+}
+
+.abas-sublinhadas button.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2.5px;
+  border-radius: 2px;
+  background: var(--rc-verde-600);
+}
+
+
+/* =========================
+   LISTA
+========================= */
+
+.solicitacao-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.solicitacao-linha {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 0.8fr)) 170px;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 22px;
+  background: #ffffff;
+  border: 1px solid var(--rc-borda);
+  border-radius: 14px;
+  box-shadow: 0 2px 5px rgba(20, 50, 40, 0.05);
+}
+
+.solicitacao-linha.inativa {
+  background: #fbfaf6;
+}
+
+.solicitacao-linha.inativa .solicitacao-identificacao strong {
+  color: #6c7a74;
+}
+
+.solicitacao-identificacao {
+  min-width: 0;
+}
+
+.solicitacao-identificacao strong {
+  display: block;
+  color: var(--rc-texto);
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.solicitacao-identificacao p {
+  margin: 4px 0 0;
+  color: #8b9994;
+  font-size: 12.5px;
+}
+
+.solicitacao-coluna {
+  min-width: 0;
+}
+
+.solicitacao-coluna span {
+  display: block;
+  margin-bottom: 4px;
+  color: #8b9994;
+  font-size: 11.5px;
+}
+
+.solicitacao-coluna strong {
+  display: block;
+  color: var(--rc-texto);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.solicitacao-coluna strong.pontos-creditados {
+  color: var(--rc-verde-600);
+}
+
+.solicitacao-acoes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.solicitacao-acoes .link-btn {
+  text-decoration: none;
+}
+
+
+/* =========================
+   PAGINAÇÃO
+========================= */
+
+.paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.paginacao button {
+  min-width: 38px;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--rc-borda);
+  border-radius: 9px;
+  background: #ffffff;
+  color: #48625a;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.paginacao button:hover {
+  background: var(--rc-fundo);
+}
+
+.paginacao button.active {
+  background: var(--rc-verde-900);
+  border-color: var(--rc-verde-900);
+  color: #ffffff;
+}
+
+.paginacao .proxima {
+  border-color: transparent;
+  background: transparent;
+  color: #48625a;
+}
+
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+@media (max-width: 1100px) {
+  .solicitacao-linha {
+    grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 0.9fr)) 150px;
+  }
+
+  .solicitacao-coluna:nth-of-type(3) {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .solicitacao-linha {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .solicitacao-coluna:nth-of-type(3) {
+    display: block;
+  }
+
+  .solicitacao-acoes {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

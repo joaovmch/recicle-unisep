@@ -1,0 +1,125 @@
+<div class="publico-shell">
+
+  <!-- TOPO -->
+  <header class="publico-topbar">
+    <a class="auth-brand" routerLink="/">
+      <span class="brand-icon"><img src="/logo.png" alt="Re-cicle" /></span>
+      <span>Re-cicle</span>
+    </a>
+
+    <nav class="publico-nav">
+      <a href="#como-funciona">Como funciona</a>
+      <a routerLink="/ecopontos">Ecopontos</a>
+      <a routerLink="/cooperativa/cadastro">Para cooperativas</a>
+    </nav>
+
+    <div class="publico-acoes">
+      <a class="link-btn" routerLink="/entrar" [queryParams]="{ aba: 'entrar' }">Entrar</a>
+      <button class="btn btn-primary small" routerLink="/entrar">Criar conta</button>
+    </div>
+  </header>
+
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-conteudo">
+      <span class="hero-selo">Projeto de extensão · impacto social</span>
+
+      <h1>Descarte certo,<br />em três minutos.</h1>
+
+      <p class="hero-texto">
+        Conte à nossa IA o que você quer descartar. Ela identifica o tipo de resíduo, explica
+        o passo a passo e mostra onde levar — ou chama uma cooperativa licenciada na sua porta.
+      </p>
+
+      <div class="hero-botoes">
+        <button class="btn btn-primary" (click)="comecar()">Conversar com a IA</button>
+        <a class="btn btn-outline" routerLink="/ecopontos">Ver ecopontos próximos</a>
+      </div>
+
+      <div class="hero-numeros">
+        <div>
+          <strong>3 min</strong>
+          <span>tempo médio até o descarte</span>
+        </div>
+        <div>
+          <strong>{{ cooperativasAtivas() ?? '—' }}</strong>
+          <span>cooperativas parceiras</span>
+        </div>
+        <div>
+          <strong>{{ ecopontosAtivos() ?? '—' }}</strong>
+          <span>pontos de entrega no mapa</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRÉVIA DO CHAT -->
+    <aside class="hero-previa">
+      <div class="previa-topo">
+        <span class="previa-avatar">IA</span>
+        <div>
+          <strong>Assistente Re-cicle</strong>
+          <span>online agora</span>
+        </div>
+        <span class="badge badge-neutral">prévia</span>
+      </div>
+
+      <div class="previa-thread">
+        <div class="previa-bolha ia">Oi! Me conta o que você quer descartar hoje.</div>
+        <div class="previa-bolha morador">uma cadeira de escritório quebrada</div>
+        <div class="previa-bolha ia">
+          Identifiquei: móvel volumoso (madeira + metal + espuma). Não vai na coleta comum —
+          precisa ir a um ecoponto ou coleta agendada.
+        </div>
+      </div>
+
+      <div class="previa-acoes">
+        <span>→ ver ecopontos</span>
+        <span>→ agendar coleta em casa</span>
+      </div>
+    </aside>
+  </section>
+
+
+  <!-- COMO FUNCIONA -->
+  <section class="secao" id="como-funciona">
+    <h2>Como funciona</h2>
+    <p class="secao-lead">Do "não sei onde jogar" ao descarte registrado — sem sair da conversa.</p>
+
+    <div class="passos-grid">
+      @for (p of passos; track p.numero) {
+        <article class="passo-card">
+          <span class="passo-numero">{{ p.numero }}</span>
+          <strong>{{ p.titulo }}</strong>
+          <p>{{ p.descricao }}</p>
+        </article>
+      }
+    </div>
+  </section>
+
+
+  <!-- CTA COOPERATIVAS -->
+  <section class="cta-cooperativas">
+    <div>
+      <h2>Cada descarte vira renda para quem já cuida da cidade</h2>
+      <p>
+        As solicitações são direcionadas a cooperativas de catadores licenciadas da região,
+        com pagamento direto ao prestador.
+      </p>
+    </div>
+    <button class="btn btn-primary" routerLink="/cooperativa/cadastro">
+      Cadastrar minha cooperativa
+    </button>
+  </section>
+
+
+  <!-- RODAPÉ -->
+  <footer class="publico-rodape">
+    <span>Re-cicle · projeto acadêmico de extensão</span>
+    <nav>
+      <a routerLink="/entrar">Entrar</a>
+      <a routerLink="/cooperativa/entrar">Painel do parceiro</a>
+    </nav>
+  </footer>
+
+</div>

@@ -23,7 +23,7 @@
   gap: 14px;
   padding: 15px 18px;
   border-radius: 12px;
-  background: #fbe3c7;
+  background: var(--rc-aviso-bg);
   margin-bottom: 21px;
 }
 
@@ -31,7 +31,7 @@
   width: 22px;
   height: 22px;
   fill: none;
-  stroke: #a15d09;
+  stroke: var(--rc-aviso-texto);
   stroke-width: 1.7;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -70,7 +70,7 @@
 }
 
 .documento-row.highlight {
-  background: #fff1d8;
+  background: var(--rc-aviso-bg);
   border-radius: 10px;
   padding-left: 10px;
   padding-right: 10px;
@@ -120,38 +120,6 @@
 
 
 /* =========================
-   O QUE A ANÁLISE CONFERE
-========================= */
-
-.analise-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.analise-tile {
-  border: 1px solid #e6e5de;
-  border-radius: 12px;
-  padding: 15px 17px;
-}
-
-.analise-tile strong {
-  display: block;
-  color: #122f27;
-  font-size: 13px;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-
-.analise-tile p {
-  margin: 0;
-  color: #7f9089;
-  font-size: 11.5px;
-  line-height: 1.45;
-}
-
-
-/* =========================
    HISTÓRICO
 ========================= */
 
@@ -176,7 +144,7 @@
 }
 
 .historico-dot.recente {
-  background: #10a957;
+  background: var(--rc-verde-600);
 }
 
 .historico-item strong {
@@ -207,7 +175,50 @@
     flex-wrap: wrap;
   }
 
-  .analise-grid {
+  }
+
+/* =========================
+   CARD DA LICENÇA
+========================= */
+
+.licenca-dados {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 40px;
+  margin-top: 6px;
+}
+
+.licenca-dados > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 0;
+  border-bottom: 1px solid #f0efe8;
+}
+
+.licenca-dados span {
+  color: #61736d;
+  font-size: 13px;
+}
+
+.licenca-dados strong {
+  color: var(--rc-texto);
+  font-size: 13.5px;
+  font-weight: 750;
+  text-align: right;
+}
+
+.licenca-acoes {
+  display: flex;
+  gap: 11px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .licenca-dados {
     grid-template-columns: 1fr;
+    gap: 0;
   }
 }

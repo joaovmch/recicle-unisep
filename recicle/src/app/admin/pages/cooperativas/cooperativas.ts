@@ -1,7 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { SupabaseService } from '../../../supabase.service';
-import { ToastService } from '../../../cooperativa/shared/toast.service';
-import { formatarData } from '../../../cooperativa/shared/format';
+import { ToastService } from '../../../shared/ui/toast.service';
+import { formatarData } from '../../../shared/util/format';
+import { StatusCadastro } from '../../../cooperativa/data/cooperativa.service';
 import {
   NOME_TIPO_DOCUMENTO,
   ordenarPorTipoDocumento,
@@ -9,7 +10,6 @@ import {
   TipoDocumentoDb,
 } from '../../../cooperativa/shared/documento-tipos';
 
-type StatusCadastro = 'em_analise' | 'aprovado' | 'reprovado';
 type Aba = 'todas' | StatusCadastro;
 
 interface DocumentoAdmin {
@@ -79,7 +79,7 @@ function paraCooperativaAdmin(row: any): CooperativaAdmin {
   selector: 'app-admin-cooperativas',
   imports: [],
   templateUrl: './cooperativas.html',
-  styleUrls: ['../../../cooperativa/shared/cooperativa-shared.css'],
+  styleUrls: ['../../../shared/ui/design-system.css'],
 })
 export class Cooperativas {
   private readonly client = inject(SupabaseService).client;
@@ -184,6 +184,9 @@ export class Cooperativas {
   }
 
   async definirStatus(cooperativa: CooperativaAdmin, status: StatusCadastro): Promise<void> {
+    if (status === 'reprovado' && !window.confirm(`Reprovar o cadastro de ${cooperativa.nome}? Ela perde o acesso ao painel.`)) {
+      return;
+    }
     const { error } = await this.client
       .from('cooperativas')
       .update({ status_cadastro: status })

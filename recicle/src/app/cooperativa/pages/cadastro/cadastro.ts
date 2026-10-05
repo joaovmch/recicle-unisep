@@ -1,14 +1,17 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { ToastHost } from '../../shared/toast-host';
-import { ToastService } from '../../shared/toast.service';
-import { ArquivosCadastro, Cooperativa, CooperativaService, NovaCooperativa } from '../../data/cooperativa.service';
-import { AuthService } from '../../data/auth.service';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ToastService } from '../../../shared/ui/toast.service';
+import {
+  ArquivosCadastro,
+  Cooperativa,
+  CooperativaService,
+  NovaCooperativa,
+  TipoOrganizacao,
+} from '../../data/cooperativa.service';
+import { AuthService } from '../../../shared/data/auth.service';
 import { SupabaseService } from '../../../supabase.service';
-import { EMAIL_RE, SENHA_MIN_CARACTERES } from '../../shared/validators';
-import { erroArquivoInvalido } from '../../shared/upload';
-
-type TipoOrganizacao = 'cooperativa' | 'associacao' | 'empresa';
+import { EMAIL_RE, HORA_RE, SENHA_MIN_CARACTERES, UFS, lerMesAno, ufValida } from '../../../shared/util/validators';
+import { erroArquivoInvalido, formatarTamanhoArquivo } from '../../../shared/util/upload';
 
 interface DadosOrganizacao {
   tipo: TipoOrganizacao;
@@ -43,7 +46,6 @@ interface ResiduoOpcao {
 
 interface DadosCapacidade {
   pesoMaximoKg: number;
-  veiculosDisponiveis: string;
   coletasPorDia: number;
 }
 
@@ -101,12 +103,12 @@ const CAMPO_LABELS: Record<string, string> = {
   cidade: 'Cidade',
   uf: 'UF',
   diasFuncionamento: 'Dias de funcionamento',
-  horaAbre: 'Horário de abertura',
-  horaFecha: 'Horário de fechamento',
+  horaAbre: 'Horário de abertura (HH:MM)',
+  horaFecha: 'Horário de fechamento (HH:MM)',
   residuos: 'Pelo menos um resíduo aceito',
   licNumero: 'Número da licença',
   licOrgao: 'Órgão emissor da licença',
-  licValidade: 'Validade da licença',
+  licValidade: 'Validade da licença (MM/AAAA)',
   licencaArquivo: 'Arquivo da licença ambiental',
   cnpjArquivo: 'Cartão CNPJ',
   ata: 'Ata de eleição da diretoria',
@@ -158,18 +160,20 @@ const POR_QUE_PEDIMOS = [
 
 @Component({
   selector: 'app-cadastro',
-  imports: [RouterLink, ToastHost],
+  imports: [RouterLink],
   templateUrl: './cadastro.html',
-  styleUrls: ['../../shared/cooperativa-shared.css', './cadastro.css'],
+  styleUrls: ['../../../shared/ui/design-system.css', './cadastro.css'],
 })
 export class Cadastro {
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastService);
   private readonly cooperativaService = inject(CooperativaService);
   private readonly auth = inject(AuthService);
   private readonly client = inject(SupabaseService).client;
 
   readonly passos = PASSOS;
+  readonly ufs = UFS;
   readonly tiposOrganizacao = TIPOS_ORGANIZACAO;
   readonly ctaLabels = CTA_LABELS;
   readonly porQuePedimos = POR_QUE_PEDIMOS;
@@ -212,7 +216,6 @@ export class Cadastro {
 
   readonly capacidade = signal<DadosCapacidade>({
     pesoMaximoKg: 0,
-    veiculosDisponiveis: '',
     coletasPorDia: 0,
   });
 
@@ -242,16 +245,33 @@ export class Cadastro {
     this.inicializar();
   }
 
+  /**
+   * O modo (novo cadastro x edição) vem da rota (`/cooperativa/cadastro` x `/cooperativa/cadastro/editar`),
+   * não de "existe sessão ativa". Antes disso, quem tivesse uma sessão de outro teste aberta via
+   * "Cadastrar cooperativa" caía direto num cadastro alheio pré-preenchido, e "Editar cadastro"
+   * que falhasse ao buscar a cooperativa (ex.: erro de rede) caía silenciosamente num formulário
+   * em branco em vez de avisar que não deu pra carregar os dados.
+   */
   private async inicializar(): Promise<void> {
-    const sessao = await this.auth.sessaoAtual();
-    if (sessao) {
-      const cooperativa = await this.cooperativaService.carregar();
-      if (cooperativa) {
-        await this.preencherComCooperativaExistente(cooperativa);
-        return;
-      }
+    if (this.route.snapshot.data['edicao'] !== true) {
+      this.carregarRascunho();
+      return;
     }
-    this.carregarRascunho();
+
+    const sessao = await this.auth.sessaoAtual();
+    if (!sessao) {
+      this.router.navigate(['/cooperativa/entrar']);
+      return;
+    }
+
+    const cooperativa = await this.cooperativaService.carregar();
+    if (!cooperativa) {
+      this.toast.mostrar('Não foi possível carregar os dados do seu cadastro. Tente novamente.');
+      this.router.navigate(['/cooperativa/entrar']);
+      return;
+    }
+
+    await this.preencherComCooperativaExistente(cooperativa);
   }
 
   /** Pré-preenche o wizard com o que já está salvo — é o que faz "Revisar cadastro" mostrar os dados reais em vez de vir em branco. */
@@ -288,7 +308,6 @@ export class Cadastro {
 
     this.capacidade.set({
       pesoMaximoKg: coop.pesoMaximoKg,
-      veiculosDisponiveis: '',
       coletasPorDia: coop.coletasPorDia,
     });
 
@@ -397,10 +416,12 @@ export class Cadastro {
     if (!e.numero.trim()) invalidos.push('numero');
     if (!e.bairro.trim()) invalidos.push('bairro');
     if (!e.cidade.trim()) invalidos.push('cidade');
-    if (!e.uf.trim()) invalidos.push('uf');
+    if (!ufValida(e.uf)) invalidos.push('uf');
     if (!e.diasFuncionamento.trim()) invalidos.push('diasFuncionamento');
-    if (!e.horaAbre.trim()) invalidos.push('horaAbre');
-    if (!e.horaFecha.trim()) invalidos.push('horaFecha');
+    // A coluna é `time`: texto livre como "8h" passava aqui e o banco recusava o envio
+    // inteiro com um erro genérico no fim do wizard.
+    if (!HORA_RE.test(e.horaAbre.trim())) invalidos.push('horaAbre');
+    if (!HORA_RE.test(e.horaFecha.trim())) invalidos.push('horaFecha');
     return invalidos;
   }
 
@@ -413,7 +434,7 @@ export class Cadastro {
     const invalidos: string[] = [];
     if (!l.numero.trim()) invalidos.push('licNumero');
     if (!l.orgao.trim()) invalidos.push('licOrgao');
-    if (!l.validade.trim()) invalidos.push('licValidade');
+    if (!lerMesAno(l.validade)) invalidos.push('licValidade');
     if (!this.modoEdicao()) {
       if (!this.licencaArquivo()) invalidos.push('licencaArquivo');
       if (!this.cnpjArquivo()) invalidos.push('cnpjArquivo');
@@ -442,12 +463,55 @@ export class Cadastro {
       : 'Preencha os campos obrigatórios destacados antes de continuar.';
   }
 
-  avancar(): void {
+  readonly verificandoDuplicidade = signal(false);
+
+  /**
+   * CNPJ e e-mail só eram checados contra o banco no envio final (violação da
+   * constraint única), depois de preencher as 4 etapas inteiras e anexar os 3
+   * arquivos — a pessoa só descobria o dado duplicado no fim. Aqui a etapa 1
+   * confere na hora, contra o banco, antes de deixar avançar.
+   */
+  private async validarDuplicidadeEtapa1(): Promise<string[]> {
+    if (this.modoEdicao()) return [];
+
+    const o = this.organizacao();
+    const cnpjLimpo = o.cnpj.replace(/\D/g, '');
+    const email = o.responsavelEmail.trim();
+
+    const [cnpjRes, emailRes] = await Promise.all([
+      this.client.rpc('cnpj_disponivel', { p_cnpj: cnpjLimpo }),
+      this.client.rpc('email_em_uso', { p_email: email }),
+    ]);
+
+    const invalidos: string[] = [];
+    if (cnpjRes.data === false) invalidos.push('cnpjDuplicado');
+    if (emailRes.data === true) invalidos.push('emailDuplicado');
+    return invalidos;
+  }
+
+  async avancar(): Promise<void> {
     const invalidos = this.validarEtapaAtual();
     if (invalidos.length > 0) {
       this.camposInvalidos.set(new Set(invalidos));
       this.erroEtapa.set(this.mensagemErro(invalidos));
       return;
+    }
+
+    if (this.etapaAtual() === 1) {
+      this.verificandoDuplicidade.set(true);
+      const duplicados = await this.validarDuplicidadeEtapa1();
+      this.verificandoDuplicidade.set(false);
+
+      if (duplicados.includes('cnpjDuplicado')) {
+        this.camposInvalidos.set(new Set(['cnpj']));
+        this.erroEtapa.set('Já existe uma cooperativa cadastrada com esse CNPJ.');
+        return;
+      }
+      if (duplicados.includes('emailDuplicado')) {
+        this.camposInvalidos.set(new Set(['responsavelEmail']));
+        this.erroEtapa.set('Já existe uma conta com esse e-mail. Se já começou um cadastro antes, entre pelo painel.');
+        return;
+      }
     }
 
     this.camposInvalidos.set(new Set());
@@ -655,9 +719,7 @@ export class Cadastro {
       return;
     }
 
-    const meta = arquivo.size < 1024 * 1024
-      ? `${Math.max(1, Math.round(arquivo.size / 1024))} KB · enviado agora`
-      : `${(arquivo.size / (1024 * 1024)).toFixed(1)} MB · enviado agora`;
+    const meta = `${formatarTamanhoArquivo(arquivo.size)} · enviado agora`;
 
     if (this.uploadAlvo === 'licenca') {
       this.licencaArquivo.set({ nome: arquivo.name, meta, arquivo });

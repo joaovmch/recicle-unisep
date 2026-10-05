@@ -1,0 +1,140 @@
+@if (carregando()) {
+  <p class="empty-hint">Carregando…</p>
+} @else if (solicitacao(); as s) {
+
+  <nav class="breadcrumb">
+    <a routerLink="/cooperativa/solicitacoes">Solicitações</a>
+    <span>›</span>
+    <span>#{{ s.numero }}</span>
+    <span>›</span>
+    <span>Aceita</span>
+  </nav>
+
+  <div class="content-grid">
+
+    <section class="coluna-principal">
+
+      <!-- CONFIRMAÇÃO -->
+      <div class="side-card">
+        <div class="confirmacao-topo">
+          <div class="icone-ok">
+            <svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" /></svg>
+          </div>
+
+          <div>
+            <h1>Coleta aceita</h1>
+            <p>{{ resumo() }}</p>
+          </div>
+        </div>
+
+        <div class="dados-grid">
+          <div>
+            <span>Janela</span>
+            <strong>{{ dataPorExtenso() || 'sem data' }}</strong>
+            <strong>{{ s.janelaConfirmada || '—' }}</strong>
+          </div>
+
+          <div>
+            <span>Peso estimado</span>
+            <strong>≈ {{ s.pesoEstimadoKg }} kg</strong>
+            <small>o real é conferido na retirada</small>
+          </div>
+
+          <div>
+            <span>Valor</span>
+            <strong>{{ formatarPreco(s.preco) }}</strong>
+            <small>pago na retirada</small>
+          </div>
+
+          <div>
+            <span>Código de confirmação</span>
+            <strong>peça ao morador</strong>
+            <small>só ele tem — é a prova da entrega</small>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- PRÓXIMOS PASSOS -->
+      <div class="side-card">
+        <h3>O que acontece agora</h3>
+
+        <ol class="passos">
+          <li>
+            <strong>{{ s.solicitante.split(' ')[0] }} recebe a confirmação e o código</strong>
+            <p>Com a janela combinada e o endereço conferido.</p>
+          </li>
+          <li>
+            <strong>A parada entra na rota de {{ dataPorExtenso() || 'quando marcada' }}</strong>
+            <p>Ordem e horário são montados na véspera, junto com as outras coletas do dia.</p>
+          </li>
+          <li>
+            <strong>No local, o coletor digita o código e pesa</strong>
+            <p>É isso que fecha a solicitação e credita os pontos do morador.</p>
+          </li>
+        </ol>
+      </div>
+
+      <div class="acoes-rodape">
+        @if (ehHoje()) {
+          <button class="btn btn-primary" routerLink="/cooperativa/dashboard">Ver na rota de hoje</button>
+        } @else {
+          <button class="btn btn-primary" [routerLink]="['/cooperativa/solicitacoes', s.id, 'confirmar']">
+            Confirmar recebimento
+          </button>
+        }
+
+        <button class="btn btn-outline" routerLink="/cooperativa/solicitacoes">Voltar às solicitações</button>
+        <button class="link-desfazer" (click)="desfazer()">Desfazer aceite</button>
+      </div>
+
+    </section>
+
+
+    <!-- DIREITA -->
+    <aside class="right-column">
+
+      <div class="side-card">
+        <div class="side-card-header">
+          <h3>Ainda esperando resposta</h3>
+          @if (pendentes().length > 0) {
+            <button routerLink="/cooperativa/solicitacoes">ver todas</button>
+          }
+        </div>
+
+        @if (pendentes().length === 0) {
+          <p class="empty-hint">Nenhuma solicitação na fila.</p>
+        }
+
+        @for (p of pendentes(); track p.id) {
+          <a class="pendente-row" [routerLink]="['/cooperativa/solicitacoes', p.id, 'conversa']">
+            <div>
+              <strong>{{ p.titulo }}</strong>
+              <span>{{ resumoDe(p) }}</span>
+            </div>
+            <span class="pendente-preco">{{ formatarPreco(p.preco) }}</span>
+          </a>
+        }
+      </div>
+
+      <div class="highlight-card">
+        <span>Agenda de {{ dataPorExtenso() || 'sem data' }}</span>
+        <strong>{{ usadasNoDia() }} de {{ capacidadeDiaria() || '—' }}</strong>
+
+        <div class="capacity-bar">
+          <div class="capacity-fill" [style.width.%]="percentualCapacidade()"></div>
+        </div>
+
+        <p>{{ textoCapacidade() }}</p>
+      </div>
+
+    </aside>
+
+  </div>
+
+} @else {
+  <div class="side-card empty-state">
+    <p>Solicitação não encontrada.</p>
+    <button class="btn btn-outline" routerLink="/cooperativa/solicitacoes">Voltar às solicitações</button>
+  </div>
+}

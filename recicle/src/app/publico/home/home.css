@@ -1,0 +1,412 @@
+.publico-shell {
+  min-height: 100vh;
+  background: var(--rc-fundo);
+}
+
+
+/* =========================
+   TOPBAR
+========================= */
+
+.publico-topbar {
+  display: flex;
+  align-items: center;
+  gap: 34px;
+  padding: 14px 40px;
+  background: var(--rc-verde-900);
+}
+
+.publico-topbar .auth-brand {
+  text-decoration: none;
+}
+
+.publico-topbar .auth-brand span:last-child {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.publico-nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex: 1;
+}
+
+.publico-nav a {
+  color: #cfe3da;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.publico-nav a:hover {
+  color: #ffffff;
+}
+
+.publico-acoes {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.publico-acoes .link-btn {
+  color: #cfe3da;
+  text-decoration: none;
+}
+
+.publico-acoes .link-btn:hover {
+  color: #ffffff;
+}
+
+
+/* =========================
+   HERO
+========================= */
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 460px;
+  gap: 48px;
+  align-items: center;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 64px 40px 56px;
+}
+
+.hero-selo {
+  display: inline-block;
+  color: var(--rc-verde-600);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  margin: 18px 0 0;
+  color: var(--rc-texto);
+  font-size: 50px;
+  font-weight: 750;
+  line-height: 1.08;
+  letter-spacing: -1.6px;
+}
+
+.hero-texto {
+  margin: 20px 0 0;
+  max-width: 520px;
+  color: #61736d;
+  font-size: 15.5px;
+  line-height: 1.65;
+}
+
+.hero-botoes {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+.hero-botoes .btn-outline {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.hero-numeros {
+  display: flex;
+  gap: 44px;
+  margin-top: 44px;
+  flex-wrap: wrap;
+}
+
+.hero-numeros strong {
+  display: block;
+  color: var(--rc-texto);
+  font-size: 28px;
+  font-weight: 750;
+  letter-spacing: -0.6px;
+}
+
+.hero-numeros span {
+  display: block;
+  margin-top: 4px;
+  max-width: 150px;
+  color: #8b9994;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+
+/* =========================
+   PRÉVIA DO CHAT
+========================= */
+
+.hero-previa {
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid var(--rc-borda);
+  border-radius: 16px;
+  box-shadow: 0 8px 26px rgba(20, 50, 40, 0.09);
+}
+
+.previa-topo {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #ece9e0;
+}
+
+.previa-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--rc-verde-claro-bg);
+  color: var(--rc-verde-600);
+  font-size: 12px;
+  font-weight: 750;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.previa-topo strong {
+  display: block;
+  color: var(--rc-texto);
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.previa-topo > div > span {
+  display: block;
+  color: var(--rc-verde-600);
+  font-size: 11.5px;
+}
+
+.previa-topo .badge {
+  margin-left: auto;
+}
+
+.previa-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 0;
+}
+
+.previa-bolha {
+  max-width: 88%;
+  padding: 11px 13px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.previa-bolha.ia {
+  align-self: flex-start;
+  background: var(--rc-fundo);
+  color: #24413a;
+  border-bottom-left-radius: 4px;
+}
+
+.previa-bolha.morador {
+  align-self: flex-end;
+  background: var(--rc-verde-900);
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+}
+
+.previa-acoes {
+  display: flex;
+  gap: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #ece9e0;
+  flex-wrap: wrap;
+}
+
+.previa-acoes span {
+  color: var(--rc-verde-600);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+/* =========================
+   SEÇÕES
+========================= */
+
+.secao {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 16px 40px 56px;
+}
+
+.secao h2 {
+  margin: 0;
+  color: var(--rc-texto);
+  font-size: 28px;
+  font-weight: 750;
+  letter-spacing: -0.8px;
+}
+
+.secao-lead {
+  margin: 8px 0 28px;
+  color: #8b9994;
+  font-size: 14px;
+}
+
+.passos-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.passo-card {
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid var(--rc-borda);
+  border-radius: 14px;
+}
+
+.passo-numero {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--rc-verde-600);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 1px;
+}
+
+.passo-card strong {
+  display: block;
+  color: var(--rc-texto);
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.passo-card p {
+  margin: 7px 0 0;
+  color: #61736d;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+
+/* =========================
+   CTA COOPERATIVAS
+========================= */
+
+.cta-cooperativas {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  max-width: 1160px;
+  margin: 0 auto 56px;
+  padding: 32px 36px;
+  border-radius: 18px;
+  background: var(--rc-verde-900);
+  color: #ffffff;
+  flex-wrap: wrap;
+}
+
+.cta-cooperativas h2 {
+  margin: 0;
+  max-width: 620px;
+  font-size: 24px;
+  font-weight: 750;
+  letter-spacing: -0.6px;
+}
+
+.cta-cooperativas p {
+  margin: 10px 0 0;
+  max-width: 620px;
+  color: #b7d3c8;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+
+/* =========================
+   RODAPÉ
+========================= */
+
+.publico-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 24px 40px 40px;
+  border-top: 1px solid #e3e1d8;
+  color: #8b9994;
+  font-size: 12.5px;
+  flex-wrap: wrap;
+}
+
+.publico-rodape nav {
+  display: flex;
+  gap: 20px;
+}
+
+.publico-rodape a {
+  color: #61736d;
+  text-decoration: none;
+}
+
+.publico-rodape a:hover {
+  color: var(--rc-texto);
+}
+
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+@media (max-width: 1000px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 36px;
+    padding: 44px 24px;
+  }
+
+  .hero h1 {
+    font-size: 38px;
+  }
+
+  .passos-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .secao,
+  .publico-rodape {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+@media (max-width: 720px) {
+  .publico-topbar {
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 12px 18px;
+  }
+
+  .publico-nav {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .passos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cta-cooperativas {
+    margin: 0 18px 40px;
+    padding: 24px;
+  }
+}

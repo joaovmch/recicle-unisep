@@ -1,0 +1,182 @@
+<!-- CABEÇALHO -->
+<header class="page-header">
+  <div>
+    <h1>Olá, {{ primeiroNome() }}</h1>
+    <p>{{ resumoTopo() }}</p>
+  </div>
+
+  <div class="header-actions">
+    <button class="btn btn-primary" routerLink="/chat">+ Novo descarte</button>
+  </div>
+</header>
+
+
+<!-- INDICADORES -->
+<section class="stats-grid">
+
+  <div class="stat-card stat-destaque">
+    <span class="stat-rotulo">Pontos acumulados</span>
+    <strong>{{ saldo() }}</strong>
+    @if (nivel().proximo; as proximo) {
+      <span class="stat-apoio">faltam {{ nivel().faltam }} para o nível {{ proximo.nome }}</span>
+    } @else {
+      <span class="stat-apoio">nível máximo: {{ nivel().atual.nome }}</span>
+    }
+  </div>
+
+  <div class="stat-card">
+    <span class="stat-rotulo">Descartes concluídos</span>
+    <strong>{{ concluidos().length }}</strong>
+    <span class="stat-apoio">
+      {{ morador() ? 'desde ' + formatarData(morador()!.criadoEm) : '—' }}
+    </span>
+  </div>
+
+  <div class="stat-card">
+    <span class="stat-rotulo">Desviado do aterro</span>
+    <strong>{{ pesoDesviadoKg().toLocaleString('pt-BR') }} kg</strong>
+    <span class="stat-apoio">peso conferido nas triagens</span>
+  </div>
+
+  <div class="stat-card">
+    <span class="stat-rotulo">Em andamento</span>
+    <strong>{{ emAndamento().length }}</strong>
+    <span class="stat-apoio">
+      {{ emAndamento().length === 0 ? 'nenhum pedido aberto' : 'acompanhe em Minhas solicitações' }}
+    </span>
+  </div>
+
+</section>
+
+
+<div class="content-grid">
+
+  <!-- ESQUERDA -->
+  <section class="painel-main">
+
+    <!-- EM ANDAMENTO -->
+    <div class="side-card">
+      <div class="side-card-header">
+        <h3>Em andamento</h3>
+        <button routerLink="/solicitacoes">Ver todas</button>
+      </div>
+
+      @if (carregando()) {
+        <p class="empty-hint">Carregando seus descartes...</p>
+      } @else if (emAndamento().length === 0) {
+        <p class="empty-hint">
+          Nenhum descarte em andamento. Descreva um resíduo no chat para começar.
+        </p>
+      } @else {
+        <div class="descarte-lista">
+          @for (d of emAndamento(); track d.id) {
+            <article class="descarte-item">
+              <div class="descarte-topo">
+                <strong>{{ d.titulo }}</strong>
+                <span class="status-pill" [class]="statusLabel[d.status].tom">
+                  {{ statusLabel[d.status].label }}
+                </span>
+              </div>
+
+              <p class="descarte-linha">{{ linhaDetalhe(d) }}</p>
+
+              <div class="descarte-rodape">
+                @if (d.status === 'aceita') {
+                  <span class="codigo">Código <strong>{{ d.codigoConfirmacao }}</strong></span>
+                } @else {
+                  <span class="codigo-espera">O código aparece quando a cooperativa aceitar</span>
+                }
+                <a class="link-btn" [routerLink]="['/solicitacoes', d.id]">Ver detalhes</a>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </div>
+
+
+    <!-- ÚLTIMOS DESCARTES -->
+    <div class="side-card">
+      <h3 class="summary-title">Seus últimos descartes</h3>
+
+      @if (ultimosDescartes().length === 0) {
+        <p class="empty-hint">Nenhum descarte concluído ainda.</p>
+      } @else {
+        <div class="historico-lista">
+          @for (d of ultimosDescartes(); track d.id) {
+            <div class="historico-item">
+              <div>
+                <strong>{{ d.titulo }}</strong>
+                <p>
+                  {{ d.confirmadoEm ? formatarData(d.confirmadoEm) : '' }}
+                  @if (d.ecopontoNome) { · entrega no {{ d.ecopontoNome }} }
+                  @else if (d.cooperativaNome) { · coleta pela {{ d.cooperativaNome }} }
+                </p>
+              </div>
+              @if (d.pontosCreditados !== null) {
+                <span class="pontos-ganhos">+{{ d.pontosCreditados }}</span>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  </section>
+
+
+  <!-- DIREITA -->
+  <aside class="right-column">
+
+    <div class="side-card">
+      <h3 class="summary-title">Próximo benefício</h3>
+
+      @if (proximoBeneficio(); as beneficio) {
+        <p class="summary-hint">{{ beneficio.nome }} · {{ beneficio.custoPontos }} pontos</p>
+
+        <div class="capacity-bar" style="background: #e7ece7;">
+          <div class="capacity-fill" [style.width.%]="progressoBeneficio()" style="background: var(--rc-verde-600);"></div>
+        </div>
+
+        <p class="beneficio-estado">
+          {{ saldo() >= beneficio.custoPontos
+              ? 'Já dá para resgatar'
+              : 'faltam ' + (beneficio.custoPontos - saldo()) + ' pontos' }}
+        </p>
+
+        <button class="btn btn-primary" style="width: 100%; margin-top: 12px;" routerLink="/pontos">
+          Ver benefícios
+        </button>
+      } @else {
+        <p class="empty-hint">Nenhum benefício disponível no momento.</p>
+      }
+    </div>
+
+    <div class="side-card">
+      <h3 class="summary-title">Seu impacto</h3>
+
+      @if (impacto().length === 0) {
+        <p class="empty-hint">O peso aparece aqui depois da primeira triagem.</p>
+      } @else {
+        <div class="material-list">
+          @for (item of impacto(); track item.categoria) {
+            <div>
+              <span>{{ item.categoria }}</span>
+              <strong>{{ item.kg.toLocaleString('pt-BR') }} kg</strong>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="warning-box">
+      <strong>Não sabe onde jogar?</strong>
+      <p>
+        Descreva o item no chat e a IA diz o que fazer, mesmo que o destino não seja uma
+        cooperativa.
+      </p>
+    </div>
+
+  </aside>
+
+</div>

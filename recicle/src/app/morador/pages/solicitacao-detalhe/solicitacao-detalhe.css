@@ -1,0 +1,75 @@
+.detalhe-main {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+
+/* =========================
+   CÓDIGO DE RETIRADA
+========================= */
+
+.codigo-card {
+  border-color: var(--rc-verde-claro-borda);
+  background: var(--rc-verde-claro-bg);
+}
+
+.codigo-grande {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.codigo-grande span {
+  flex: 1;
+  max-width: 88px;
+  padding: 18px 0;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid var(--rc-verde-claro-borda);
+  color: var(--rc-texto);
+  font-size: 30px;
+  font-weight: 750;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+
+/* =========================
+   VALORES EM DESTAQUE
+========================= */
+
+.destaque-verde {
+  color: var(--rc-verde-600) !important;
+}
+
+
+/* =========================
+   IMPRESSÃO DO COMPROVANTE
+========================= */
+
+@media print {
+  .page-header .status-pill,
+  .breadcrumb,
+  .right-column,
+  .codigo-card {
+    display: none !important;
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+@media (max-width: 560px) {
+  .codigo-grande span {
+    padding: 14px 0;
+    font-size: 24px;
+  }
+}

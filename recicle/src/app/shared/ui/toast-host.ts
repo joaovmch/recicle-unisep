@@ -14,7 +14,7 @@ import { ToastService } from './toast.service';
       }
     </div>
   `,
-  styleUrls: ['./cooperativa-shared.css'],
+  styleUrls: ['./design-system.css'],
 })
 export class ToastHost {
   protected readonly toasts = inject(ToastService);

@@ -1,0 +1,217 @@
+/* =========================
+   CONTROLES
+========================= */
+
+.ecoponto-controles {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.ecoponto-busca {
+  flex: 1;
+  min-width: 240px;
+  min-height: 46px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid #d9d8d0;
+  background: #ffffff;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--rc-texto);
+}
+
+.ecoponto-busca:focus {
+  outline: 2px solid var(--rc-verde-600);
+  outline-offset: 1px;
+}
+
+.ecoponto-abas {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ecoponto-abas button {
+  height: 46px;
+  padding: 0 20px;
+  border: 1px solid #d9d8d0;
+  border-radius: 24px;
+  background: #ffffff;
+  color: #60716b;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ecoponto-abas button.active {
+  background: var(--rc-verde-900);
+  border-color: var(--rc-verde-900);
+  color: #ffffff;
+}
+
+
+/* =========================
+   GRID MAPA + LISTA
+========================= */
+
+.ecoponto-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 20px;
+  align-items: start;
+}
+
+.mapa-card {
+  min-width: 0;
+  padding: 14px;
+}
+
+.mapa-canvas {
+  position: relative;
+  height: 560px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #e9ebe2;
+}
+
+.mapa-pino {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  transform: translate(-50%, -50%);
+  border: 2.5px solid #ffffff;
+  border-radius: 50%;
+  background: var(--rc-verde-600);
+  box-shadow: 0 2px 6px rgba(10, 30, 24, 0.3);
+  cursor: pointer;
+  z-index: 2;
+}
+
+.mapa-pino.ativo {
+  width: 24px;
+  height: 24px;
+  background: var(--rc-verde-900);
+  z-index: 3;
+}
+
+.mapa-popup {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  z-index: 4;
+  width: min(420px, calc(100% - 32px));
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 14px 34px rgba(10, 30, 24, 0.22);
+}
+
+.mapa-popup-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.mapa-popup-topo strong {
+  color: var(--rc-texto);
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.mapa-popup p {
+  margin: 0;
+  color: #61736d;
+  font-size: 12.5px;
+}
+
+.mapa-popup-horario {
+  margin-top: 2px !important;
+  color: #8b9994 !important;
+}
+
+.mapa-popup-acoes {
+  margin-top: 12px;
+}
+
+
+/* =========================
+   LISTA DE LOCAIS
+========================= */
+
+.ecoponto-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.ecoponto-card {
+  padding: 16px 18px;
+  background: #ffffff;
+  border: 1px solid var(--rc-borda);
+  border-radius: 14px;
+  box-shadow: 0 2px 5px rgba(20, 50, 40, 0.05);
+  cursor: pointer;
+}
+
+.ecoponto-card.selecionado {
+  border-color: var(--rc-verde-600);
+  box-shadow: 0 0 0 1px var(--rc-verde-600);
+}
+
+.ecoponto-card-topo strong {
+  color: var(--rc-texto);
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.ecoponto-endereco {
+  margin: 6px 0 0;
+  color: #61736d;
+  font-size: 12.5px;
+}
+
+.ecoponto-horario {
+  margin: 2px 0 0;
+  color: #8b9994;
+  font-size: 12px;
+}
+
+.ecoponto-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 12px 0;
+}
+
+.ecoponto-tags span {
+  padding: 5px 10px;
+  border-radius: 7px;
+  background: var(--rc-fundo);
+  color: #61736d;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+@media (max-width: 1000px) {
+  .ecoponto-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mapa-canvas {
+    height: 380px;
+  }
+}

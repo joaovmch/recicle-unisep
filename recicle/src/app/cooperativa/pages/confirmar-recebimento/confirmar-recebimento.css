@@ -7,7 +7,7 @@
 
 .form-section h3 {
   margin: 0 0 4px;
-  color: #0b4939;
+  color: var(--rc-texto);
   font-size: 15px;
   font-weight: 750;
 }
@@ -33,17 +33,17 @@
   width: 52px;
   height: 52px;
   border-radius: 10px;
-  border: 1px solid #d8eee1;
-  background: #eef9f3;
+  border: 1px solid var(--rc-verde-claro-borda);
+  background: var(--rc-verde-claro-bg);
   text-align: center;
   font-size: 20px;
   font-weight: 700;
-  color: #0b4939;
+  color: var(--rc-texto);
   text-transform: uppercase;
 }
 
 .code-box:focus {
-  outline: 2px solid #10a957;
+  outline: 2px solid var(--rc-verde-600);
   outline-offset: 1px;
 }
 
@@ -84,21 +84,21 @@
 }
 
 .triagem-row.checked {
-  border-color: #10a957;
-  background: #eef9f3;
+  border-color: var(--rc-verde-600);
+  background: var(--rc-verde-claro-bg);
 }
 
 .triagem-check {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #123d31;
+  color: var(--rc-texto);
   font-size: 13px;
   font-weight: 700;
 }
 
 .triagem-check input {
-  accent-color: #10a957;
+  accent-color: var(--rc-verde-600);
   width: 17px;
   height: 17px;
 }
@@ -113,7 +113,7 @@
   text-align: right;
   font-family: inherit;
   font-size: 13px;
-  color: #123d31;
+  color: var(--rc-texto);
 }
 
 

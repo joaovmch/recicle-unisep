@@ -1,0 +1,382 @@
+<header class="page-header">
+  <div>
+    <h1>Perfil</h1>
+    <p>Seus dados, endereços de coleta e segurança da conta.</p>
+  </div>
+</header>
+
+
+<!-- ABAS -->
+<div class="abas-sublinhadas">
+  <button [class.active]="abaAtiva() === 'dados'" (click)="setAba('dados')">Dados e endereços</button>
+  <button [class.active]="abaAtiva() === 'notificacoes'" (click)="setAba('notificacoes')">Notificações</button>
+  <button [class.active]="abaAtiva() === 'seguranca'" (click)="setAba('seguranca')">Segurança</button>
+</div>
+
+
+<!-- ================= DADOS E ENDEREÇOS ================= -->
+@if (abaAtiva() === 'dados') {
+  <div class="content-grid">
+    <section class="perfil-main">
+
+      <div class="side-card">
+        <h3 class="summary-title">Dados pessoais</h3>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="perfil-nome">Nome completo</label>
+            <input id="perfil-nome" type="text" [value]="nome()" (input)="nome.set($any($event.target).value)" />
+          </div>
+          <div class="field">
+            <label for="perfil-telefone">Telefone com WhatsApp</label>
+            <input
+              id="perfil-telefone"
+              type="text"
+              placeholder="(00) 00000-0000"
+              [value]="telefone()"
+              (input)="telefone.set($any($event.target).value)"
+            />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="perfil-email">E-mail</label>
+          <input id="perfil-email" type="email" [value]="morador()?.email ?? ''" disabled />
+          <span class="hint">O e-mail é o seu login e não pode ser alterado por aqui.</span>
+        </div>
+
+        <button class="btn btn-primary" style="margin-top: 16px;" [disabled]="salvando()" (click)="salvarDados()">
+          {{ salvando() ? 'Salvando...' : 'Salvar dados' }}
+        </button>
+      </div>
+
+      <div class="side-card">
+        <div class="side-card-header">
+          <div>
+            <h3>Endereços de coleta</h3>
+            <p class="subtitle">O endereço principal já vem escolhido quando você agenda uma coleta.</p>
+          </div>
+          <button (click)="abrirNovoEndereco()">+ Adicionar</button>
+        </div>
+
+        @if (enderecos().length === 0) {
+          <p class="empty-hint">
+            Nenhum endereço cadastrado. Você precisa de um para pedir coleta em casa.
+          </p>
+        } @else {
+          <div class="endereco-lista">
+            @for (e of enderecos(); track e.id) {
+              <div class="endereco-item">
+                <div>
+                  <strong>
+                    {{ e.apelido }}
+                    @if (e.principal) { <span class="badge badge-good">Principal</span> }
+                  </strong>
+                  <p>
+                    {{ e.rua }}@if (e.numero) {, {{ e.numero }}}@if (e.complemento) { · {{ e.complemento }}}
+                  </p>
+                  <p class="endereco-cidade">{{ e.bairro }} · {{ e.cidade }}/{{ e.uf }}@if (e.cep) { · {{ e.cep }}}</p>
+                </div>
+
+                <div class="endereco-acoes">
+                  <button class="link-btn" (click)="abrirEdicaoEndereco(e)">Editar</button>
+                  <button class="link-btn remover" (click)="removerEndereco(e)">Remover</button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+    </section>
+
+    <aside class="right-column">
+      <div class="info-card">
+        <strong>Para que servem seus dados</strong>
+        <p>
+          O endereço só é mostrado para a cooperativa depois que ela aceita a sua coleta.
+          Antes disso, ela vê apenas o bairro e a distância.
+        </p>
+      </div>
+    </aside>
+  </div>
+}
+
+
+<!-- ================= NOTIFICAÇÕES ================= -->
+@if (abaAtiva() === 'notificacoes') {
+  <div class="content-grid">
+    <section class="perfil-main">
+      <div class="side-card">
+        <h3 class="summary-title">Como quer ser avisado</h3>
+        <p class="summary-hint">Avisamos quando a cooperativa responde, agenda ou conclui a coleta.</p>
+
+        <div class="toggle-row-list">
+          <div class="toggle-row">
+            <span>E-mail</span>
+            <label class="toggle-switch">
+              <input
+                type="checkbox"
+                [checked]="morador()?.avisoEmail"
+                (change)="alternarAviso('aviso_email', $any($event.target).checked)"
+              />
+              <span class="track"></span>
+            </label>
+          </div>
+          <div class="toggle-row">
+            <span>WhatsApp</span>
+            <label class="toggle-switch">
+              <input
+                type="checkbox"
+                [checked]="morador()?.avisoWhatsapp"
+                (change)="alternarAviso('aviso_whatsapp', $any($event.target).checked)"
+              />
+              <span class="track"></span>
+            </label>
+          </div>
+          <div class="toggle-row">
+            <span>Aviso no painel</span>
+            <label class="toggle-switch">
+              <input
+                type="checkbox"
+                [checked]="morador()?.avisoPainel"
+                (change)="alternarAviso('aviso_painel', $any($event.target).checked)"
+              />
+              <span class="track"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="right-column">
+      <div class="info-card">
+        <strong>Avisos essenciais continuam</strong>
+        <p>
+          Mesmo com tudo desligado, você continua recebendo o código de retirada — sem ele
+          a coleta não pode ser confirmada.
+        </p>
+      </div>
+    </aside>
+  </div>
+}
+
+
+<!-- ================= SEGURANÇA ================= -->
+@if (abaAtiva() === 'seguranca') {
+  <div class="content-grid">
+    <section class="perfil-main">
+
+      <div class="side-card">
+        <h3 class="summary-title">Alterar senha</h3>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="nova-senha">Nova senha</label>
+            <input
+              id="nova-senha"
+              type="password"
+              autocomplete="new-password"
+              [placeholder]="'Mínimo ' + senhaMinCaracteres + ' caracteres'"
+              [value]="novaSenha()"
+              (input)="novaSenha.set($any($event.target).value)"
+            />
+          </div>
+          <div class="field">
+            <label for="confirmar-senha">Confirmar nova senha</label>
+            <input
+              id="confirmar-senha"
+              type="password"
+              autocomplete="new-password"
+              [value]="confirmacaoSenha()"
+              (input)="confirmacaoSenha.set($any($event.target).value)"
+            />
+          </div>
+        </div>
+
+        <button class="btn btn-primary" style="margin-top: 14px;" [disabled]="salvando()" (click)="alterarSenha()">
+          Alterar senha
+        </button>
+      </div>
+
+      <div class="side-card">
+        <h3 class="summary-title">Sessões abertas</h3>
+        <p class="summary-hint">
+          Encerra o acesso em todos os aparelhos conectados. Você vai precisar entrar de novo.
+        </p>
+        <button class="btn btn-outline" (click)="encerrarSessoes()">Encerrar todas as sessões</button>
+      </div>
+
+      <div class="side-card">
+        <h3 class="summary-title">Excluir conta</h3>
+        <p class="summary-hint">
+          Apaga seu perfil, endereços e o histórico de pontos. As coletas já concluídas
+          continuam no registro da cooperativa, sem seus dados pessoais.
+        </p>
+        <button class="btn btn-danger" (click)="modalExcluir.set(true)">Excluir minha conta</button>
+      </div>
+
+    </section>
+
+    <aside class="right-column">
+      <div class="warning-box">
+        <strong>Talvez dê para resolver sem excluir</strong>
+        <p>
+          Se o problema for excesso de aviso, desligue as notificações na aba ao lado. A
+          exclusão não pode ser desfeita.
+        </p>
+      </div>
+    </aside>
+  </div>
+}
+
+
+<!-- MODAL — ENDEREÇO -->
+@if (modalEndereco()) {
+  <div class="modal-overlay" (click)="modalEndereco.set(false)">
+    <div class="modal-card wide" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="modalEndereco.set(false)">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
+
+      <h2>{{ form().id ? 'Editar endereço' : 'Novo endereço' }}</h2>
+      <p class="modal-description">É para lá que a cooperativa vai quando você pede coleta em casa.</p>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="end-apelido">Apelido</label>
+          <input
+            id="end-apelido"
+            type="text"
+            placeholder="Casa, trabalho…"
+            [value]="form().apelido"
+            (input)="atualizarForm('apelido', $any($event.target).value)"
+          />
+        </div>
+        <div class="field">
+          <label for="end-cep">CEP</label>
+          <input
+            id="end-cep"
+            type="text"
+            placeholder="00000-000"
+            [value]="form().cep"
+            (input)="atualizarForm('cep', $any($event.target).value)"
+          />
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="end-rua">Rua</label>
+          <input id="end-rua" type="text" [value]="form().rua" (input)="atualizarForm('rua', $any($event.target).value)" />
+        </div>
+        <div class="field">
+          <label for="end-numero">Número</label>
+          <input
+            id="end-numero"
+            type="text"
+            [value]="form().numero"
+            (input)="atualizarForm('numero', $any($event.target).value)"
+          />
+        </div>
+      </div>
+
+      <div class="field-row three">
+        <div class="field">
+          <label for="end-bairro">Bairro</label>
+          <input
+            id="end-bairro"
+            type="text"
+            [value]="form().bairro"
+            (input)="atualizarForm('bairro', $any($event.target).value)"
+          />
+        </div>
+        <div class="field">
+          <label for="end-cidade">Cidade</label>
+          <input
+            id="end-cidade"
+            type="text"
+            [value]="form().cidade"
+            (input)="atualizarForm('cidade', $any($event.target).value)"
+          />
+        </div>
+        <div class="field">
+          <label for="end-uf">UF</label>
+          <select id="end-uf" (change)="atualizarForm('uf', $any($event.target).value)">
+            <option value="" [selected]="!form().uf">UF</option>
+            @for (uf of ufs; track uf) {
+              <option [value]="uf" [selected]="uf === form().uf.toUpperCase()">{{ uf }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="end-referencia">Ponto de referência · opcional</label>
+        <input
+          id="end-referencia"
+          type="text"
+          placeholder="Ex.: portão verde, ao lado da padaria"
+          [value]="form().referencia"
+          (input)="atualizarForm('referencia', $any($event.target).value)"
+        />
+      </div>
+
+      <label class="confirm-checkbox">
+        <input
+          type="checkbox"
+          [checked]="form().principal"
+          (change)="atualizarForm('principal', $any($event.target).checked)"
+        />
+        Usar como endereço principal nas coletas.
+      </label>
+
+      <div class="modal-actions">
+        <button class="btn btn-outline" (click)="modalEndereco.set(false)">Cancelar</button>
+        <button class="btn btn-primary" [disabled]="salvando()" (click)="salvarEndereco()">
+          {{ salvando() ? 'Salvando...' : 'Salvar endereço' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+
+<!-- MODAL — EXCLUIR CONTA -->
+@if (modalExcluir()) {
+  <div class="modal-overlay" (click)="modalExcluir.set(false)">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="modalExcluir.set(false)">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
+
+      <h2>Excluir minha conta</h2>
+      <p class="modal-description">
+        Isso apaga seu perfil, endereços e histórico de pontos. Não dá para desfazer.
+        Digite <strong>EXCLUIR</strong> abaixo para confirmar.
+      </p>
+
+      <div class="field">
+        <label for="confirmar-exclusao">Confirmação</label>
+        <input
+          id="confirmar-exclusao"
+          type="text"
+          placeholder="EXCLUIR"
+          [value]="confirmacaoExclusao()"
+          (input)="confirmacaoExclusao.set($any($event.target).value)"
+        />
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-outline" (click)="modalExcluir.set(false)">Cancelar</button>
+        <button
+          class="btn btn-danger"
+          [disabled]="salvando() || confirmacaoExclusao().trim().toUpperCase() !== 'EXCLUIR'"
+          (click)="excluirConta()"
+        >
+          Excluir conta
+        </button>
+      </div>
+    </div>
+  </div>
+}

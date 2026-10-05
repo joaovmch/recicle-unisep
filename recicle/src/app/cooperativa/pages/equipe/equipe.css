@@ -13,30 +13,11 @@
 }
 
 
-/* =========================
-   TABELA DE EQUIPE
-========================= */
-
-.equipe-table {
-  margin-top: 6px;
-}
-
-.equipe-table th:nth-child(n + 2),
-.equipe-table td:nth-child(n + 2) {
-  text-align: left;
-}
-
-.pessoa-cell {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
 .avatar {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: #d9f3e4;
+  background: var(--rc-sucesso-bg);
   color: #0c543f;
   display: flex;
   align-items: center;
@@ -44,19 +25,6 @@
   font-size: 12px;
   font-weight: 700;
   flex-shrink: 0;
-}
-
-.pessoa-cell strong {
-  display: block;
-  color: #122f27;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.pessoa-cell p {
-  margin: 2px 0 0;
-  color: #7f9089;
-  font-size: 11.5px;
 }
 
 .add-row-btn {
@@ -74,7 +42,7 @@
 }
 
 .add-row-btn:hover {
-  background: #f7f6f1;
+  background: var(--rc-fundo);
 }
 
 
@@ -105,7 +73,7 @@
   width: 36px;
   height: 36px;
   border-radius: 9px;
-  background: #d9f3e4;
+  background: var(--rc-sucesso-bg);
   color: #0c543f;
   display: flex;
   align-items: center;
@@ -175,19 +143,117 @@
     grid-template-columns: 1fr;
   }
 
-  .equipe-table thead {
-    display: none;
-  }
+      }
 
-  .equipe-table td {
-    display: block;
-    border-bottom: 0;
-    padding: 4px 0;
-  }
+/* =========================
+   LISTA DE MEMBROS
+========================= */
 
-  .equipe-table tr {
-    display: block;
-    padding: 12px 0;
-    border-bottom: 1px solid #ece9e0;
-  }
+.contagem {
+  color: #8b9994;
+  font-size: 12.5px;
 }
+
+.membro-lista {
+  display: flex;
+  flex-direction: column;
+}
+
+.membro-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 0;
+  border-bottom: 1px solid #f0efe8;
+}
+
+.membro-row:last-child {
+  border-bottom: 0;
+}
+
+.membro-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.membro-nome {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.membro-nome strong {
+  color: var(--rc-texto);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.funcao-badge {
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--rc-neutro-bg);
+  color: #61736d;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.membro-info p {
+  margin: 5px 0 0;
+  color: #8b9994;
+  font-size: 12.5px;
+}
+
+.membro-acoes {
+  display: flex;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.link-acao {
+  border: 0;
+  background: transparent;
+  color: var(--rc-verde-600);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.link-acao:hover {
+  text-decoration: underline;
+}
+
+.link-acao.remover {
+  color: #8b9994;
+}
+
+.link-acao.remover:hover {
+  color: var(--rc-perigo);
+}
+
+
+/* =========================
+   QUEM PODE O QUÊ
+========================= */
+
+.papel-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.papel-lista strong {
+  display: block;
+  color: var(--rc-texto);
+  font-size: 13.5px;
+  font-weight: 750;
+}
+
+.papel-lista p {
+  margin: 5px 0 0;
+  color: #61736d;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+

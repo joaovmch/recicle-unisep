@@ -1,6 +1,6 @@
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../data/auth.service';
+import { AuthService } from '../../../shared/data/auth.service';
 import { CooperativaService } from '../../data/cooperativa.service';
 import { SupabaseService } from '../../../supabase.service';
 import { NOME_TIPO_DOCUMENTO, ordenarPorTipoDocumento, TipoDocumentoDb } from '../../shared/documento-tipos';
@@ -20,7 +20,7 @@ interface DocumentoAnalise {
   selector: 'app-analise-cadastro',
   imports: [RouterLink],
   templateUrl: './analise-cadastro.html',
-  styleUrls: ['../../shared/cooperativa-shared.css', './analise-cadastro.css'],
+  styleUrls: ['../../../shared/ui/design-system.css', './analise-cadastro.css'],
 })
 export class AnaliseCadastro {
   private readonly auth = inject(AuthService);
@@ -71,7 +71,12 @@ export class AnaliseCadastro {
     if (!sessao) return;
 
     const cooperativa = await this.cooperativaService.carregar();
-    if (!cooperativa) return;
+    if (!cooperativa) {
+      // Sessão válida mas sem cadastro associado (ex.: um envio anterior travou antes
+      // de gravar a linha) — não faz sentido continuar mostrando "em análise".
+      this.router.navigate(['/cooperativa/cadastro']);
+      return;
+    }
 
     const { data } = await this.client
       .from('documentos')

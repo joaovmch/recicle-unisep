@@ -1,14 +1,14 @@
 import { Component, inject, signal } from '@angular/core';
 import { AdminService } from '../../data/admin.service';
-import { ToastService } from '../../../cooperativa/shared/toast.service';
-import { formatarData } from '../../../cooperativa/shared/format';
-import { EMAIL_RE, SENHA_MIN_CARACTERES } from '../../../cooperativa/shared/validators';
+import { ToastService } from '../../../shared/ui/toast.service';
+import { formatarData } from '../../../shared/util/format';
+import { EMAIL_RE, SENHA_MIN_CARACTERES } from '../../../shared/util/validators';
 
 @Component({
   selector: 'app-admin-administradores',
   imports: [],
   templateUrl: './administradores.html',
-  styleUrls: ['../../../cooperativa/shared/cooperativa-shared.css'],
+  styleUrls: ['../../../shared/ui/design-system.css'],
 })
 export class Administradores {
   readonly adminService = inject(AdminService);
@@ -73,6 +73,8 @@ export class Administradores {
   }
 
   async remover(id: string, nome: string): Promise<void> {
+    if (!window.confirm(`Remover o acesso de ${nome} à área administrativa?`)) return;
+
     const { erro } = await this.adminService.removerAdmin(id);
     if (erro) {
       this.toast.mostrar('Não foi possível remover esse admin.');

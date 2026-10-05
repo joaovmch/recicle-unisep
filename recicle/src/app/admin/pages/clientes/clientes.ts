@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { SupabaseService } from '../../../supabase.service';
-import { formatarPreco, formatarData } from '../../../cooperativa/shared/format';
+import { formatarPreco, formatarData } from '../../../shared/util/format';
 
 interface Cliente {
   nome: string;
@@ -30,7 +30,7 @@ function paraCliente(row: any): Cliente {
   selector: 'app-admin-clientes',
   imports: [],
   templateUrl: './clientes.html',
-  styleUrls: ['../../../cooperativa/shared/cooperativa-shared.css'],
+  styleUrls: ['../../../shared/ui/design-system.css'],
 })
 export class Clientes {
   private readonly client = inject(SupabaseService).client;

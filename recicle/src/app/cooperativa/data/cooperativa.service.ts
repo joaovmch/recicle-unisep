@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { SupabaseService, traduzirErroAuth } from '../../supabase.service';
+import { AuthService } from '../../shared/data/auth.service';
 
 export type TipoOrganizacao = 'cooperativa' | 'associacao' | 'empresa';
 export type StatusCadastro = 'em_analise' | 'aprovado' | 'reprovado';
@@ -158,6 +159,12 @@ export class CooperativaService {
 
   private readonly _cooperativa = signal<Cooperativa | null>(null);
   readonly cooperativa = this._cooperativa.asReadonly();
+
+  constructor() {
+    // Sair da conta limpa o perfil carregado aqui, sem o AuthService precisar
+    // conhecer cada módulo.
+    inject(AuthService).registrarLimpeza(() => this.limpar());
+  }
 
   /**
    * Cria a conta de autenticação e, se possível, a linha da cooperativa (fim do wizard).

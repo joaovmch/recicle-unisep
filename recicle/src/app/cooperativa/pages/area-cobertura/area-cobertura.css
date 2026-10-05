@@ -39,15 +39,15 @@
   width: 11px;
   height: 11px;
   border-radius: 50%;
-  background: #10a957;
+  background: var(--rc-verde-600);
   border: 2px solid #ffffff;
-  box-shadow: 0 0 0 1px #10a957;
+  box-shadow: 0 0 0 1px var(--rc-verde-600);
 }
 
 .map-pin-label {
   padding: 5px 10px;
   border-radius: 7px;
-  background: #123d31;
+  background: var(--rc-texto);
   color: #ffffff;
   font-size: 11px;
   font-weight: 700;
@@ -85,4 +85,21 @@
   .map-canvas {
     height: 320px;
   }
+}
+
+/* =========================
+   COLUNA PRINCIPAL
+========================= */
+
+.cobertura-main {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.map-pin-label strong {
+  display: block;
+  color: var(--rc-texto);
+  font-weight: 750;
 }

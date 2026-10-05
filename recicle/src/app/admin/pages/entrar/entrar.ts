@@ -1,13 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../../cooperativa/data/auth.service';
+import { AuthService } from '../../../shared/data/auth.service';
 import { AdminService } from '../../data/admin.service';
 
 @Component({
   selector: 'app-admin-entrar',
   imports: [RouterLink],
   templateUrl: './entrar.html',
-  styleUrls: ['../../../cooperativa/shared/cooperativa-shared.css', '../../../cooperativa/pages/entrar/entrar.css'],
+  styleUrls: ['../../../shared/ui/design-system.css', '../../../cooperativa/pages/entrar/entrar.css'],
 })
 export class Entrar {
   private readonly router = inject(Router);

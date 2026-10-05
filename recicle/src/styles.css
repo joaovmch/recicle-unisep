@@ -1,1 +1,36 @@
 /* You can add global styles to this file, and also import other style files */
+body {
+    margin: 0;
+}
+
+/*
+ * Paleta do painel da cooperativa — extraída por amostragem de pixel das telas
+ * conceito (pasta "Re-cicle — Telas Conceito"). Centralizada aqui para que uma
+ * mudança de marca no futuro seja feita num lugar só, em vez de em cada .css.
+ */
+:root {
+  --rc-verde-900: #0c3b2c;
+  --rc-verde-800: #1d493b;
+  --rc-verde-600: #12a151;
+  --rc-verde-600-hover: #0e8a44;
+  --rc-verde-claro-bg: #eef9f3;
+  --rc-verde-claro-borda: #d8eee1;
+
+  --rc-fundo: #f4f5ef;
+  --rc-texto: #10241d;
+  --rc-texto-secundario: #667871;
+  --rc-borda: #e7e6df;
+
+  --rc-sucesso-bg: #e3f6ea;
+  --rc-sucesso-texto: #0c6b3f;
+  --rc-info-bg: #e4ecf8;
+  --rc-info-texto: #2058b8;
+  --rc-aviso-bg: #fdf0dc;
+  --rc-aviso-texto: #a15d09;
+  --rc-erro-bg: #fbe9e7;
+  --rc-erro-texto: #b13a28;
+  --rc-perigo: #b4453c;
+  --rc-perigo-hover: #9c3b33;
+  --rc-neutro-bg: #edebe4;
+  --rc-neutro-texto: #5c6b64;
+}

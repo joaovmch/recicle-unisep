@@ -49,6 +49,35 @@
 
 </section>
 
+@if (emConferencia().length > 0) {
+  <section class="side-card" style="margin-top: 20px;">
+    <div class="side-card-header">
+      <h3>Coletas confirmadas por foto — aguardando conferência</h3>
+    </div>
+    <p>A cooperativa concluiu sem o código do morador. Os pontos só entram depois que alguém da equipe conferir.</p>
+    <table class="data-table">
+      <thead>
+        <tr><th>Coleta</th><th>Morador</th><th>Recebido</th><th>Confirmada em</th><th></th></tr>
+      </thead>
+      <tbody>
+        @for (c of emConferencia(); track c.id) {
+          <tr>
+            <td><strong>#{{ c.numero }}</strong> · {{ c.titulo }}</td>
+            <td>{{ c.solicitante }}</td>
+            <td>{{ c.pesoRecebidoKg }} kg ({{ c.rejeitoKg }} kg rejeito)</td>
+            <td>{{ c.confirmadoEm ? formatarData(c.confirmadoEm) : '—' }}</td>
+            <td>
+              <button class="btn btn-primary small" [disabled]="creditando() !== null" (click)="creditar(c)">
+                {{ creditando() === c.id ? 'Creditando...' : 'Creditar pontos' }}
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+}
+
 <section class="side-card" style="margin-top: 20px;">
   <div class="side-card-header">
     <h3>Atalhos</h3>

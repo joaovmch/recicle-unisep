@@ -1,0 +1,314 @@
+@if (carregando()) {
+  <p class="empty-hint">Carregando...</p>
+} @else if (descarte(); as d) {
+
+  <p class="breadcrumb">
+    <a routerLink="/solicitacoes">Minhas solicitações</a> / #{{ d.numero }} · {{ d.titulo }}
+  </p>
+
+  <header class="page-header">
+    <div>
+      <h1>{{ d.titulo }}</h1>
+      <p>
+        {{ d.categoria }} · ≈ {{ d.pesoEstimadoKg }} kg ·
+        {{ d.destino === 'entrega_ecoponto' ? 'entrega própria' : 'coleta em casa' }}
+      </p>
+    </div>
+
+    <span class="status-pill" [class]="statusLabel[d.status].tom">
+      {{ statusLabel[d.status].label }}
+    </span>
+  </header>
+
+
+  <div class="content-grid">
+
+    <!-- ESQUERDA -->
+    <section class="detalhe-main">
+
+      <!-- CÓDIGO DE RETIRADA -->
+      @if (d.status === 'aceita') {
+        <div class="side-card codigo-card">
+          <h3 class="summary-title">Código de retirada</h3>
+          <p class="summary-hint">
+            Mostre para a equipe no momento da coleta. É esse código que fecha o pedido e
+            credita seus pontos.
+          </p>
+
+          <div class="codigo-grande">
+            @for (c of d.codigoConfirmacao.split(''); track $index) {
+              <span>{{ c }}</span>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- DADOS -->
+      <div class="side-card">
+        <h3 class="summary-title">Dados da solicitação</h3>
+
+        <div class="material-list">
+          <div><span>Número</span><strong>#{{ d.numero }}</strong></div>
+
+          @if (d.cooperativaNome) {
+            <div><span>Cooperativa</span><strong>{{ d.cooperativaNome }}</strong></div>
+          }
+          @if (d.ecopontoNome) {
+            <div><span>Local de entrega</span><strong>{{ d.ecopontoNome }}</strong></div>
+          }
+
+          <div>
+            <span>{{ d.destino === 'entrega_ecoponto' ? 'Endereço do local' : 'Endereço da coleta' }}</span>
+            <strong>{{ d.endereco }}@if (d.bairro) { — {{ d.bairro }} }</strong>
+          </div>
+
+          <div>
+            <span>Janela</span>
+            <strong>
+              @if (d.status === 'aceita' && d.dataAgendada) {
+                {{ formatarData(d.dataAgendada) }}@if (d.janelaConfirmada) { · {{ d.janelaConfirmada }} }
+              } @else {
+                {{ d.janelaPreferida || '—' }}
+              }
+            </strong>
+          </div>
+
+          <div>
+            <span>Valor</span>
+            <strong>{{ d.destino === 'entrega_ecoponto' ? 'sem custo' : formatarPreco(d.preco) }}</strong>
+          </div>
+
+          <div>
+            <span>Pontos</span>
+            <strong>
+              {{ d.pontosCreditados !== null ? '+' + d.pontosCreditados + ' creditados'
+                 : d.status === 'concluida' && d.confirmadoViaFoto ? 'em conferência pela equipe'
+                 : '+' + d.pontosPrevistos + ' previstos' }}
+            </strong>
+          </div>
+
+          <div><span>Criada em</span><strong>{{ formatarData(d.criadoEm) }}</strong></div>
+        </div>
+      </div>
+
+      <!-- COMPROVANTE -->
+      @if (d.status === 'concluida') {
+        <div class="side-card">
+          <div class="side-card-header">
+            <div>
+              <h3>Comprovante da coleta</h3>
+              <p class="subtitle">Peso conferido na triagem da cooperativa</p>
+            </div>
+            <button (click)="imprimirComprovante()">Imprimir</button>
+          </div>
+
+          <div class="material-list">
+            <div>
+              <span>Peso recebido</span>
+              <strong>{{ d.pesoRecebidoKg !== null ? d.pesoRecebidoKg + ' kg' : '—' }}</strong>
+            </div>
+            <div>
+              <span>Rejeito separado</span>
+              <strong>{{ d.rejeitoKg !== null ? d.rejeitoKg + ' kg' : '—' }}</strong>
+            </div>
+            <div>
+              <span>Confirmado em</span>
+              <strong>{{ d.confirmadoEm ? formatarData(d.confirmadoEm) : '—' }}</strong>
+            </div>
+            <div>
+              <span>Pontos creditados</span>
+              @if (d.pontosCreditados === null && d.confirmadoViaFoto) {
+                <strong>em conferência</strong>
+              } @else {
+                <strong class="destaque-verde">+{{ d.pontosCreditados ?? 0 }}</strong>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- RECUSA / CANCELAMENTO -->
+      @if (d.status === 'recusada' && d.motivoRecusa) {
+        <div class="warning-box">
+          <strong>A cooperativa não pôde atender</strong>
+          <p>{{ d.motivoRecusa }} — descreva o item no chat para encontrar outro destino.</p>
+        </div>
+      }
+
+      @if (d.status === 'cancelada') {
+        <div class="side-card">
+          <h3 class="summary-title">Cancelamento</h3>
+          <div class="material-list">
+            <div><span>Motivo</span><strong>{{ d.motivoCancelamento || '—' }}</strong></div>
+            <div>
+              <span>Cancelada em</span>
+              <strong>{{ d.canceladaEm ? formatarData(d.canceladaEm) : '—' }}</strong>
+            </div>
+          </div>
+        </div>
+      }
+
+    </section>
+
+
+    <!-- DIREITA -->
+    <aside class="right-column">
+
+      @if (podeAlterar()) {
+        <div class="side-card">
+          <h3 class="summary-title">Precisa mudar algo?</h3>
+
+          @if (d.status === 'aceita') {
+            <p class="summary-hint">
+              Você ainda tem {{ remarcacoesRestantes() }} de {{ limiteRemarcacoes }} remarcações
+              nesta coleta.
+            </p>
+
+            <button
+              class="btn btn-outline"
+              style="width: 100%; margin-bottom: 10px;"
+              [disabled]="remarcacoesRestantes() === 0"
+              (click)="abrirRemarcar()"
+            >
+              Remarcar coleta
+            </button>
+          }
+
+          <button class="btn btn-danger" style="width: 100%;" (click)="abrirCancelar()">
+            Cancelar solicitação
+          </button>
+        </div>
+      }
+
+      <div class="info-card">
+        <strong>Como os pontos entram</strong>
+        <p>
+          Os pontos são creditados sobre o peso conferido na triagem, não sobre a
+          estimativa — por isso o valor final pode mudar um pouco.
+        </p>
+      </div>
+
+      <div class="side-card">
+        <h3 class="summary-title">Falar com a equipe</h3>
+        <div class="material-list">
+          <div><span>WhatsApp</span><strong>(46) 99000-1234</strong></div>
+          <div><span>E-mail</span><strong>suporte&#64;re-cicle.org</strong></div>
+        </div>
+      </div>
+
+    </aside>
+
+  </div>
+
+
+  <!-- MODAL — REMARCAR -->
+  @if (modalRemarcar()) {
+    <div class="modal-overlay" (click)="modalRemarcar.set(false)">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <button class="modal-close" (click)="modalRemarcar.set(false)">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+        </button>
+
+        <h2>Remarcar coleta #{{ d.numero }}</h2>
+        <p class="modal-description">
+          Escolha outra data. A nova data aparece na hora para a cooperativa, no painel dela.
+        </p>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="nova-data">Nova data</label>
+            <input
+              id="nova-data"
+              type="date"
+              [min]="hoje"
+              [value]="novaData()"
+              (input)="novaData.set($any($event.target).value)"
+            />
+          </div>
+          <div class="field">
+            <label for="nova-janela">Janela</label>
+            <select id="nova-janela" [value]="novaJanela()" (change)="novaJanela.set($any($event.target).value)">
+              <option value="Manhã (8h–12h)">Manhã (8h–12h)</option>
+              <option value="Tarde (13h–18h)">Tarde (13h–18h)</option>
+              <option value="Dia todo">Dia todo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <strong>Remarcações restantes</strong>
+          <p>
+            Depois desta, sobram {{ remarcacoesRestantes() - 1 }}. O limite existe para a
+            cooperativa conseguir montar a rota do dia.
+          </p>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-outline" (click)="modalRemarcar.set(false)">Voltar</button>
+          <button class="btn btn-primary" [disabled]="salvando()" (click)="confirmarRemarcacao()">
+            {{ salvando() ? 'Salvando...' : 'Confirmar nova data' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+
+  <!-- MODAL — CANCELAR -->
+  @if (modalCancelar()) {
+    <div class="modal-overlay" (click)="modalCancelar.set(false)">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <button class="modal-close" (click)="modalCancelar.set(false)">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+        </button>
+
+        <h2>Cancelar a coleta #{{ d.numero }}</h2>
+        <p class="modal-description">
+          {{ d.titulo }} · {{ d.categoria }}. Conta pra gente o motivo — isso ajuda a cooperativa
+          a organizar a rota e não conta como falta.
+        </p>
+
+        <div class="reason-list">
+          @for (m of motivos; track m.valor) {
+            <label class="reason-option" [class.selected]="motivoSelecionado() === m.valor">
+              <input
+                type="radio"
+                name="motivo-cancelamento"
+                [value]="m.valor"
+                [checked]="motivoSelecionado() === m.valor"
+                (change)="motivoSelecionado.set(m.valor)"
+              />
+              <span>
+                <strong>{{ m.label }}</strong>
+                @if (m.ajuda) { <small>{{ m.ajuda }}</small> }
+              </span>
+            </label>
+          }
+        </div>
+
+        <div class="field">
+          <label for="obs-cancelamento">Quer detalhar? · opcional</label>
+          <textarea
+            id="obs-cancelamento"
+            placeholder="Ex.: consegui levar no ecoponto do bairro…"
+            [value]="observacaoCancelamento()"
+            (input)="observacaoCancelamento.set($any($event.target).value)"
+          ></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-outline" (click)="modalCancelar.set(false)">Voltar</button>
+          <button class="btn btn-danger" [disabled]="salvando()" (click)="confirmarCancelamento()">
+            {{ salvando() ? 'Cancelando...' : 'Cancelar solicitação' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+} @else {
+  <p class="empty-hint">
+    Solicitação não encontrada.
+    <a routerLink="/solicitacoes">Voltar para Minhas solicitações</a>
+  </p>
+}

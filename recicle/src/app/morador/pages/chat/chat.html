@@ -1,0 +1,207 @@
+<div class="chat-layout">
+
+  <!-- COLUNA ESQUERDA — CONVERSAS -->
+  <aside class="chat-lateral">
+    <button class="btn btn-primary" style="width: 100%;" (click)="nova()">+ Novo descarte</button>
+
+    <span class="section-label" style="margin-top: 22px;">Recentes</span>
+
+    @if (conversas().length === 0) {
+      <p class="empty-hint" style="text-align: left; padding: 0;">
+        Nenhum descarte ainda. Descreva um item para começar.
+      </p>
+    } @else {
+      <div class="conversa-lista">
+        @for (c of conversas(); track c.id) {
+          <button class="conversa-item" [class.ativa]="ativa()?.id === c.id" (click)="abrir(c.id)">
+            <strong>{{ c.titulo }}</strong>
+            <span>{{ c.solicitacaoId ? (c.statusSolicitacao ?? 'enviado') : 'rascunho' }}</span>
+          </button>
+        }
+      </div>
+    }
+
+    <div class="pontos-card">
+      <span>Seus pontos</span>
+      <strong>{{ saldo() }}</strong>
+      @if (nivel().proximo; as proximo) {
+        <p>Faltam {{ nivel().faltam }} para o nível {{ proximo.nome }}</p>
+      }
+      <a routerLink="/pontos">Ver meus pontos →</a>
+    </div>
+  </aside>
+
+
+  <!-- COLUNA CENTRAL — CONVERSA -->
+  <section class="chat-principal">
+
+    @if (ativa(); as c) {
+      <header class="chat-cabecalho">
+        <div>
+          <h1>{{ c.titulo }}</h1>
+          <p>{{ c.categoria ?? 'identificando...' }}</p>
+        </div>
+        @if (c.solicitacaoId) {
+          <span class="status-pill info">Solicitação criada</span>
+        }
+      </header>
+    } @else {
+      <header class="chat-cabecalho">
+        <div>
+          <h1>Novo descarte</h1>
+          <p>Descreva o que você quer descartar e eu digo o que fazer.</p>
+        </div>
+      </header>
+    }
+
+    <div class="chat-thread">
+      @if (mensagens().length === 0) {
+        <div class="chat-bolha ia">
+          <span class="chat-autor">Assistente Re-cicle</span>
+          Oi! Me conta o que você quer descartar hoje.
+        </div>
+      }
+
+      @for (m of mensagens(); track m.id) {
+        <div class="chat-bolha" [class.ia]="m.autor === 'ia'" [class.morador]="m.autor === 'morador'">
+          @if (m.autor === 'ia') {
+            <span class="chat-autor">Assistente Re-cicle</span>
+          }
+          {{ m.texto }}
+
+          @if (m.passos && m.passos.length > 0) {
+            <ol class="passos">
+              @for (p of m.passos; track p.titulo; let i = $index) {
+                <li>
+                  <span class="passo-numero">{{ i + 1 }}</span>
+                  <span class="passo-texto">
+                    <strong>{{ p.titulo }}</strong>
+                    <small>{{ p.descricao }}</small>
+                  </span>
+                </li>
+              }
+            </ol>
+          }
+        </div>
+      }
+
+      <!-- ESCOLHA DE DESTINO -->
+      @if (podeEscolherDestino()) {
+        <div class="destino-grid">
+          <div class="destino-card">
+            <strong>Levar em um ecoponto</strong>
+            <p>Você entrega no local. Sem custo, pontuação integral.</p>
+
+            @if (ecopontosProximos().length === 0) {
+              <p class="empty-hint" style="text-align: left; padding: 8px 0;">
+                Nenhum local cadastrado ainda para esse tipo de resíduo.
+              </p>
+            } @else {
+              <div class="destino-locais">
+                @for (e of ecopontosProximos(); track e.id) {
+                  <button
+                    class="destino-local"
+                    [disabled]="agendando()"
+                    (click)="escolherEcoponto(e.id, e.nome, e.bairro)"
+                  >
+                    <span>
+                      <strong>{{ e.nome }}</strong>
+                      <small>{{ e.bairro }}@if (e.horario) { · {{ e.horario }} }</small>
+                    </span>
+                    <span class="destino-escolher">Escolher</span>
+                  </button>
+                }
+              </div>
+            }
+
+            <a class="link-btn" routerLink="/ecopontos">Ver todos no mapa →</a>
+          </div>
+
+          <div class="destino-card destaque">
+            <strong>Solicitar coleta em casa</strong>
+            <p>Uma cooperativa licenciada busca no endereço cadastrado.</p>
+
+            <span class="destino-preco">
+              a partir de {{ formatarPreco(precoColeta()) }} · pago direto à cooperativa
+            </span>
+
+            @if (enderecoPrincipal(); as e) {
+              <p class="destino-endereco">{{ e.rua }}{{ e.numero ? ', ' + e.numero : '' }} — {{ e.bairro }}</p>
+            } @else {
+              <p class="destino-endereco sem-endereco">Você ainda não cadastrou um endereço.</p>
+            }
+
+            <button class="btn btn-primary" style="width: 100%;" [disabled]="agendando()" (click)="agendarColeta()">
+              {{ agendando() ? 'Agendando...' : 'Agendar coleta' }}
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- ENTRADA -->
+    <div class="chat-entrada">
+      <input
+        type="text"
+        placeholder="Descreva o resíduo (ex.: uma cadeira de escritório quebrada)"
+        maxlength="500"
+        [value]="texto()"
+        (input)="texto.set($any($event.target).value)"
+        (keydown.enter)="enviar()"
+      />
+      <button class="btn btn-primary" [disabled]="enviando() || !texto().trim()" (click)="enviar()">
+        {{ enviando() ? 'Enviando...' : 'Enviar' }}
+      </button>
+    </div>
+
+  </section>
+
+
+  <!-- COLUNA DIREITA — RESUMO -->
+  <aside class="chat-resumo">
+    @if (ativa(); as c) {
+      <h3 class="summary-title">Resumo do resíduo</h3>
+
+      <div class="resumo-item">
+        <strong>{{ c.titulo }}</strong>
+        <span>identificado pelo assistente</span>
+      </div>
+
+      <div class="material-list" style="margin-top: 16px;">
+        <div><span>Categoria</span><strong>{{ c.categoria ?? '—' }}</strong></div>
+        <div><span>Materiais</span><strong>{{ c.materiais ?? '—' }}</strong></div>
+        <div><span>Reciclável</span><strong>{{ c.reciclavel ?? '—' }}</strong></div>
+        <div>
+          <span>Peso estimado</span>
+          <strong>{{ c.pesoEstimadoKg ? '≈ ' + c.pesoEstimadoKg + ' kg' : '—' }}</strong>
+        </div>
+        <div>
+          <span>Coleta comum</span>
+          <strong>{{ c.aceitaColetaComum === null ? '—' : (c.aceitaColetaComum ? 'Aceita' : 'Não aceita') }}</strong>
+        </div>
+      </div>
+
+      @if (c.atencao) {
+        <div class="warning-box" style="margin-top: 16px;">
+          <strong>Atenção</strong>
+          <p>{{ c.atencao }}</p>
+        </div>
+      }
+
+      @if (c.pontosPrevistos) {
+        <div class="info-card" style="margin-top: 16px;">
+          <strong>Pontos deste descarte</strong>
+          <p>+{{ c.pontosPrevistos }} entregando você mesmo no ecoponto.</p>
+        </div>
+      }
+    } @else {
+      <h3 class="summary-title">Como funciona</h3>
+      <p class="side-card-texto">
+        Descreva o resíduo com o máximo de detalhe que conseguir — material, tamanho e
+        quantidade. O assistente identifica o tipo, explica o preparo e mostra onde levar
+        ou chama uma cooperativa.
+      </p>
+    }
+  </aside>
+
+</div>

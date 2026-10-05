@@ -1,8 +1,9 @@
 import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
-import { ToastService } from '../../shared/toast.service';
+import { ToastService } from '../../../shared/ui/toast.service';
 import { SupabaseService } from '../../../supabase.service';
 import { CooperativaService } from '../../data/cooperativa.service';
-import { erroArquivoInvalido } from '../../shared/upload';
+import { erroArquivoInvalido, formatarTamanhoArquivo } from '../../../shared/util/upload';
+import { lerMesAno } from '../../../shared/util/validators';
 import { NOME_TIPO_DOCUMENTO, TipoDocumentoDb } from '../../shared/documento-tipos';
 
 type StatusDocumento = 'validado' | 'em-analise' | 'nao-enviado' | 'reprovado';
@@ -18,11 +19,6 @@ interface Documento {
   icone: IconeDocumento;
   caminhoArquivo: string | null;
   motivoRecusa: string | null;
-}
-
-interface ItemAnalise {
-  titulo: string;
-  descricao: string;
 }
 
 interface EventoHistorico {
@@ -51,22 +47,11 @@ const STATUS_DB_PARA_UI: Record<string, StatusDocumento> = {
   reprovado: 'reprovado',
 };
 
-const ANALISE_CONFERE: ItemAnalise[] = [
-  { titulo: 'CNPJ ativo', descricao: 'situação cadastral na Receita Federal' },
-  { titulo: 'Licença dentro da validade', descricao: 'número conferido no sistema do órgão emissor' },
-  { titulo: 'Resíduo x licença', descricao: 'se o que vocês marcaram está autorizado no documento' },
-];
-
-function formatarTamanho(bytes: number): string {
-  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 @Component({
   selector: 'app-documentos',
   imports: [],
   templateUrl: './documentos.html',
-  styleUrls: ['../../shared/cooperativa-shared.css', './documentos.css'],
+  styleUrls: ['../../../shared/ui/design-system.css', './documentos.css'],
 })
 export class Documentos {
   private readonly toast = inject(ToastService);
@@ -76,7 +61,6 @@ export class Documentos {
   @ViewChild('listaDocumentos') private listaDocumentosRef?: ElementRef<HTMLElement>;
 
   readonly documentos = signal<Documento[]>([]);
-  readonly analiseConfere = ANALISE_CONFERE;
   readonly historico = signal<EventoHistorico[]>([]);
 
   readonly avisoEmail = signal(true);
@@ -103,7 +87,39 @@ export class Documentos {
     reprovado: 'Reprovada — reenvie',
   };
 
-  private uploadAlvo: number | 'novo' | null = null;
+  readonly cooperativa = this.cooperativaService.cooperativa;
+
+  /** A licença de operação ganhou card próprio no topo — estes atalhos apontam para ela. */
+  readonly licencaDoc = computed(() => this.documentos().find(d => d.tipo === 'licenca_operacao') ?? null);
+
+  readonly licencaValidadeFormatada = computed(() => {
+    const bruto = this.cooperativa()?.licencaValidade;
+    if (!bruto) return '—';
+    const validade = lerMesAno(bruto);
+    return validade ? `${String(validade.mes).padStart(2, '0')}/${validade.ano}` : bruto;
+  });
+
+  readonly totalEntregues = computed(() => this.documentos().filter(d => d.status !== 'nao-enviado').length);
+  readonly todosEntregues = computed(
+    () => this.documentos().length > 0 && this.totalEntregues() === this.documentos().length
+  );
+
+  async verArquivoLicenca(inputRef: HTMLInputElement): Promise<void> {
+    const indice = this.documentos().findIndex(d => d.tipo === 'licenca_operacao');
+    const doc = this.documentos()[indice];
+    if (!doc) return;
+    await this.acaoDocumento({ ...doc, acaoLabel: 'Ver arquivo' }, indice, inputRef);
+  }
+
+  enviarRenovacao(inputRef: HTMLInputElement): void {
+    const indice = this.documentos().findIndex(d => d.tipo === 'licenca_operacao');
+    if (indice < 0) return;
+    this.uploadAlvo = indice;
+    inputRef.value = '';
+    inputRef.click();
+  }
+
+  private uploadAlvo: number | null = null;
 
   constructor() {
     this.carregar();
@@ -149,7 +165,7 @@ export class Documentos {
         id: row.id,
         tipo: fixo.tipo,
         nome: row.nome_arquivo ?? fixo.nome,
-        meta: row.tamanho_bytes ? `${formatarTamanho(row.tamanho_bytes)} · enviado` : fixo.metaVazia,
+        meta: row.tamanho_bytes ? `${formatarTamanhoArquivo(row.tamanho_bytes)} · enviado` : fixo.metaVazia,
         status,
         acaoLabel: status === 'nao-enviado' || status === 'reprovado' ? 'Enviar' : 'Ver arquivo',
         icone: status === 'em-analise' ? 'clock' : status === 'validado' ? 'doc' : 'upload',
@@ -166,7 +182,7 @@ export class Documentos {
           id: row.id,
           tipo: 'outro' as const,
           nome: row.nome_arquivo ?? 'Documento',
-          meta: row.tamanho_bytes ? `${formatarTamanho(row.tamanho_bytes)} · enviado` : '',
+          meta: row.tamanho_bytes ? `${formatarTamanhoArquivo(row.tamanho_bytes)} · enviado` : '',
           status,
           acaoLabel: 'Ver arquivo',
           icone: status === 'em-analise' ? ('clock' as const) : ('doc' as const),
@@ -185,12 +201,6 @@ export class Documentos {
         recente: i === 0,
       }))
     );
-  }
-
-  acionarNovoDocumento(inputRef: HTMLInputElement): void {
-    this.uploadAlvo = 'novo';
-    inputRef.value = '';
-    inputRef.click();
   }
 
   async acaoDocumento(doc: Documento, index: number, inputRef: HTMLInputElement): Promise<void> {
@@ -225,7 +235,7 @@ export class Documentos {
     const alvo = this.uploadAlvo;
     this.uploadAlvo = null;
 
-    const documentoAtual = alvo === 'novo' ? null : this.documentos()[alvo];
+    const documentoAtual = this.documentos()[alvo];
     const tipo: TipoDocumentoDb = documentoAtual?.tipo ?? 'outro';
     const caminho = `${cooperativa.id}/${Date.now()}-${arquivo.name}`;
 
@@ -249,10 +259,16 @@ export class Documentos {
       enviado_em: new Date().toISOString(),
     };
 
-    if (tipo === 'outro') {
-      await this.client.from('documentos').insert(payload);
-    } else {
-      await this.client.from('documentos').upsert(payload, { onConflict: 'cooperativa_id,tipo' });
+    const { error: erroRegistro } =
+      tipo === 'outro'
+        ? await this.client.from('documentos').insert(payload)
+        : await this.client.from('documentos').upsert(payload, { onConflict: 'cooperativa_id,tipo' });
+
+    if (erroRegistro) {
+      // O arquivo subiu mas a linha não: remove do bucket para não sobrar arquivo órfão.
+      await this.client.storage.from('documentos-cooperativa').remove([caminho]);
+      this.toast.mostrar('Não foi possível registrar o documento. Tente novamente.');
+      return;
     }
 
     await this.client.from('cooperativa_eventos').insert({

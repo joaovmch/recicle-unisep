@@ -1,0 +1,118 @@
+<!-- CABEÇALHO -->
+<header class="page-header">
+  <div>
+    <h1>Onde entregar seu resíduo</h1>
+    <p>
+      {{ lista().length }} {{ lista().length === 1 ? 'local aceita' : 'locais aceitam' }}
+      {{ filtroTipo() ? filtroTipo()!.toLowerCase() : 'o que você quer descartar' }}.
+    </p>
+  </div>
+</header>
+
+
+<!-- BUSCA + ABAS -->
+<div class="ecoponto-controles">
+  <input
+    type="search"
+    class="ecoponto-busca"
+    placeholder="Buscar por bairro ou CEP"
+    [value]="busca()"
+    (input)="busca.set($any($event.target).value)"
+  />
+
+  <div class="ecoponto-abas">
+    <button [class.active]="abaAtiva() === 'cooperativas'" (click)="setAba('cooperativas')">
+      Cooperativas
+    </button>
+    <button [class.active]="abaAtiva() === 'publicos'" (click)="setAba('publicos')">
+      Ecopontos públicos
+    </button>
+  </div>
+</div>
+
+@if (tiposDisponiveis().length > 0) {
+  <div class="chip-list" style="margin-bottom: 20px;">
+    @for (tipo of tiposDisponiveis(); track tipo) {
+      <button class="chip" [class.on]="filtroTipo() === tipo" (click)="alternarTipo(tipo)">
+        {{ tipo }}
+      </button>
+    }
+  </div>
+}
+
+
+<div class="ecoponto-grid">
+
+  <!-- MAPA -->
+  <section class="side-card mapa-card">
+    <div class="mapa-canvas">
+      <div class="map-grid"></div>
+
+      @for (e of lista(); track e.id) {
+        <button
+          class="mapa-pino"
+          [class.ativo]="selecionado()?.id === e.id"
+          [style.top.%]="posicao(e, 'top')"
+          [style.left.%]="posicao(e, 'left')"
+          (click)="selecionar(e)"
+          [attr.aria-label]="e.nome"
+        ></button>
+      }
+
+      @if (selecionado(); as e) {
+        <div class="mapa-popup">
+          <div class="mapa-popup-topo">
+            <strong>{{ e.nome }}</strong>
+            <span class="badge badge-good">{{ e.tipo === 'cooperativa' ? 'Cooperativa' : 'Ecoponto' }}</span>
+          </div>
+          <p>{{ e.endereco }} · {{ e.bairro }}</p>
+          @if (e.horario) { <p class="mapa-popup-horario">{{ e.horario }}</p> }
+
+          <div class="mapa-popup-acoes">
+            <button class="btn btn-primary small" (click)="comoChegar(e)">Como chegar</button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <p class="map-attribution">mapa · Leaflet · dados © OpenStreetMap contributors</p>
+  </section>
+
+
+  <!-- LISTA -->
+  <aside class="ecoponto-lista">
+    @if (carregando()) {
+      <p class="empty-hint">Carregando locais...</p>
+    } @else if (lista().length === 0) {
+      <div class="side-card">
+        <p class="empty-hint">
+          Nenhum local encontrado com esses filtros. Tente outro bairro ou tipo de resíduo.
+        </p>
+      </div>
+    } @else {
+      @for (e of lista(); track e.id) {
+        <article class="ecoponto-card" [class.selecionado]="selecionado()?.id === e.id" (click)="selecionar(e)">
+          <div class="ecoponto-card-topo">
+            <strong>{{ e.nome }}</strong>
+          </div>
+
+          <p class="ecoponto-endereco">{{ e.endereco }} · {{ e.bairro }}</p>
+          @if (e.horario) { <p class="ecoponto-horario">{{ e.horario }}</p> }
+
+          @if (e.aceita.length > 0) {
+            <div class="ecoponto-tags">
+              @for (t of e.aceita; track t) {
+                <span>{{ t }}</span>
+              }
+            </div>
+          }
+
+          <button class="btn btn-outline small" style="width: 100%;" (click)="comoChegar(e); $event.stopPropagation()">
+            Como chegar
+          </button>
+        </article>
+      }
+    }
+  </aside>
+
+</div>

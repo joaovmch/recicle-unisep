@@ -13,6 +13,15 @@ export const COOPERATIVA_ROUTES: Routes = [
       import('./pages/cadastro/cadastro').then(m => m.Cadastro)
   },
   {
+    // Mesmo wizard da rota acima, mas em modo edição: sempre busca a cooperativa logada e
+    // pré-preenche com os dados reais, em vez de decidir isso pela sessão estar ou não ativa
+    // (o que misturava "Cadastrar" com "Editar cadastro" quando havia sessão de outro teste aberta).
+    path: 'cadastro/editar',
+    data: { edicao: true },
+    loadComponent: () =>
+      import('./pages/cadastro/cadastro').then(m => m.Cadastro)
+  },
+  {
     path: 'cadastro/analise',
     loadComponent: () =>
       import('./pages/analise-cadastro/analise-cadastro').then(m => m.AnaliseCadastro)
@@ -37,6 +46,16 @@ export const COOPERATIVA_ROUTES: Routes = [
         path: 'solicitacoes',
         loadComponent: () =>
           import('./pages/solicitacoes/solicitacoes').then(m => m.Solicitacoes)
+      },
+      {
+        path: 'solicitacoes/:id/conversa',
+        loadComponent: () =>
+          import('./pages/conversa-ia/conversa-ia').then(m => m.ConversaIa)
+      },
+      {
+        path: 'solicitacoes/:id/aceita',
+        loadComponent: () =>
+          import('./pages/coleta-aceita/coleta-aceita').then(m => m.ColetaAceita)
       },
       {
         path: 'solicitacoes/:id/confirmar',

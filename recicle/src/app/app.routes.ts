@@ -1,31 +1,35 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
+  // --- Público ---
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'cooperativa/entrar'
+    loadComponent: () => import('./publico/home/home').then(m => m.Home),
   },
   {
-    path: 'login',
-    loadComponent: () =>
-      import('./pages/login/login').then(m => m.Login)
+    path: 'entrar',
+    loadComponent: () => import('./publico/entrar/entrar').then(m => m.Entrar),
   },
   {
     path: 'cadastro',
     pathMatch: 'full',
-    redirectTo: 'cooperativa/cadastro'
+    redirectTo: 'entrar',
+  },
+
+  // --- Parceiros e equipe ---
+  {
+    path: 'cooperativa',
+    loadChildren: () => import('./cooperativa/cooperativa.routes').then(m => m.COOPERATIVA_ROUTES),
   },
   {
-  path: 'cooperativa',
-  loadChildren: () =>
-    import('./cooperativa/cooperativa.routes').then(
-      m => m.COOPERATIVA_ROUTES
-    )
-},
-  {
     path: 'admin',
-    loadChildren: () =>
-      import('./admin/admin.routes').then(m => m.ADMIN_ROUTES)
-  }
+    loadChildren: () => import('./admin/admin.routes').then(m => m.ADMIN_ROUTES),
+  },
+
+  // --- Morador (na raiz: /painel, /chat, /ecopontos, /solicitacoes, /pontos, /perfil) ---
+  {
+    path: '',
+    loadChildren: () => import('./morador/morador.routes').then(m => m.MORADOR_ROUTES),
+  },
 ];

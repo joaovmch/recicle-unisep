@@ -24,7 +24,7 @@
 
 .wizard-title {
   margin: 0;
-  color: #0b4939;
+  color: var(--rc-texto);
   font-size: 22px;
   font-weight: 750;
   letter-spacing: -0.5px;
@@ -60,17 +60,17 @@
 }
 
 .stepper-step.active {
-  border-color: #10a957;
+  border-color: var(--rc-verde-600);
   background: #ffffff;
 }
 
 .stepper-step.active .stepper-dot {
-  background: #123d31;
+  background: var(--rc-texto);
   color: #ffffff;
 }
 
 .stepper-step.done .stepper-dot {
-  background: #10a957;
+  background: var(--rc-verde-600);
   color: #ffffff;
 }
 
@@ -103,7 +103,7 @@
 
 .wizard-card h2 {
   margin: 0;
-  color: #0b4939;
+  color: var(--rc-texto);
   font-size: 22px;
   font-weight: 750;
 }
@@ -119,87 +119,11 @@
 }
 
 
-/* =========================
-   CHIPS DE RESÍDUO
-========================= */
-
-.residuo-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.residuo-chip {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid #d9d8d0;
-  background: #ffffff;
-  color: #48625a;
-  font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.residuo-chip.on {
-  border-color: #10a957;
-  background: #eef9f3;
-  color: #0d4b3a;
-}
-
-.chip-check {
-  width: 17px;
-  height: 17px;
-  border-radius: 5px;
-  border: 1.5px solid #d9d8d0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.residuo-chip.on .chip-check {
-  border-color: #10a957;
-  background: #10a957;
-}
-
-.chip-check svg {
-  width: 11px;
-  height: 11px;
-  fill: none;
-  stroke: #ffffff;
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
 
 
 /* =========================
-   CONFIRMAÇÃO E AÇÕES
+   AÇÕES
 ========================= */
-
-.confirm-checkbox {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin-top: 18px;
-  color: #48625a;
-  font-size: 12.5px;
-  line-height: 1.5;
-  cursor: pointer;
-}
-
-.confirm-checkbox input {
-  margin-top: 3px;
-  accent-color: #10a957;
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
 
 .wizard-actions {
   display: flex;
@@ -220,7 +144,7 @@
    VALIDAÇÃO
 ========================= */
 
-.residuo-chips.campo-invalido,
+.chip-list.campo-invalido,
 .upload-dropzone.campo-invalido {
   border-color: #c0392b;
   outline: 1.5px solid #c0392b;

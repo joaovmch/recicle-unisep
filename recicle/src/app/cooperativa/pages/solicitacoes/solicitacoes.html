@@ -1,246 +1,234 @@
 <!-- CABEÇALHO -->
 <header class="page-header">
-
   <div>
     <h1>Solicitações recebidas</h1>
-    <p>Pedidos de coleta e entrega direcionados à sua cooperativa.</p>
+    <p>Pedidos de coleta direcionados à {{ cooperativa()?.nome ?? 'sua cooperativa' }} pela IA.</p>
   </div>
-
-  <div class="header-actions">
-    <button class="btn btn-outline" (click)="exportarCsv()">
-      Exportar CSV
-    </button>
-
-    <button class="btn btn-primary" routerLink="/cooperativa/cadastro">
-      Editar cadastro
-    </button>
-  </div>
-
 </header>
 
 
-<!-- INDICADORES -->
-<section class="stats-grid">
+<!-- ABAS -->
+<div class="tabs-underline">
+  <button class="tab" [class.active]="abaAtiva() === 'pendente'" (click)="setAba('pendente')">
+    Pendentes ({{ pendentes().length }})
+  </button>
 
-  <div class="stat-card stat-warning">
-    <div class="stat-icon">
-      <svg viewBox="0 0 24 24">
-        <path d="M5 8h14l1 11H4L5 8Z"/>
-        <path d="M8 8a4 4 0 0 1 8 0"/>
-      </svg>
-    </div>
-    <strong>{{ pendentes().length }}</strong>
-    <span>aguardando resposta</span>
-  </div>
+  <button class="tab" [class.active]="abaAtiva() === 'aceita'" (click)="setAba('aceita')">
+    Aceitas ({{ aceitas().length }})
+  </button>
 
-  <div class="stat-card stat-blue">
-    <div class="stat-icon">
-      <svg viewBox="0 0 24 24">
-        <path d="M3 7h12v10H3z"/>
-        <path d="M15 10h3l3 3v4h-6"/>
-        <circle cx="7" cy="18" r="2"/>
-        <circle cx="18" cy="18" r="2"/>
-      </svg>
-    </div>
-    <strong>{{ aceitas().length }}</strong>
-    <span>coletas em rota hoje</span>
-  </div>
+  <button class="tab" [class.active]="abaAtiva() === 'concluida'" (click)="setAba('concluida')">
+    Concluídas ({{ concluidas().length }})
+  </button>
 
-  <div class="stat-card">
-    <div class="stat-icon green">
-      <svg viewBox="0 0 24 24">
-        <path d="M20.2 4.2C14.5 3.7 8.1 5.1 5.1 9.2c-2 2.8-1.7 6.1.1 8.4 1.2-2.9 3.6-5.2 6.8-6.5-2.2 1.8-3.7 4.1-4.3 6.8 3.3.7 6.8-.7 8.7-3.7 1.7-2.7 2.1-6.4 3.8-10z"/>
-      </svg>
-    </div>
-    <strong>{{ totalColetasConcluidas() }}</strong>
-    <span>coletas concluídas</span>
-  </div>
-
-  <div class="stat-card">
-    <div class="stat-icon green">
-      <svg viewBox="0 0 24 24">
-        <path d="M5 20V10"/>
-        <path d="M12 20V4"/>
-        <path d="M19 20v-7"/>
-        <path d="M3 20h18"/>
-      </svg>
-    </div>
-    <strong>{{ materialRecebidoMes() }}</strong>
-    <span>material recebido no mês</span>
-  </div>
-
-</section>
-
-
-<!-- ÁREA PRINCIPAL -->
-<div class="content-grid">
-
-  <!-- ESQUERDA -->
-  <section class="requests-section">
-
-    <!-- ABAS -->
-    <div class="tabs">
-      <button class="tab" [class.active]="abaAtiva() === 'pendente'" (click)="setAba('pendente')">
-        Pendentes ({{ pendentes().length }})
-      </button>
-
-      <button class="tab" [class.active]="abaAtiva() === 'aceita'" (click)="setAba('aceita')">
-        Aceitas ({{ aceitas().length }})
-      </button>
-
-      <button class="tab" [class.active]="abaAtiva() === 'concluida'" (click)="setAba('concluida')">
-        Concluídas
-      </button>
-
-      <button class="tab" [class.active]="abaAtiva() === 'recusada'" (click)="setAba('recusada')">
-        Recusadas
-      </button>
-    </div>
-
-    @if (listaAtiva().length === 0) {
-      <div class="side-card empty-state">
-        <p>Nenhuma solicitação nesta aba no momento.</p>
-      </div>
-    }
-
-    @for (s of listaAtiva(); track s.id) {
-      <article class="request-card" [class.highlighted]="s.novo">
-
-        <div class="request-top">
-          <div class="request-title-area">
-            <div class="request-image"></div>
-
-            <div>
-              <div class="title-line">
-                <h2>{{ s.titulo }}</h2>
-                @if (s.novo) {
-                  <span class="badge badge-new">novo</span>
-                }
-                <span class="request-id">#{{ s.numero }}</span>
-              </div>
-              <p class="request-description">{{ s.categoria }} · ≈ {{ s.pesoEstimadoKg }} kg</p>
-            </div>
-          </div>
-
-          <div class="request-price">{{ formatarPreco(s.preco) }}</div>
-        </div>
-
-        <div class="request-info">
-          <div>
-            <span>Solicitante</span>
-            <strong>{{ s.solicitante }}</strong>
-          </div>
-
-          <div>
-            <span>Endereço</span>
-            <strong>{{ s.endereco }} — {{ s.bairro }} · {{ formatarDistancia(s.distanciaKm) }}</strong>
-          </div>
-
-          @if (s.status === 'pendente' || s.status === 'aceita') {
-            <div>
-              <span>Janela preferida</span>
-              <strong>{{ s.janela }}</strong>
-            </div>
-          }
-
-          @if (s.status === 'recusada') {
-            <div>
-              <span>Motivo da recusa</span>
-              <strong>{{ s.motivoRecusa }}</strong>
-            </div>
-          }
-
-          @if (s.status === 'concluida') {
-            <div>
-              <span>Status</span>
-              <strong>Material triado e creditado</strong>
-            </div>
-          }
-        </div>
-
-        <div class="request-actions">
-          @if (s.status === 'pendente') {
-            <button class="btn btn-outline small" (click)="abrirRecusa(s)">Recusar</button>
-            <button class="btn btn-primary small" (click)="aceitar(s)">Aceitar coleta</button>
-            <button class="conversation-btn" (click)="abrirConversa(s)">Ver conversa com a IA</button>
-          }
-
-          @if (s.status === 'aceita') {
-            <span class="status-pill info">Em rota</span>
-            <button class="btn btn-primary small" (click)="irParaConfirmacao(s)">Confirmar recebimento</button>
-            <button class="conversation-btn" (click)="abrirConversa(s)">Ver conversa com a IA</button>
-          }
-
-          @if (s.status === 'concluida') {
-            <span class="status-pill good">Concluída</span>
-          }
-
-          @if (s.status === 'recusada') {
-            <span class="status-pill bad">Recusada</span>
-          }
-        </div>
-
-      </article>
-    }
-
-  </section>
-
-
-  <!-- DIREITA -->
-  <aside class="right-column">
-
-    <!-- RESÍDUOS -->
-    <div class="side-card">
-
-      <div class="side-card-header">
-        <h3>Resíduos que aceitamos</h3>
-        <button routerLink="/cooperativa/residuos">editar</button>
-      </div>
-
-      <p class="empty-hint">Nenhum tipo de resíduo configurado ainda.</p>
-
-    </div>
-
-
-    <!-- ÁREA DE COBERTURA -->
-    <div class="side-card coverage-card">
-
-      <div class="side-card-header">
-        <h3>Área de cobertura</h3>
-        <button routerLink="/cooperativa/area-cobertura">editar</button>
-      </div>
-
-      <p class="empty-hint">Área de cobertura ainda não definida.</p>
-
-    </div>
-
-  </aside>
-
+  <button class="tab" [class.active]="abaAtiva() === 'recusada'" (click)="setAba('recusada')">
+    Recusadas ({{ recusadas().length }})
+  </button>
 </div>
 
 
-<!-- MODAL CONVERSA COM A IA -->
-@if (conversaAberta(); as s) {
-  <div class="modal-overlay" (click)="fecharConversa()">
-    <div class="modal-card" (click)="$event.stopPropagation()">
-      <button class="modal-close" (click)="fecharConversa()">
-        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
-      </button>
+<!-- LISTA -->
+<section class="requests-section">
 
-      <h2>Conversa com a IA · #{{ s.numero }}</h2>
-      <p class="modal-description">{{ s.solicitante }} · {{ s.titulo }}</p>
+  @if (listaAtiva().length === 0) {
+    <div class="side-card empty-state">
+      <p>Nenhuma solicitação nesta aba no momento.</p>
+    </div>
+  }
 
-      <div class="chat-thread">
-        @for (m of conversaDe(s); track $index) {
-          <div class="chat-bubble" [class.ia]="m.autor === 'ia'">
-            <span class="chat-author">{{ m.autor === 'ia' ? 'IA do Re-cicle' : s.solicitante }}</span>
-            {{ m.texto }}
+  @for (s of listaAtiva(); track s.id) {
+    <article class="request-card">
+
+      <div class="request-top">
+        <div class="request-title-area">
+          <div class="title-line">
+            <h2>{{ s.titulo }}</h2>
+            @if (etiquetaDe(s); as etiqueta) {
+              <span class="etiqueta" [class]="etiqueta.tom">{{ etiqueta.texto }}</span>
+            }
+          </div>
+          <p class="request-description">#{{ s.numero }} · {{ s.categoria }} · ≈ {{ s.pesoEstimadoKg }} kg</p>
+        </div>
+
+        <div class="request-price">
+          <strong>{{ formatarPreco(s.preco) }}</strong>
+          <span>pago na retirada</span>
+        </div>
+      </div>
+
+      <div class="request-info">
+        <div>
+          <span>Solicitante</span>
+          <strong>{{ s.solicitante }}</strong>
+        </div>
+
+        <div>
+          <span>Local</span>
+          <strong>{{ s.bairro }} · {{ formatarDistancia(s.distanciaKm) }}</strong>
+        </div>
+
+        <div>
+          <span>{{ rotuloJanela(s) }}</span>
+          <strong>{{ valorJanela(s) }}</strong>
+        </div>
+
+        @if (destaqueDe(s); as destaque) {
+          <div>
+            <span>{{ destaque.rotulo }}</span>
+            <strong [class]="destaque.tom">{{ destaque.valor }}</strong>
           </div>
         }
       </div>
 
-      <div class="modal-actions">
-        <button class="btn btn-outline" (click)="fecharConversa()">Fechar</button>
+      <div class="request-actions">
+        @switch (s.status) {
+          @case ('pendente') {
+            @if (!motivoForaDoEscopo(s)) {
+              <button class="btn btn-primary btn-sm" (click)="abrirAceite(s)">Aceitar coleta</button>
+            }
+            <button class="btn btn-outline btn-sm" (click)="abrirRecusa(s)">Recusar</button>
+          }
+
+          @case ('aceita') {
+            <button class="btn btn-primary btn-sm" (click)="irParaConfirmacao(s)">Confirmar recebimento</button>
+            <button class="btn btn-outline btn-sm" (click)="desfazerAceite(s)">Desfazer aceite</button>
+          }
+
+          @case ('concluida') {
+            <span class="status-pill good">Concluída</span>
+          }
+
+          @case ('recusada') {
+            <span class="status-pill bad">Recusada</span>
+          }
+        }
+
+        <a class="link-ia" [routerLink]="['/cooperativa/solicitacoes', s.id, 'conversa']">Ver conversa com a IA</a>
+      </div>
+
+    </article>
+  }
+
+</section>
+
+
+<!-- MODAL ACEITAR A COLETA -->
+@if (solicitacaoParaAceitar(); as s) {
+  <div class="modal-overlay" (click)="fecharAceite()">
+    <div class="modal-card wide" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="fecharAceite()">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
+
+      <h2>Aceitar a coleta #{{ s.numero }}</h2>
+      <p class="modal-description">
+        {{ s.titulo }} · {{ s.categoria }} · ≈ {{ s.pesoEstimadoKg }} kg · {{ formatarPreco(s.preco) }}
+      </p>
+
+      <div class="dados-do-pedido">
+        <div>
+          <span>Solicitante</span>
+          <strong>{{ s.solicitante }}</strong>
+        </div>
+        <div>
+          <span>Endereço</span>
+          <strong>{{ s.endereco }} — {{ s.bairro }} · {{ formatarDistancia(s.distanciaKm) }}</strong>
+        </div>
+      </div>
+
+      <span class="section-label">Confirme a data</span>
+      <div class="opcoes-grid">
+        @for (dia of diasDaAgenda(); track dia.iso) {
+          <button
+            type="button"
+            class="opcao"
+            [class.selected]="!escolhendoOutraData() && dataAgendadaAceite() === dia.iso"
+            [disabled]="dia.lotado"
+            (click)="selecionarDia(dia)"
+          >
+            <strong>{{ dia.rotulo }}</strong>
+            <small>{{ dia.total > 0 ? (dia.lotado ? 'agenda cheia' : dia.usadas + ' de ' + dia.total + ' vagas') : 'sem teto definido' }}</small>
+          </button>
+        }
+
+        <button type="button" class="opcao" [class.selected]="escolhendoOutraData()" (click)="abrirOutraData()">
+          <strong>Outra data</strong>
+          <small>escolher no calendário</small>
+        </button>
+      </div>
+
+      @if (escolhendoOutraData()) {
+        <div class="field">
+          <label for="aceite-data">Data da coleta</label>
+          <input
+            id="aceite-data"
+            type="date"
+            [min]="hoje"
+            [value]="dataAgendadaAceite()"
+            (input)="dataAgendadaAceite.set($any($event.target).value)"
+          />
+        </div>
+      }
+
+      <span class="section-label">Período combinado</span>
+      <div class="chip-list" style="margin-bottom: 20px;">
+        @for (periodo of periodos; track periodo) {
+          <button
+            type="button"
+            class="chip"
+            [class.on]="janelaConfirmadaAceite() === periodo"
+            (click)="janelaConfirmadaAceite.set(periodo)"
+          >
+            {{ periodo }}
+          </button>
+        }
+      </div>
+
+      <span class="section-label">Quem vai buscar</span>
+      @if (equipeDisponivel().length === 0) {
+        <p class="empty-hint" style="text-align: left; padding: 0 0 16px;">
+          Nenhuma pessoa cadastrada ainda — adicione em "Equipe e veículos" para atribuir a coleta.
+        </p>
+      } @else {
+        <div class="opcoes-grid">
+          @for (m of equipeDisponivel(); track m.id) {
+            <button
+              type="button"
+              class="opcao"
+              [class.selected]="equipeIdAceite() === m.id"
+              (click)="equipeIdAceite.set(m.id)"
+            >
+              <strong>{{ m.nome }}</strong>
+            </button>
+          }
+        </div>
+      }
+
+      @if (veiculosDisponiveis().length > 0) {
+        <span class="section-label">Veículo</span>
+        <div class="opcoes-grid">
+          @for (v of veiculosDisponiveis(); track v.id) {
+            <button
+              type="button"
+              class="opcao"
+              [class.selected]="veiculoIdAceite() === v.id"
+              (click)="veiculoIdAceite.set(v.id)"
+            >
+              <strong>{{ v.nome }}</strong>
+              <small>{{ v.identificacao }} · {{ v.capacidadeKg }} kg</small>
+            </button>
+          }
+        </div>
+      }
+
+      <div class="nota-verde">{{ resumoDoAceite() }}</div>
+
+      <div class="modal-actions com-link">
+        <button class="btn btn-primary" [disabled]="!dataAgendadaAceite()" (click)="confirmarAceite()">
+          Confirmar aceite
+        </button>
+        <button class="btn btn-outline" (click)="fecharAceite()">Voltar</button>
+        <a class="link-ia" [routerLink]="['/cooperativa/solicitacoes', s.id, 'conversa']">Ver conversa com a IA</a>
       </div>
     </div>
   </div>
@@ -270,7 +258,7 @@
             />
             <span>
               <strong>{{ motivo.label }}</strong>
-              <small>{{ motivo.ajuda }}</small>
+              <small>{{ ajudaMotivo(motivo) }}</small>
             </span>
           </label>
         }

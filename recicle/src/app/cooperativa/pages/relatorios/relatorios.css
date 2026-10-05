@@ -2,10 +2,6 @@
   align-items: center;
 }
 
-.tabs.no-margin {
-  margin-bottom: 0;
-}
-
 .relatorios-main {
   display: flex;
   flex-direction: column;
@@ -46,11 +42,11 @@
   width: 100%;
   max-width: 34px;
   border-radius: 6px 6px 0 0;
-  background: #d9f3e4;
+  background: var(--rc-sucesso-bg);
 }
 
 .bar.destaque {
-  background: #10a957;
+  background: var(--rc-verde-600);
 }
 
 .bar-label {
@@ -71,49 +67,6 @@
 
 
 /* =========================
-   BAIRROS (barras horizontais)
-========================= */
-
-.bairro-bar-list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.bairro-bar-top {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 6px;
-}
-
-.bairro-bar-top span {
-  color: #61736d;
-  font-size: 12.5px;
-}
-
-.bairro-bar-top strong {
-  color: #122f27;
-  font-size: 12.5px;
-  font-weight: 700;
-}
-
-.bairro-bar-track {
-  height: 6px;
-  border-radius: 20px;
-  background: #eceae2;
-  overflow: hidden;
-}
-
-.bairro-bar-fill {
-  height: 100%;
-  border-radius: 20px;
-  background: #10a957;
-}
-
-
-/* =========================
    RESPONSIVIDADE
 ========================= */
 
@@ -129,4 +82,71 @@
   .bar-value {
     display: none;
   }
+}
+
+/* =========================
+   SELETOR DE MÊS
+========================= */
+
+.seletor-mes {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 19px;
+  border: 1px solid #d9d8d0;
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--rc-texto);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.seletor-mes:hover {
+  background: #f8f8f5;
+}
+
+/* O input nativo cobre o botão: o clique abre o calendário do navegador. */
+.seletor-mes input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.variacao {
+  color: #61736d;
+}
+
+.variacao.positiva {
+  color: var(--rc-verde-600);
+  font-weight: 700;
+}
+
+.bar.em-curso {
+  background: var(--rc-sucesso-bg);
+  border: 1.5px dashed #9fc9b3;
+}
+
+.mes-lista {
+  display: flex;
+  flex-direction: column;
+}
+
+.mes-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0efe8;
+  color: #61736d;
+  font-size: 13px;
+}
+
+.mes-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
 }
