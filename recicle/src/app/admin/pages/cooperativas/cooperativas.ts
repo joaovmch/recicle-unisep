@@ -216,6 +216,23 @@ export class Cooperativas {
           lista.map(d => (d.status === 'em_analise' ? { ...d, status: 'validado' } : d))
         );
       }
+    } else if (cooperativa.statusCadastro === 'aprovado') {
+      // Reabrir um cadastro que já tinha sido aprovado desfaz essa validação em lote: sem
+      // isso, a cooperativa perdia o acesso ao painel mas a tela de Documentos (a única que
+      // continua liberada) seguia mostrando a licença como "Validada", como se nada tivesse
+      // mudado. Documento reprovado individualmente mantém o motivo — só o que foi validado
+      // em lote volta a "em análise".
+      await this.client
+        .from('documentos')
+        .update({ status: 'em_analise' })
+        .eq('cooperativa_id', cooperativa.id)
+        .eq('status', 'validado');
+
+      if (this.detalheAberto()?.id === cooperativa.id) {
+        this.documentosDetalhe.update(lista =>
+          lista.map(d => (d.status === 'validado' ? { ...d, status: 'em_analise' } : d))
+        );
+      }
     }
 
     this.cooperativas.update(lista =>

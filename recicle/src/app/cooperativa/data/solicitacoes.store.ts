@@ -230,7 +230,7 @@ export class SolicitacoesStore {
       })
       .eq('id', id)
       .eq('status', 'aceita');
-    if (error) return { erro: 'Não foi possível desfazer o aceite.' };
+    if (error) return { erro: mensagemDoBanco(error, 'Não foi possível desfazer o aceite.') };
 
     this.atualizarLocal(id, {
       status: 'pendente',
