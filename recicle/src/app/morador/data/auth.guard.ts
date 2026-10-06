@@ -23,7 +23,12 @@ export const moradorAuthGuard: CanActivateChildFn = async (_route, state) => {
   const rotaPublica = ROTAS_PUBLICAS.some(rota => state.url.startsWith(rota));
 
   const sessao = await auth.sessaoAtual();
-  if (!sessao) return rotaPublica ? true : router.createUrlTree(['/entrar']);
+  // `aba: 'entrar'` porque /entrar abre na aba "Criar conta" por padrão: sem isso, quem só
+  // teve a sessão expirada era largado no formulário de cadastro, parecendo que a conta
+  // tinha sumido. Quem precisa mesmo criar conta é tratado abaixo, com ?completar=morador.
+  if (!sessao) {
+    return rotaPublica ? true : router.createUrlTree(['/entrar'], { queryParams: { aba: 'entrar' } });
+  }
 
   const morador = moradorService.morador() ?? (await moradorService.carregar());
   if (!morador) {

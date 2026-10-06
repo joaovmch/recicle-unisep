@@ -4,6 +4,7 @@ import { AuthService } from '../../../shared/data/auth.service';
 import { CooperativaService } from '../../data/cooperativa.service';
 import { EMAIL_RE } from '../../../shared/util/validators';
 import { ToastService } from '../../../shared/ui/toast.service';
+import { definirContinuarConectado } from '../../../supabase.service';
 
 const DESTAQUES = [
   { texto: 'Só pedidos do que vocês aceitam', icone: 'chat' },
@@ -48,6 +49,10 @@ export class Entrar {
     }
 
     this.entrando.set(true);
+
+    // Antes do login: é essa preferência que decide se a sessão vai para o localStorage
+    // (sobrevive a fechar o navegador) ou para o sessionStorage (morre com a aba).
+    definirContinuarConectado(this.continuarConectado());
 
     const erro = await this.auth.entrar(this.email(), this.senha());
 

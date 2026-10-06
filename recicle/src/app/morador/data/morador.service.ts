@@ -89,7 +89,14 @@ export class MoradorService {
       return null;
     }
 
-    const { data } = await this.client.from('moradores').select('*').eq('user_id', userId).maybeSingle();
+    const { data, error } = await this.client.from('moradores').select('*').eq('user_id', userId).maybeSingle();
+
+    // Consulta que falhou (rede, token expirando, erro do banco) não é "esse usuário não
+    // tem perfil": o guard lê esse retorno e manda quem vier nulo para a tela de criar
+    // conta. Mantendo o perfil que já estava em memória, uma oscilação no meio da sessão
+    // não expulsa mais ninguém — só um `data` nulo SEM erro significa perfil inexistente.
+    if (error) return this._morador();
+
     const morador = data ? paraMorador(data) : null;
     this._morador.set(morador);
 

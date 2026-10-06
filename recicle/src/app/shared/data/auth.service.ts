@@ -51,9 +51,20 @@ export class AuthService {
     for (const limpar of this.aoSair) limpar();
   }
 
+  /**
+   * Uma falha de rede no meio da renovação do token faz getSession() devolver
+   * `session: null` junto de um erro — indistinguível de "não tem ninguém logado" para
+   * quem só olha `data.session`. Como quem chama isso são os guards, essa confusão
+   * derrubava a pessoa para a tela de entrada a cada oscilação de rede. Só tratamos como
+   * deslogado quando veio sem erro; com erro, tenta de novo antes de desistir.
+   */
   async sessaoAtual(): Promise<Session | null> {
-    const { data } = await this.client.auth.getSession();
-    return data.session;
+    const { data, error } = await this.client.auth.getSession();
+    if (data.session || !error) return data.session;
+
+    await new Promise(resolve => setTimeout(resolve, 600));
+    const { data: segundaTentativa } = await this.client.auth.getSession();
+    return segundaTentativa.session;
   }
 
   async enviarLinkRecuperacao(email: string): Promise<string | null> {

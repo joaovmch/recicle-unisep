@@ -5,6 +5,7 @@ import { MoradorService } from '../../morador/data/morador.service';
 import { CooperativaService } from '../../cooperativa/data/cooperativa.service';
 import { ToastService } from '../../shared/ui/toast.service';
 import { EMAIL_RE, SENHA_MIN_CARACTERES } from '../../shared/util/validators';
+import { definirContinuarConectado } from '../../supabase.service';
 
 type Aba = 'criar' | 'entrar';
 type Perfil = 'morador' | 'cooperativa';
@@ -136,6 +137,10 @@ export class Entrar {
 
     this.processando.set(true);
     this.erro.set(null);
+
+    // Antes do login: é essa preferência que decide se a sessão vai para o localStorage
+    // (sobrevive a fechar o navegador) ou para o sessionStorage (morre com a aba).
+    definirContinuarConectado(this.continuarConectado());
 
     const erroLogin = await this.auth.entrar(this.email(), this.senha());
     if (erroLogin) {

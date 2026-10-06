@@ -203,7 +203,7 @@ export class CooperativaService {
         };
       }
 
-      const linhaExistente = await this.buscarLinha(signInData.user.id);
+      const { row: linhaExistente } = await this.buscarLinha(signInData.user.id);
       if (linhaExistente) {
         return {
           erro: 'Já existe um cadastro enviado com esse e-mail. Entre pelo painel para acompanhar.',
@@ -248,7 +248,12 @@ export class CooperativaService {
       return null;
     }
 
-    let row = await this.buscarLinha(userId);
+    const busca = await this.buscarLinha(userId);
+    // Consulta que falhou mantém o que já estava carregado: só um retorno limpo e vazio
+    // significa "essa conta ainda não tem cooperativa" (e aí o guard manda pro cadastro).
+    if (busca.falhou) return this._cooperativa();
+
+    let row = busca.row;
 
     if (!row) {
       const pendente = this.lerPendente();
@@ -256,7 +261,7 @@ export class CooperativaService {
         const erro = await this.inserirLinha(userId, pendente.dados);
         if (!erro) {
           this.limparPendente();
-          row = await this.buscarLinha(userId);
+          row = (await this.buscarLinha(userId)).row;
         }
         // Se a inserção falhar, mantemos o rascunho salvo para tentar de novo no
         // próximo login — o e-mail já está confirmado, então signUp() não pode
@@ -358,9 +363,15 @@ export class CooperativaService {
     this._cooperativa.set(null);
   }
 
-  private async buscarLinha(userId: string): Promise<any | null> {
-    const { data } = await this.client.from('cooperativas').select('*').eq('user_id', userId).maybeSingle();
-    return data ?? null;
+  /**
+   * `falhou` separa "a consulta não deu certo" de "esse usuário não tem cooperativa". Quem
+   * chama isso é o guard, e ele manda para o wizard de cadastro quem vier sem linha — sem
+   * essa distinção, qualquer erro de rede jogava uma cooperativa já cadastrada de volta no
+   * cadastro no meio da sessão.
+   */
+  private async buscarLinha(userId: string): Promise<{ row: any | null; falhou: boolean }> {
+    const { data, error } = await this.client.from('cooperativas').select('*').eq('user_id', userId).maybeSingle();
+    return { row: data ?? null, falhou: !!error };
   }
 
   private async inserirLinha(
