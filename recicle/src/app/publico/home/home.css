@@ -1,66 +1,3 @@
-.publico-shell {
-  min-height: 100vh;
-  background: var(--rc-fundo);
-}
-
-
-/* =========================
-   TOPBAR
-========================= */
-
-.publico-topbar {
-  display: flex;
-  align-items: center;
-  gap: 34px;
-  padding: 14px 40px;
-  background: var(--rc-verde-900);
-}
-
-.publico-topbar .auth-brand {
-  text-decoration: none;
-}
-
-.publico-topbar .auth-brand span:last-child {
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 750;
-}
-
-.publico-nav {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  flex: 1;
-}
-
-.publico-nav a {
-  color: #cfe3da;
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-}
-
-.publico-nav a:hover {
-  color: #ffffff;
-}
-
-.publico-acoes {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-shrink: 0;
-}
-
-.publico-acoes .link-btn {
-  color: #cfe3da;
-  text-decoration: none;
-}
-
-.publico-acoes .link-btn:hover {
-  color: #ffffff;
-}
-
-
 /* =========================
    HERO
 ========================= */
@@ -112,6 +49,21 @@
   display: inline-flex;
   align-items: center;
   text-decoration: none;
+}
+
+.hero-saiba-mais {
+  margin: 14px 0 0;
+}
+
+.hero-saiba-mais a {
+  color: var(--rc-verde-600);
+  font-size: 13.5px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.hero-saiba-mais a:hover {
+  text-decoration: underline;
 }
 
 .hero-numeros {
@@ -234,67 +186,6 @@
 
 
 /* =========================
-   SEÇÕES
-========================= */
-
-.secao {
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: 16px 40px 56px;
-}
-
-.secao h2 {
-  margin: 0;
-  color: var(--rc-texto);
-  font-size: 28px;
-  font-weight: 750;
-  letter-spacing: -0.8px;
-}
-
-.secao-lead {
-  margin: 8px 0 28px;
-  color: #8b9994;
-  font-size: 14px;
-}
-
-.passos-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.passo-card {
-  padding: 20px;
-  background: #ffffff;
-  border: 1px solid var(--rc-borda);
-  border-radius: 14px;
-}
-
-.passo-numero {
-  display: block;
-  margin-bottom: 10px;
-  color: var(--rc-verde-600);
-  font-size: 12px;
-  font-weight: 750;
-  letter-spacing: 1px;
-}
-
-.passo-card strong {
-  display: block;
-  color: var(--rc-texto);
-  font-size: 15px;
-  font-weight: 750;
-}
-
-.passo-card p {
-  margin: 7px 0 0;
-  color: #61736d;
-  font-size: 12.5px;
-  line-height: 1.55;
-}
-
-
-/* =========================
    CTA COOPERATIVAS
 ========================= */
 
@@ -330,39 +221,6 @@
 
 
 /* =========================
-   RODAPÉ
-========================= */
-
-.publico-rodape {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: 24px 40px 40px;
-  border-top: 1px solid #e3e1d8;
-  color: #8b9994;
-  font-size: 12.5px;
-  flex-wrap: wrap;
-}
-
-.publico-rodape nav {
-  display: flex;
-  gap: 20px;
-}
-
-.publico-rodape a {
-  color: #61736d;
-  text-decoration: none;
-}
-
-.publico-rodape a:hover {
-  color: var(--rc-texto);
-}
-
-
-/* =========================
    RESPONSIVIDADE
 ========================= */
 
@@ -377,34 +235,9 @@
     font-size: 38px;
   }
 
-  .passos-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .secao,
-  .publico-rodape {
-    padding-left: 24px;
-    padding-right: 24px;
-  }
 }
 
 @media (max-width: 720px) {
-  .publico-topbar {
-    flex-wrap: wrap;
-    gap: 14px;
-    padding: 12px 18px;
-  }
-
-  .publico-nav {
-    order: 3;
-    width: 100%;
-    overflow-x: auto;
-  }
-
-  .passos-grid {
-    grid-template-columns: 1fr;
-  }
-
   .cta-cooperativas {
     margin: 0 18px 40px;
     padding: 24px;

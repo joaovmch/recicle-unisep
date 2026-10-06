@@ -2,16 +2,22 @@
 
   <!-- TOPBAR -->
   <header class="morador-topbar">
-    <a class="topbar-brand" routerLink="/painel">
+    <a class="topbar-brand" [routerLink]="morador() ? '/painel' : '/'">
       <span class="brand-icon"><img src="/logo.png" alt="Re-cicle" /></span>
       <span class="brand-name">Re-cicle</span>
     </a>
 
+    <!-- Visitante sem conta só enxerga o Ecopontos: as demais abas exigem login e o guard
+         as bloqueia de qualquer forma, então mostrá-las só levaria a um redirect seco. -->
     <nav class="topbar-nav">
-      <a routerLink="/chat" routerLinkActive="active">Chat</a>
+      @if (morador()) {
+        <a routerLink="/chat" routerLinkActive="active">Chat</a>
+      }
       <a routerLink="/ecopontos" routerLinkActive="active">Ecopontos</a>
-      <a routerLink="/solicitacoes" routerLinkActive="active">Minhas solicitações</a>
-      <a routerLink="/painel" routerLinkActive="active">Painel</a>
+      @if (morador()) {
+        <a routerLink="/solicitacoes" routerLinkActive="active">Minhas solicitações</a>
+        <a routerLink="/painel" routerLinkActive="active">Painel</a>
+      }
     </nav>
 
     <div class="topbar-direita">

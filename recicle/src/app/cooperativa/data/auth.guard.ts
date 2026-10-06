@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import { CanActivateChildFn, Router } from '@angular/router';
 import { AuthService } from '../../shared/data/auth.service';
 import { CooperativaService } from './cooperativa.service';
 
@@ -10,7 +10,7 @@ import { CooperativaService } from './cooperativa.service';
  */
 const ROTAS_LIBERADAS_PRE_APROVACAO = ['/cooperativa/documentos'];
 
-export const cooperativaAuthGuard: CanActivateFn = async (_route, state) => {
+export const cooperativaAuthGuard: CanActivateChildFn = async (_route, state) => {
   const auth = inject(AuthService);
   const cooperativaService = inject(CooperativaService);
   const router = inject(Router);

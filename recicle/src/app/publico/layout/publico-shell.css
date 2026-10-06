@@ -1,0 +1,125 @@
+.publico-shell {
+  min-height: 100vh;
+  background: var(--rc-fundo);
+}
+
+
+/* =========================
+   TOPBAR
+========================= */
+
+.publico-topbar {
+  display: flex;
+  align-items: center;
+  gap: 34px;
+  padding: 14px 40px;
+  background: var(--rc-verde-900);
+}
+
+.publico-topbar .auth-brand {
+  text-decoration: none;
+}
+
+.publico-topbar .auth-brand span:last-child {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.publico-nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex: 1;
+}
+
+.publico-nav a {
+  color: #cfe3da;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.publico-nav a:hover {
+  color: #ffffff;
+}
+
+.publico-nav a.active {
+  color: #4fdc8b;
+  font-weight: 700;
+}
+
+.publico-acoes {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.publico-acoes .link-btn {
+  color: #cfe3da;
+  text-decoration: none;
+}
+
+.publico-acoes .link-btn:hover {
+  color: #ffffff;
+}
+
+
+/* =========================
+   RODAPÉ
+========================= */
+
+.publico-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 24px 40px 40px;
+  border-top: 1px solid #e3e1d8;
+  color: #8b9994;
+  font-size: 12.5px;
+  flex-wrap: wrap;
+}
+
+.publico-rodape nav {
+  display: flex;
+  gap: 20px;
+}
+
+.publico-rodape a {
+  color: #61736d;
+  text-decoration: none;
+}
+
+.publico-rodape a:hover {
+  color: var(--rc-texto);
+}
+
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+@media (max-width: 1000px) {
+  .publico-rodape {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+@media (max-width: 720px) {
+  .publico-topbar {
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 12px 18px;
+  }
+
+  .publico-nav {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+  }
+}

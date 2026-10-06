@@ -14,14 +14,20 @@
       </div>
     </div>
 
+    <!-- Antes da aprovação só documentos abre (o guard manda o resto pra tela de análise),
+         então o menu mostra só o que a cooperativa consegue de fato acessar. -->
     <nav class="sidebar-menu">
-      <a class="menu-item" routerLink="dashboard" routerLinkActive="active">Visão geral</a>
-      <a class="menu-item" routerLink="solicitacoes" routerLinkActive="active">Solicitações</a>
-      <a class="menu-item" routerLink="residuos" routerLinkActive="active">Tipos de resíduo</a>
-      <a class="menu-item" routerLink="area-cobertura" routerLinkActive="active">Área de cobertura</a>
-      <a class="menu-item" routerLink="equipe" routerLinkActive="active">Equipe e veículos</a>
+      @if (aprovada()) {
+        <a class="menu-item" routerLink="dashboard" routerLinkActive="active">Visão geral</a>
+        <a class="menu-item" routerLink="solicitacoes" routerLinkActive="active">Solicitações</a>
+        <a class="menu-item" routerLink="residuos" routerLinkActive="active">Tipos de resíduo</a>
+        <a class="menu-item" routerLink="area-cobertura" routerLinkActive="active">Área de cobertura</a>
+        <a class="menu-item" routerLink="equipe" routerLinkActive="active">Equipe e veículos</a>
+      }
       <a class="menu-item" routerLink="documentos" routerLinkActive="active">Documentos e licença</a>
-      <a class="menu-item" routerLink="relatorios" routerLinkActive="active">Relatórios</a>
+      @if (aprovada()) {
+        <a class="menu-item" routerLink="relatorios" routerLinkActive="active">Relatórios</a>
+      }
     </nav>
 
     <div class="sidebar-rodape">

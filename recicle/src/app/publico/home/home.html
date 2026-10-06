@@ -1,24 +1,4 @@
-<div class="publico-shell">
-
-  <!-- TOPO -->
-  <header class="publico-topbar">
-    <a class="auth-brand" routerLink="/">
-      <span class="brand-icon"><img src="/logo.png" alt="Re-cicle" /></span>
-      <span>Re-cicle</span>
-    </a>
-
-    <nav class="publico-nav">
-      <a href="#como-funciona">Como funciona</a>
-      <a routerLink="/ecopontos">Ecopontos</a>
-      <a routerLink="/cooperativa/cadastro">Para cooperativas</a>
-    </nav>
-
-    <div class="publico-acoes">
-      <a class="link-btn" routerLink="/entrar" [queryParams]="{ aba: 'entrar' }">Entrar</a>
-      <button class="btn btn-primary small" routerLink="/entrar">Criar conta</button>
-    </div>
-  </header>
-
+<app-publico-shell>
 
   <!-- HERO -->
   <section class="hero">
@@ -36,6 +16,10 @@
         <button class="btn btn-primary" (click)="comecar()">Conversar com a IA</button>
         <a class="btn btn-outline" routerLink="/ecopontos">Ver ecopontos próximos</a>
       </div>
+
+      <p class="hero-saiba-mais">
+        <a routerLink="/como-funciona">Como funciona, passo a passo →</a>
+      </p>
 
       <div class="hero-numeros">
         <div>
@@ -81,23 +65,6 @@
   </section>
 
 
-  <!-- COMO FUNCIONA -->
-  <section class="secao" id="como-funciona">
-    <h2>Como funciona</h2>
-    <p class="secao-lead">Do "não sei onde jogar" ao descarte registrado — sem sair da conversa.</p>
-
-    <div class="passos-grid">
-      @for (p of passos; track p.numero) {
-        <article class="passo-card">
-          <span class="passo-numero">{{ p.numero }}</span>
-          <strong>{{ p.titulo }}</strong>
-          <p>{{ p.descricao }}</p>
-        </article>
-      }
-    </div>
-  </section>
-
-
   <!-- CTA COOPERATIVAS -->
   <section class="cta-cooperativas">
     <div>
@@ -112,14 +79,4 @@
     </button>
   </section>
 
-
-  <!-- RODAPÉ -->
-  <footer class="publico-rodape">
-    <span>Re-cicle · projeto acadêmico de extensão</span>
-    <nav>
-      <a routerLink="/entrar">Entrar</a>
-      <a routerLink="/cooperativa/entrar">Painel do parceiro</a>
-    </nav>
-  </footer>
-
-</div>
+</app-publico-shell>

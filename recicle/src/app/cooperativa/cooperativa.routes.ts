@@ -28,7 +28,11 @@ export const COOPERATIVA_ROUTES: Routes = [
   },
   {
     path: '',
-    canActivate: [cooperativaAuthGuard],
+    // canActivateChild (e não canActivate): o layout fica ativo entre as telas, então um
+    // canActivate no pai só rodaria na primeira entrada — uma cooperativa ainda em análise
+    // entrava pelo /cooperativa/documentos (a exceção pré-aprovação) e de lá alcançava
+    // dashboard, relatórios etc. pelo menu lateral sem passar pelo guard de novo.
+    canActivateChild: [cooperativaAuthGuard],
     loadComponent: () =>
       import('./layout/cooperativa-layout').then(m => m.CooperativaLayout),
     children: [

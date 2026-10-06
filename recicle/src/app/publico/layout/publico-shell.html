@@ -1,0 +1,35 @@
+<div class="publico-shell">
+
+  <!-- TOPO -->
+  <header class="publico-topbar">
+    <a class="auth-brand" routerLink="/">
+      <span class="brand-icon"><img src="/logo.png" alt="Re-cicle" /></span>
+      <span>Re-cicle</span>
+    </a>
+
+    <nav class="publico-nav">
+      <a routerLink="/como-funciona" routerLinkActive="active">Como funciona</a>
+      <a routerLink="/ecopontos" routerLinkActive="active">Ecopontos</a>
+      <a routerLink="/cooperativa/cadastro" routerLinkActive="active">Para cooperativas</a>
+    </nav>
+
+    <div class="publico-acoes">
+      <a class="link-btn" routerLink="/entrar" [queryParams]="{ aba: 'entrar' }">Entrar</a>
+      <button class="btn btn-primary small" routerLink="/entrar">Criar conta</button>
+    </div>
+  </header>
+
+
+  <ng-content />
+
+
+  <!-- RODAPÉ -->
+  <footer class="publico-rodape">
+    <span>Re-cicle · projeto acadêmico de extensão</span>
+    <nav>
+      <a routerLink="/entrar">Entrar</a>
+      <a routerLink="/cooperativa/entrar">Painel do parceiro</a>
+    </nav>
+  </footer>
+
+</div>

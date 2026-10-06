@@ -4,7 +4,10 @@ import { moradorAuthGuard } from './data/auth.guard';
 export const MORADOR_ROUTES: Routes = [
   {
     path: '',
-    canActivate: [moradorAuthGuard],
+    // canActivateChild (e não canActivate): o layout fica ativo entre as telas, então um
+    // canActivate no pai só rodaria na primeira entrada — quem chegasse pelo /ecopontos
+    // público navegaria para /chat, /painel etc. pelas abas sem passar pelo guard de novo.
+    canActivateChild: [moradorAuthGuard],
     loadComponent: () => import('./layout/morador-layout').then(m => m.MoradorLayout),
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'painel' },

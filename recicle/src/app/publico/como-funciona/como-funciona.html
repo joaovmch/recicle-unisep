@@ -1,0 +1,23 @@
+<app-publico-shell>
+
+  <section class="secao">
+    <h1>Como funciona</h1>
+    <p class="secao-lead">Do "não sei onde jogar" ao descarte registrado — sem sair da conversa.</p>
+
+    <div class="passos-grid">
+      @for (p of passos; track p.numero) {
+        <article class="passo-card">
+          <span class="passo-numero">{{ p.numero }}</span>
+          <strong>{{ p.titulo }}</strong>
+          <p>{{ p.descricao }}</p>
+        </article>
+      }
+    </div>
+
+    <div class="passos-acoes">
+      <button class="btn btn-primary" (click)="comecar()">Conversar com a IA</button>
+      <a class="btn btn-outline" routerLink="/ecopontos">Ver ecopontos próximos</a>
+    </div>
+  </section>
+
+</app-publico-shell>

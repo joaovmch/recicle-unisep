@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import { CanActivateChildFn, Router } from '@angular/router';
 import { AuthService } from '../../shared/data/auth.service';
 import { MoradorService } from './morador.service';
 
@@ -15,7 +15,7 @@ const ROTAS_PUBLICAS = ['/ecopontos'];
  * criada mas o perfil não chegou a ser gravado) — nesse caso volta para a criação de
  * conta em vez de deixar o painel abrir vazio.
  */
-export const moradorAuthGuard: CanActivateFn = async (_route, state) => {
+export const moradorAuthGuard: CanActivateChildFn = async (_route, state) => {
   const auth = inject(AuthService);
   const moradorService = inject(MoradorService);
   const router = inject(Router);

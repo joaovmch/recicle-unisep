@@ -24,6 +24,8 @@ export class CooperativaLayout {
 
   readonly cooperativa = this.cooperativaService.cooperativa;
 
+  readonly aprovada = computed(() => this.cooperativa()?.statusCadastro === 'aprovado');
+
   /**
    * Linha de baixo do card da sidebar. Quando a licença está cadastrada é ela que
    * aparece ("licença válida até 03/2027", como nas telas); sem licença preenchida

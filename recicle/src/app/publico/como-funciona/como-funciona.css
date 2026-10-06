@@ -1,0 +1,91 @@
+.secao {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 48px 40px 56px;
+}
+
+.secao h1 {
+  margin: 0;
+  color: var(--rc-texto);
+  font-size: 32px;
+  font-weight: 750;
+  letter-spacing: -0.8px;
+}
+
+.secao-lead {
+  margin: 8px 0 28px;
+  color: #8b9994;
+  font-size: 14px;
+}
+
+.passos-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.passo-card {
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid var(--rc-borda);
+  border-radius: 14px;
+}
+
+.passo-numero {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--rc-verde-600);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 1px;
+}
+
+.passo-card strong {
+  display: block;
+  color: var(--rc-texto);
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.passo-card p {
+  margin: 7px 0 0;
+  color: #61736d;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.passos-acoes {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+.passos-acoes .btn-outline {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+@media (max-width: 1000px) {
+  .secao {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .passos-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .passos-grid {
+    grid-template-columns: 1fr;
+  }
+}
