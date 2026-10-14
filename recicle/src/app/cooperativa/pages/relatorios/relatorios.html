@@ -30,14 +30,14 @@
     @if (variacaoMesAnterior()) {
       <span class="variacao" [class.positiva]="variacaoPositiva()">{{ variacaoMesAnterior() }}</span>
     } @else {
-      <span>sem mês anterior para comparar</span>
+      <span>Sem mês anterior para comparar</span>
     }
   </div>
 
   <div class="stat-card">
     <span class="stat-label">Coletas concluídas</span>
     <strong>{{ coletasConcluidas() }}</strong>
-    <span>{{ mediaPorColeta() || 'nenhuma coleta confirmada no mês' }}</span>
+    <span>{{ mediaPorColeta() || 'Nenhuma coleta confirmada no mês' }}</span>
   </div>
 
   <div class="stat-card">
@@ -49,7 +49,7 @@
   <div class="stat-card">
     <span class="stat-label">Recebido em coletas</span>
     <strong>{{ formatarPreco(receitaRecebida()) }}</strong>
-    <span>pago direto pelos solicitantes</span>
+    <span>Pago direto pelos solicitantes</span>
   </div>
 
 </section>

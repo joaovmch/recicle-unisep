@@ -36,7 +36,7 @@ const TIPOS_FIXOS: { tipo: TipoDocumentoDb; nome: string; metaVazia: string }[] 
   {
     tipo: 'comprovante_endereco',
     nome: NOME_TIPO_DOCUMENTO.comprovante_endereco,
-    metaVazia: 'opcional · ajuda quando a licença estiver perto de vencer',
+    metaVazia: 'Opcional · ajuda quando a licença estiver perto de vencer',
   },
 ];
 

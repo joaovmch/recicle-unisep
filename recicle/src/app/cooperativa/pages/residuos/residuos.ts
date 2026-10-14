@@ -14,10 +14,10 @@ const ORIENTACAO_AO_LIGAR: Record<string, string> = {
 };
 
 const DESCRICAO_CATEGORIA: Record<Categoria, string> = {
-  reciclavel_seco: 'reciclável seco · triagem no galpão',
-  volumoso: 'volumoso · precisa de espaço no veículo',
-  perigoso: 'logística reversa · armazenagem própria',
-  organico: 'orgânico · destino para compostagem',
+  reciclavel_seco: 'Reciclável seco · triagem no galpão',
+  volumoso: 'Volumoso · precisa de espaço no veículo',
+  perigoso: 'Logística reversa · armazenagem própria',
+  organico: 'Orgânico · destino para compostagem',
 };
 
 interface TipoResiduo {
@@ -79,12 +79,12 @@ export class Residuos {
    * quando está desligado, o motivo — é a informação que decide o liga/desliga.
    */
   descricaoDe(tipo: TipoResiduo): string {
-    if (tipo.bloqueado) return 'desligado · liberado quando a licença for validada';
+    if (tipo.bloqueado) return 'Desligado · liberado quando a licença for validada';
     if (!tipo.ligado) {
       const maisRecusado = this.tipoMaisRecusado();
-      if (maisRecusado?.id === tipo.id) return 'desligado · é o tipo que vocês mais recusam';
-      if (tipo.recusados90d > 0) return `desligado · ${tipo.recusados90d} pedidos recusados`;
-      return 'desligado';
+      if (maisRecusado?.id === tipo.id) return 'Desligado · é o tipo que vocês mais recusam';
+      if (tipo.recusados90d > 0) return `Desligado · ${tipo.recusados90d} pedidos recusados`;
+      return 'Desligado';
     }
     return DESCRICAO_CATEGORIA[tipo.categoria];
   }

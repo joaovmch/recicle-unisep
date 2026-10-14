@@ -71,7 +71,9 @@ function permissoesLegiveis(membro: { acessoPainel: boolean; podeConfirmar: bool
   if (membro.podeConfirmar) partes.push('confirma recebimento');
   if (partes.length === 0) partes.push('sem acesso ao painel');
   if (membro.coletas) partes.push(`${membro.coletas} coletas no mês`);
-  return partes.join(' · ');
+  // Maiúscula só no começo da linha montada: os pedaços depois do "·" seguem minúsculos.
+  const linha = partes.join(' · ');
+  return linha.charAt(0).toUpperCase() + linha.slice(1);
 }
 
 function gerarIniciais(nome: string): string {

@@ -22,9 +22,9 @@
           <span>Nível atual</span>
           <strong>{{ nivel().atual.nome }}</strong>
           @if (nivel().proximo; as proximo) {
-            <small>próximo: {{ proximo.nome }} · {{ proximo.minimo }} pts</small>
+            <small>Próximo: {{ proximo.nome }} · {{ proximo.minimo }} pts</small>
           } @else {
-            <small>nível máximo alcançado</small>
+            <small>Nível máximo alcançado</small>
           }
         </div>
       </div>
@@ -36,7 +36,7 @@
       <div class="saldo-progresso">
         <span>{{ saldo() }}{{ nivel().proximo ? ' de ' + nivel().proximo!.minimo : '' }}</span>
         @if (nivel().proximo) {
-          <span>faltam {{ nivel().faltam }} pontos</span>
+          <span>Faltam {{ nivel().faltam }} pontos</span>
         }
       </div>
     </div>

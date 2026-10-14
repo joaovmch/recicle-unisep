@@ -17,13 +17,13 @@
   <div class="stat-card" [class.stat-warning]="pendentes().length > 0">
     <span class="stat-label">Pendentes</span>
     <strong>{{ pendentes().length }}</strong>
-    <span>{{ esperaDaMaisAntiga() || 'nenhuma esperando resposta' }}</span>
+    <span>{{ esperaDaMaisAntiga() || 'Nenhuma esperando resposta' }}</span>
   </div>
 
   <div class="stat-card">
     <span class="stat-label">Coletas aceitas</span>
     <strong>{{ aceitasNaSemana().length }}</strong>
-    <span>na agenda desta semana</span>
+    <span>Na agenda desta semana</span>
   </div>
 
   <div class="stat-card">
@@ -36,10 +36,10 @@
     <span class="stat-label">Avaliação</span>
     @if (mediaAvaliacao(); as media) {
       <strong>{{ media.toFixed(1).replace('.', ',') }}</strong>
-      <span>em {{ totalAvaliacoes() }} coletas avaliadas</span>
+      <span>Em {{ totalAvaliacoes() }} coletas avaliadas</span>
     } @else {
       <strong>—</strong>
-      <span>ainda sem coletas avaliadas</span>
+      <span>Ainda sem coletas avaliadas</span>
     }
   </div>
 

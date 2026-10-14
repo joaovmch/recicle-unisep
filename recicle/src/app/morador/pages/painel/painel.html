@@ -18,9 +18,9 @@
     <span class="stat-rotulo">Pontos acumulados</span>
     <strong>{{ saldo() }}</strong>
     @if (nivel().proximo; as proximo) {
-      <span class="stat-apoio">faltam {{ nivel().faltam }} para o nível {{ proximo.nome }}</span>
+      <span class="stat-apoio">Faltam {{ nivel().faltam }} para o nível {{ proximo.nome }}</span>
     } @else {
-      <span class="stat-apoio">nível máximo: {{ nivel().atual.nome }}</span>
+      <span class="stat-apoio">Nível máximo: {{ nivel().atual.nome }}</span>
     }
   </div>
 
@@ -35,14 +35,14 @@
   <div class="stat-card">
     <span class="stat-rotulo">Desviado do aterro</span>
     <strong>{{ pesoDesviadoKg().toLocaleString('pt-BR') }} kg</strong>
-    <span class="stat-apoio">peso conferido nas triagens</span>
+    <span class="stat-apoio">Peso conferido nas triagens</span>
   </div>
 
   <div class="stat-card">
     <span class="stat-rotulo">Em andamento</span>
     <strong>{{ emAndamento().length }}</strong>
     <span class="stat-apoio">
-      {{ emAndamento().length === 0 ? 'nenhum pedido aberto' : 'acompanhe em Minhas solicitações' }}
+      {{ emAndamento().length === 0 ? 'Nenhum pedido aberto' : 'Acompanhe em Minhas solicitações' }}
     </span>
   </div>
 

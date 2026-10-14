@@ -11,7 +11,7 @@
       <h1>{{ d.titulo }}</h1>
       <p>
         {{ d.categoria }} · ≈ {{ d.pesoEstimadoKg }} kg ·
-        {{ d.destino === 'entrega_ecoponto' ? 'entrega própria' : 'coleta em casa' }}
+        {{ d.destino === 'entrega_ecoponto' ? 'Entrega própria' : 'Coleta em casa' }}
       </p>
     </div>
 
@@ -75,14 +75,14 @@
 
           <div>
             <span>Valor</span>
-            <strong>{{ d.destino === 'entrega_ecoponto' ? 'sem custo' : formatarPreco(d.preco) }}</strong>
+            <strong>{{ d.destino === 'entrega_ecoponto' ? 'Sem custo' : formatarPreco(d.preco) }}</strong>
           </div>
 
           <div>
             <span>Pontos</span>
             <strong>
               {{ d.pontosCreditados !== null ? '+' + d.pontosCreditados + ' creditados'
-                 : d.status === 'concluida' && d.confirmadoViaFoto ? 'em conferência pela equipe'
+                 : d.status === 'concluida' && d.confirmadoViaFoto ? 'Em conferência pela equipe'
                  : '+' + d.pontosPrevistos + ' previstos' }}
             </strong>
           </div>
@@ -118,7 +118,7 @@
             <div>
               <span>Pontos creditados</span>
               @if (d.pontosCreditados === null && d.confirmadoViaFoto) {
-                <strong>em conferência</strong>
+                <strong>Em conferência</strong>
               } @else {
                 <strong class="destaque-verde">+{{ d.pontosCreditados ?? 0 }}</strong>
               }

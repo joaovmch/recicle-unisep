@@ -79,15 +79,15 @@ export class Solicitacoes {
   }
 
   valorCobrado(d: Descarte): string {
-    if (d.status === 'cancelada') return 'não cobrado';
-    if (d.destino === 'entrega_ecoponto') return 'sem custo';
+    if (d.status === 'cancelada') return 'Não cobrado';
+    if (d.destino === 'entrega_ecoponto') return 'Sem custo';
     return formatarPreco(d.preco);
   }
 
   valorPontos(d: Descarte): string {
     if (d.pontosCreditados !== null) return `+${d.pontosCreditados}`;
     if (d.status === 'cancelada' || d.status === 'recusada') return '—';
-    if (d.status === 'concluida' && d.confirmadoViaFoto) return 'pontos em conferência';
+    if (d.status === 'concluida' && d.confirmadoViaFoto) return 'Pontos em conferência';
     return `+${d.pontosPrevistos} previstos`;
   }
 

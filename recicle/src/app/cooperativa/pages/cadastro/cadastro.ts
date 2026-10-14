@@ -74,15 +74,15 @@ const RESIDUOS_PERIGOSOS = ['Pilhas e baterias', 'Eletrônicos'];
 
 const PASSOS = [
   { titulo: 'Dados da cooperativa', subtitulo: 'CNPJ, contato e responsável' },
-  { titulo: 'Endereço e cobertura', subtitulo: 'onde vocês atuam' },
-  { titulo: 'Resíduos aceitos', subtitulo: 'o que a triagem recebe' },
-  { titulo: 'Licença e documentos', subtitulo: 'alvará ambiental' },
+  { titulo: 'Endereço e cobertura', subtitulo: 'Onde vocês atuam' },
+  { titulo: 'Resíduos aceitos', subtitulo: 'O que a triagem recebe' },
+  { titulo: 'Licença e documentos', subtitulo: 'Alvará ambiental' },
 ];
 
 const TIPOS_ORGANIZACAO: { valor: TipoOrganizacao; label: string; descricao: string }[] = [
-  { valor: 'cooperativa', label: 'Cooperativa', descricao: 'catadores cooperados' },
-  { valor: 'associacao', label: 'Associação', descricao: 'sem fins lucrativos' },
-  { valor: 'empresa', label: 'Empresa', descricao: 'transporte ou destinação' },
+  { valor: 'cooperativa', label: 'Cooperativa', descricao: 'Catadores cooperados' },
+  { valor: 'associacao', label: 'Associação', descricao: 'Sem fins lucrativos' },
+  { valor: 'empresa', label: 'Empresa', descricao: 'Transporte ou destinação' },
 ];
 
 const CTA_LABELS = ['Continuar para endereço', 'Continuar para resíduos', 'Continuar para licença'];

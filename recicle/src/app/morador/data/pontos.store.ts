@@ -44,10 +44,10 @@ export function nivelDe(pontos: number) {
 
 /** Tabela de pontuação mostrada em "Como os pontos são calculados". */
 export const REGRAS_PONTUACAO = [
-  { titulo: 'Entrega em ecoponto', valor: '5 pts/kg', detalhe: 'você leva o material' },
-  { titulo: 'Coleta em casa', valor: '3,75 pts/kg', detalhe: 'a cooperativa busca' },
-  { titulo: 'Óleo de cozinha', valor: '16 pts/L', detalhe: 'valor por litro entregue' },
-  { titulo: 'Bônus de separação', valor: '+25 pts', detalhe: 'quando o rejeito fica abaixo de 10%' },
+  { titulo: 'Entrega em ecoponto', valor: '5 pts/kg', detalhe: 'Você leva o material' },
+  { titulo: 'Coleta em casa', valor: '3,75 pts/kg', detalhe: 'A cooperativa busca' },
+  { titulo: 'Óleo de cozinha', valor: '16 pts/L', detalhe: 'Valor por litro entregue' },
+  { titulo: 'Bônus de separação', valor: '+25 pts', detalhe: 'Quando o rejeito fica abaixo de 10%' },
 ];
 
 function paraMovimento(row: any): MovimentoPontos {

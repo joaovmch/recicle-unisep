@@ -94,8 +94,8 @@ export class Dashboard {
     const antiga = this.pendenteMaisAntiga();
     if (!antiga) return '';
     const horas = Math.max(0, Math.round((Date.now() - new Date(antiga.criadoEm).getTime()) / 3_600_000));
-    if (horas < 1) return 'a mais antiga chegou agora';
-    return horas === 1 ? 'a mais antiga há 1h' : `a mais antiga há ${horas}h`;
+    if (horas < 1) return 'A mais antiga chegou agora';
+    return horas === 1 ? 'A mais antiga há 1h' : `A mais antiga há ${horas}h`;
   });
 
   /** Aceitas com data marcada entre segunda e domingo desta semana. */

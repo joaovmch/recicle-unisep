@@ -52,7 +52,7 @@
 
         <div class="request-price">
           <strong>{{ formatarPreco(s.preco) }}</strong>
-          <span>pago na retirada</span>
+          <span>Pago na retirada</span>
         </div>
       </div>
 
@@ -147,13 +147,13 @@
             (click)="selecionarDia(dia)"
           >
             <strong>{{ dia.rotulo }}</strong>
-            <small>{{ dia.total > 0 ? (dia.lotado ? 'agenda cheia' : dia.usadas + ' de ' + dia.total + ' vagas') : 'sem teto definido' }}</small>
+            <small>{{ dia.total > 0 ? (dia.lotado ? 'Agenda cheia' : dia.usadas + ' de ' + dia.total + ' vagas') : 'Sem teto definido' }}</small>
           </button>
         }
 
         <button type="button" class="opcao" [class.selected]="escolhendoOutraData()" (click)="abrirOutraData()">
           <strong>Outra data</strong>
-          <small>escolher no calendário</small>
+          <small>Escolher no calendário</small>
         </button>
       </div>
 

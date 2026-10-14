@@ -172,7 +172,7 @@ export class Solicitacoes {
    */
   motivoForaDoEscopo(s: Solicitacao): string | null {
     const pesoMaximoKg = this.cooperativa()?.pesoMaximoKg ?? 0;
-    if (pesoMaximoKg > 0 && s.pesoEstimadoKg > pesoMaximoKg) return 'acima da capacidade do veículo';
+    if (pesoMaximoKg > 0 && s.pesoEstimadoKg > pesoMaximoKg) return 'Acima da capacidade do veículo';
 
     const ativos = this.residuosAtivos();
     if (ativos.length === 0) return null;
@@ -180,17 +180,17 @@ export class Solicitacoes {
     // "Resíduo perigoso" é recebido por quem liga "Pilhas e baterias" ou "Lâmpadas".
     const tipos = tiposDaCategoria(s.categoria);
     const aceita = ativos.some(nome => tipos.some(tipo => mesmoNome(tipo, nome)));
-    return aceita ? null : 'tipo desligado no cadastro';
+    return aceita ? null : 'Tipo desligado no cadastro';
   }
 
   etiquetaDe(s: Solicitacao): Etiqueta | null {
     if (s.status !== 'pendente') return null;
-    if (this.motivoForaDoEscopo(s)) return { texto: 'fora do que vocês aceitam', tom: 'alerta' };
+    if (this.motivoForaDoEscopo(s)) return { texto: 'Fora do que vocês aceitam', tom: 'alerta' };
 
     const horas = horasDesde(s.criadoEm);
-    if (horas < 1) return { texto: 'chegou agora', tom: 'neutro' };
+    if (horas < 1) return { texto: 'Chegou agora', tom: 'neutro' };
     return {
-      texto: `há ${horas}h na fila`,
+      texto: `Há ${horas}h na fila`,
       tom: horas >= HORAS_ESPERA_DESTAQUE ? 'espera' : 'neutro',
     };
   }
@@ -217,7 +217,7 @@ export class Solicitacoes {
     if (foraDoEscopo) return { rotulo: 'Motivo do alerta', valor: foraDoEscopo, tom: 'alerta' };
 
     if (s.pesoEstimadoKg >= PESO_DUAS_PESSOAS_KG) {
-      return { rotulo: 'Atenção', valor: 'precisa de 2 pessoas', tom: 'atencao' };
+      return { rotulo: 'Atenção', valor: 'Precisa de 2 pessoas', tom: 'atencao' };
     }
 
     const anteriores = this.coletasAnteriores(s);
@@ -397,8 +397,8 @@ export class Solicitacoes {
   /** Quando o alerta já diz o porquê, o motivo correspondente vem marcado. */
   private motivoSugerido(s: Solicitacao): string {
     const motivo = this.motivoForaDoEscopo(s);
-    if (motivo === 'acima da capacidade do veículo') return 'capacidade';
-    if (motivo === 'tipo desligado no cadastro') return 'tipo';
+    if (motivo === 'Acima da capacidade do veículo') return 'capacidade';
+    if (motivo === 'Tipo desligado no cadastro') return 'tipo';
     return MOTIVOS_RECUSA[0].valor;
   }
 

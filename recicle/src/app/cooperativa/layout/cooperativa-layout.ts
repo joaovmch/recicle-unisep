@@ -5,9 +5,9 @@ import { CooperativaService } from '../data/cooperativa.service';
 import { lerMesAno, licencaVencida } from '../../shared/util/validators';
 
 const STATUS_INFO: Record<string, { classe: string; texto: string }> = {
-  aprovado: { classe: 'aprovado', texto: 'cadastro aprovado' },
-  reprovado: { classe: 'reprovado', texto: 'cadastro não aprovado' },
-  em_analise: { classe: 'pendente', texto: 'cadastro em andamento' },
+  aprovado: { classe: 'aprovado', texto: 'Cadastro aprovado' },
+  reprovado: { classe: 'reprovado', texto: 'Cadastro não aprovado' },
+  em_analise: { classe: 'pendente', texto: 'Cadastro em andamento' },
 };
 
 
@@ -41,7 +41,7 @@ export class CooperativaLayout {
     const mesAno = `${String(validade.mes).padStart(2, '0')}/${validade.ano}`;
     return {
       classe: vencida ? 'reprovado' : 'aprovado',
-      texto: `licença ${vencida ? 'vencida em' : 'válida até'} ${mesAno}`,
+      texto: `Licença ${vencida ? 'vencida em' : 'válida até'} ${mesAno}`,
     };
   });
 

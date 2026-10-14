@@ -30,26 +30,26 @@
         <div class="dados-grid">
           <div>
             <span>Janela</span>
-            <strong>{{ dataPorExtenso() || 'sem data' }}</strong>
+            <strong>{{ dataPorExtenso() || 'Sem data' }}</strong>
             <strong>{{ s.janelaConfirmada || '—' }}</strong>
           </div>
 
           <div>
             <span>Peso estimado</span>
             <strong>≈ {{ s.pesoEstimadoKg }} kg</strong>
-            <small>o real é conferido na retirada</small>
+            <small>O real é conferido na retirada</small>
           </div>
 
           <div>
             <span>Valor</span>
             <strong>{{ formatarPreco(s.preco) }}</strong>
-            <small>pago na retirada</small>
+            <small>Pago na retirada</small>
           </div>
 
           <div>
             <span>Código de confirmação</span>
-            <strong>peça ao morador</strong>
-            <small>só ele tem — é a prova da entrega</small>
+            <strong>Peça ao morador</strong>
+            <small>Só ele tem — é a prova da entrega</small>
           </div>
         </div>
       </div>
@@ -98,7 +98,7 @@
         <div class="side-card-header">
           <h3>Ainda esperando resposta</h3>
           @if (pendentes().length > 0) {
-            <button routerLink="/cooperativa/solicitacoes">ver todas</button>
+            <button routerLink="/cooperativa/solicitacoes">Ver todas</button>
           }
         </div>
 
