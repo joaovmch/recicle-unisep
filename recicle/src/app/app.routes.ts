@@ -16,6 +16,11 @@ export const routes: Routes = [
     loadComponent: () => import('./publico/entrar/entrar').then(m => m.Entrar),
   },
   {
+    // Destino do link de "esqueci a senha" (vale para morador e cooperativa).
+    path: 'nova-senha',
+    loadComponent: () => import('./publico/nova-senha/nova-senha').then(m => m.NovaSenha),
+  },
+  {
     path: 'cadastro',
     pathMatch: 'full',
     redirectTo: 'entrar',

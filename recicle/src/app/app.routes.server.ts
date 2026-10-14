@@ -12,6 +12,8 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'pontos', renderMode: RenderMode.Client },
   { path: 'perfil', renderMode: RenderMode.Client },
   { path: 'entrar', renderMode: RenderMode.Client },
+  // O link de recuperação traz o token no fragmento da URL, que só existe no navegador.
+  { path: 'nova-senha', renderMode: RenderMode.Client },
 
   // Rotas protegidas pelo login da cooperativa — dependem de estado do
   // navegador (localStorage), então não fazem sentido pré-renderizadas.

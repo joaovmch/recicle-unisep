@@ -68,7 +68,17 @@ export class AuthService {
   }
 
   async enviarLinkRecuperacao(email: string): Promise<string | null> {
-    const { error } = await this.client.auth.resetPasswordForEmail(email.trim());
+    // Sem `redirectTo`, o Supabase manda o link para a "Site URL" do projeto — que nasce
+    // como http://localhost:3000 e não é onde este app roda, daí o ERR_CONNECTION_REFUSED
+    // ao abrir o e-mail. Usar a origem atual faz o link voltar para o mesmo endereço de
+    // onde o pedido saiu (4200 em dev, domínio real em produção), sem nada fixo no código.
+    // A URL ainda precisa estar na allow list do painel (Authentication → URL Configuration).
+    const destino = typeof window !== 'undefined' ? `${window.location.origin}/nova-senha` : undefined;
+
+    const { error } = await this.client.auth.resetPasswordForEmail(
+      email.trim(),
+      destino ? { redirectTo: destino } : undefined
+    );
     return error ? traduzirErroAuth(error.message) : null;
   }
 }

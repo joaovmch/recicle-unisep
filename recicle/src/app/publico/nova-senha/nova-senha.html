@@ -1,0 +1,58 @@
+<div class="nova-senha-shell">
+  <div class="nova-senha-card">
+
+    <a class="auth-brand nova-senha-brand" routerLink="/">
+      <span class="brand-icon"><img src="/logo.png" alt="Re-cicle" /></span>
+      <span>Re-cicle</span>
+    </a>
+
+    @if (estado() === 'verificando') {
+      <h2>Conferindo o link...</h2>
+      <p class="nova-senha-lead">Só um instante.</p>
+    } @else if (estado() === 'linkInvalido') {
+      <h2>Link inválido ou expirado</h2>
+      <p class="nova-senha-lead">
+        {{ erro() ?? 'Links de recuperação valem por pouco tempo e só podem ser usados uma vez.' }}
+      </p>
+      <a class="btn btn-primary nova-senha-acao" routerLink="/entrar" [queryParams]="{ aba: 'entrar' }">
+        Pedir um novo link
+      </a>
+    } @else {
+      <h2>Defina sua nova senha</h2>
+      <p class="nova-senha-lead">Use pelo menos {{ senhaMinima }} caracteres.</p>
+
+      <div class="field">
+        <label for="nova-senha">Nova senha</label>
+        <input
+          id="nova-senha"
+          type="password"
+          autocomplete="new-password"
+          [value]="senha()"
+          (input)="senha.set($any($event.target).value)"
+          (keydown.enter)="salvar()"
+        />
+      </div>
+
+      <div class="field">
+        <label for="confirmacao-senha">Repita a nova senha</label>
+        <input
+          id="confirmacao-senha"
+          type="password"
+          autocomplete="new-password"
+          [value]="confirmacao()"
+          (input)="confirmacao.set($any($event.target).value)"
+          (keydown.enter)="salvar()"
+        />
+      </div>
+
+      @if (erro()) {
+        <p class="entrar-erro">{{ erro() }}</p>
+      }
+
+      <button class="btn btn-primary nova-senha-acao" [disabled]="salvando()" (click)="salvar()">
+        {{ salvando() ? 'Salvando...' : 'Salvar nova senha' }}
+      </button>
+    }
+
+  </div>
+</div>
