@@ -2,10 +2,17 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ToastService } from '../../../shared/ui/toast.service';
 import { SupabaseService } from '../../../supabase.service';
 import { CooperativaService } from '../../data/cooperativa.service';
+import { tiposDaCategoria } from '../../../shared/data/classificador';
 
 type Categoria = 'reciclavel_seco' | 'volumoso' | 'perigoso' | 'organico';
 
 /** Linha de apoio de cada tipo ligado — o que a cooperativa precisa ter para receber esse material. */
+/** Tipos que exigem cuidado extra de armazenagem — o aviso aparece ao ligar (US10 FA02). */
+const ORIENTACAO_AO_LIGAR: Record<string, string> = {
+  'óleo de cozinha':
+    'Óleo de cozinha precisa de recipiente vedado e identificado no galpão. Confirme que vocês têm onde armazenar.',
+};
+
 const DESCRICAO_CATEGORIA: Record<Categoria, string> = {
   reciclavel_seco: 'reciclável seco · triagem no galpão',
   volumoso: 'volumoso · precisa de espaço no veículo',
@@ -48,6 +55,11 @@ export class Residuos {
 
   readonly tipos = signal<TipoResiduo[]>([]);
   readonly totalRecusados90d = signal(0);
+
+  /** Configuração salva, para o "Desfazer" da mensagem de confirmação (RG07 / US10 FA01). */
+  private salvo: TipoResiduo[] = [];
+
+  readonly nenhumAtivo = computed(() => this.tipos().length > 0 && this.tipos().every(t => !t.ligado));
 
   constructor() {
     this.carregar();
@@ -106,14 +118,20 @@ export class Residuos {
 
     const pedidosPorCategoria = new Map<string, number>();
     const recusadosPorCategoria = new Map<string, number>();
+    let totalRecusados = 0;
     for (const p of pedidos90d ?? []) {
-      const chave = (p.categoria ?? '').toLowerCase();
-      pedidosPorCategoria.set(chave, (pedidosPorCategoria.get(chave) ?? 0) + 1);
-      if (p.status === 'recusada') {
-        recusadosPorCategoria.set(chave, (recusadosPorCategoria.get(chave) ?? 0) + 1);
+      // A categoria do pedido vem do classificador ("Resíduo perigoso"); o tipo do cadastro
+      // tem outro nome ("Pilhas e baterias"). Um pedido conta para cada tipo que o recebe.
+      for (const tipo of tiposDaCategoria(p.categoria ?? '')) {
+        const chave = tipo.toLowerCase();
+        pedidosPorCategoria.set(chave, (pedidosPorCategoria.get(chave) ?? 0) + 1);
+        if (p.status === 'recusada') {
+          recusadosPorCategoria.set(chave, (recusadosPorCategoria.get(chave) ?? 0) + 1);
+        }
       }
+      if (p.status === 'recusada') totalRecusados++;
     }
-    this.totalRecusados90d.set([...recusadosPorCategoria.values()].reduce((total, n) => total + n, 0));
+    this.totalRecusados90d.set(totalRecusados);
 
     const idsConcluidasMes = await this.buscarIdsConcluidasDoMes(cooperativa.id);
     const kgPorMaterial = await this.buscarKgPorMaterial(idsConcluidasMes);
@@ -133,6 +151,8 @@ export class Residuos {
         };
       })
     );
+
+    this.salvo = this.tipos();
   }
 
   private async buscarIdsConcluidasDoMes(cooperativaId: string): Promise<string[]> {
@@ -157,7 +177,49 @@ export class Residuos {
   }
 
   alternarTipo(id: string): void {
+    const tipo = this.tipos().find(t => t.id === id);
+    if (!tipo) return;
+
+    // FE01 — a licença é quem manda; o toggle fica travado e o motivo é dito em voz alta.
+    if (tipo.bloqueado) {
+      this.toast.mostrar('Tipo não autorizado pela licença da cooperativa.');
+      return;
+    }
+
+    if (!tipo.ligado) {
+      const orientacao = ORIENTACAO_AO_LIGAR[tipo.nome.toLowerCase()];
+      if (orientacao) this.toast.mostrar(orientacao, 5200);
+    }
+
     this.tipos.update(lista => lista.map(t => (t.id === id ? { ...t, ligado: !t.ligado } : t)));
+  }
+
+  /**
+   * Resumo do que mudou e quanto pedido isso representa por mês, a partir dos pedidos
+   * e recusas dos últimos 90 dias (RN34).
+   */
+  private resumoDasMudancas(): string {
+    const antes = new Map(this.salvo.map(t => [t.id, t.ligado]));
+    const ligados = this.tipos().filter(t => t.ligado && antes.get(t.id) === false);
+    const desligados = this.tipos().filter(t => !t.ligado && antes.get(t.id) === true);
+    if (ligados.length === 0 && desligados.length === 0) return 'Nada mudou na lista de tipos.';
+
+    const partes: string[] = [];
+    if (ligados.length > 0) partes.push(`ligou ${ligados.map(t => t.nome.toLowerCase()).join(', ')}`);
+    if (desligados.length > 0) partes.push(`desligou ${desligados.map(t => t.nome.toLowerCase()).join(', ')}`);
+
+    // 90 dias ≈ 3 meses: a média mensal é o que chegou naquele tipo dividido por 3.
+    const porMes = (lista: TipoResiduo[]) =>
+      Math.round(lista.reduce((total, t) => total + t.pedidos90d + t.recusados90d, 0) / 3);
+    const aMais = porMes(ligados);
+    const aMenos = porMes(desligados);
+
+    const estimativas: string[] = [];
+    if (aMais > 0) estimativas.push(`cerca de ${aMais} pedidos a mais por mês`);
+    if (aMenos > 0) estimativas.push(`cerca de ${aMenos} pedidos a menos por mês`);
+
+    const estimativa = estimativas.length > 0 ? ` — ${estimativas.join(' e ')}.` : '';
+    return `Você ${partes.join(' e ')}${estimativa}`;
   }
 
   async salvarAlteracoes(): Promise<void> {

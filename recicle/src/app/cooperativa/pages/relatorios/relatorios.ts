@@ -45,6 +45,30 @@ const DATASET_VAZIO: RelatorioDataset = {
 /** Acima disso o rejeito de uma categoria vira aviso na lateral. */
 const REJEITO_ALTO_PERCENT = 12;
 
+type PeriodoExportacao = 'mes' | '90dias' | 'ano' | 'datas';
+
+const PERIODOS_EXPORTACAO: { valor: PeriodoExportacao; label: string }[] = [
+  { valor: 'mes', label: 'Mês atual' },
+  { valor: '90dias', label: 'Últimos 90 dias' },
+  { valor: 'ano', label: 'Ano atual' },
+  { valor: 'datas', label: 'Escolher datas' },
+];
+
+/** "O que incluir" do arquivo exportado (US14). Ao menos um precisa ficar marcado. */
+const CONTEUDOS_EXPORTACAO = [
+  { chave: 'resumo', label: 'Resumo do período' },
+  { chave: 'categoria', label: 'Tabela por categoria' },
+  { chave: 'semana', label: 'Gráfico por semana' },
+  { chave: 'coletas', label: 'Lista das coletas' },
+  { chave: 'solicitantes', label: 'Nome dos solicitantes' },
+] as const;
+
+type ChaveConteudo = (typeof CONTEUDOS_EXPORTACAO)[number]['chave'];
+
+/** O relatório não substitui o MTR; a observação vai impressa no rodapé (RN47). */
+const RODAPE_MTR =
+  'Este relatório não substitui o MTR (Manifesto de Transporte de Resíduos) exigido de geradores obrigados.';
+
 function mesAtualISO(): string {
   const hoje = new Date();
   return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
@@ -259,13 +283,46 @@ export class Relatorios {
     return `R$ ${valor.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}`;
   }
 
-  // ===== Modal "Exportar relatório" =====
+  // ===== Modal "Exportar relatório" (US14, passos 4 a 8) =====
 
   readonly modalExportarAberto = signal(false);
   readonly formatoExportar = signal<'pdf' | 'csv'>('pdf');
+  readonly periodoExportar = signal<PeriodoExportacao>('mes');
+  readonly dataInicial = signal('');
+  readonly dataFinal = signal('');
+  readonly periodosExportacao = PERIODOS_EXPORTACAO;
+  readonly conteudosExportacao = CONTEUDOS_EXPORTACAO;
+  readonly rodapeMtr = RODAPE_MTR;
+
+  private readonly _conteudo = signal<Record<ChaveConteudo, boolean>>({
+    resumo: true,
+    categoria: true,
+    semana: true,
+    coletas: false,
+    solicitantes: false,
+  });
+  readonly conteudo = this._conteudo.asReadonly();
+
+  readonly nenhumConteudo = computed(() => Object.values(this._conteudo()).every(v => !v));
+
+  /** FE01: data final anterior à inicial bloqueia a geração. */
+  readonly erroPeriodo = computed(() => {
+    if (this.periodoExportar() !== 'datas') return '';
+    if (!this.dataInicial() || !this.dataFinal()) return 'Informe as duas datas.';
+    return this.dataFinal() < this.dataInicial() ? 'A data final não pode ser anterior à inicial.' : '';
+  });
+
+  readonly exportacaoBloqueada = computed(() => this.nenhumConteudo() || !!this.erroPeriodo());
+
+  alternarConteudo(chave: ChaveConteudo): void {
+    this._conteudo.update(atual => ({ ...atual, [chave]: !atual[chave] }));
+  }
 
   abrirExportar(): void {
     this.formatoExportar.set('pdf');
+    this.periodoExportar.set('mes');
+    this.dataInicial.set('');
+    this.dataFinal.set('');
     this.modalExportarAberto.set(true);
   }
 
@@ -274,6 +331,16 @@ export class Relatorios {
   }
 
   confirmarExportar(): void {
+    // FE02 — sem conteúdo marcado não há arquivo para gerar.
+    if (this.nenhumConteudo()) {
+      this.toast.mostrar('Marque ao menos um item para incluir.');
+      return;
+    }
+    if (this.erroPeriodo()) {
+      this.toast.mostrar(this.erroPeriodo());
+      return;
+    }
+
     this.fecharExportar();
     if (this.formatoExportar() === 'pdf') window.print();
     else this.baixarCsv();
@@ -281,15 +348,40 @@ export class Relatorios {
 
   baixarCsv(): void {
     const dataset = this._dataset();
+    const cooperativa = this.cooperativaService.cooperativa();
+    const incluir = this._conteudo();
+
+    // Cabeçalho com CNPJ e licença, exigido no arquivo gerado (US14).
     const linhas: unknown[][] = [
-      ['Material recebido', formatarPeso(dataset.recebidoKg)],
-      ['Coletas concluídas', dataset.coletasConcluidas],
-      ['Recebido em coletas', this.formatarPreco(dataset.receitaRecebida)],
-      ['Rejeito na triagem', `${this.rejeitoTriagem()}%`],
+      [cooperativa?.nome ?? 'Cooperativa'],
+      [`CNPJ ${cooperativa?.cnpj ?? '—'} · Licença ${cooperativa?.licencaNumero ?? '—'} (${cooperativa?.licencaOrgao ?? '—'})`],
       [],
-      ['Categoria', 'Recebido (kg)', 'Rejeito', 'Coletas'],
-      ...dataset.porCategoria.map(c => [c.nome, c.pesoKg, `${c.rejeitoPercent}%`, c.coletas]),
     ];
+
+    if (incluir.resumo) {
+      linhas.push(
+        ['Material recebido', formatarPeso(dataset.recebidoKg)],
+        ['Coletas concluídas', dataset.coletasConcluidas],
+        ['Recebido em coletas', this.formatarPreco(dataset.receitaRecebida)],
+        ['Rejeito na triagem', `${this.rejeitoTriagem()}%`],
+        []
+      );
+    }
+
+    if (incluir.semana) {
+      linhas.push(['Semana', 'Recebido (kg)']);
+      linhas.push(...dataset.volumeSemanal.map(s => [s.label, s.kg]));
+      linhas.push([]);
+    }
+
+    if (incluir.categoria) {
+      linhas.push(['Categoria', 'Recebido (kg)', 'Rejeito', 'Coletas']);
+      linhas.push(...dataset.porCategoria.map(c => [c.nome, c.pesoKg, `${c.rejeitoPercent}%`, c.coletas]));
+      linhas.push([]);
+    }
+
+    linhas.push([RODAPE_MTR]);
+
     baixarCsv(`relatorio-${this.mesSelecionado()}.csv`, [`Consolidado · ${this.rotuloMes()}`], linhas);
     this.toast.mostrar('CSV exportado.');
   }

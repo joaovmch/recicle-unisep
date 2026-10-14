@@ -62,7 +62,7 @@
       </div>
 
       @if (proximasPendentes().length === 0) {
-        <p class="empty-hint">Nenhuma solicitação esperando resposta.</p>
+        <p class="empty-hint">Nenhum pedido esperando resposta.</p>
       }
 
       <div class="waiting-list">
@@ -136,9 +136,10 @@
       <div class="route-list">
         @for (parada of rotaDeHoje(); track parada.id) {
           <a class="route-item" [routerLink]="['/cooperativa/solicitacoes', parada.id, 'confirmar']">
+            <span class="route-ordem">{{ parada.ordem }}</span>
             <span class="route-info">{{ parada.categoria }} · {{ parada.solicitante }}</span>
             <span class="route-time" [class.concluida]="parada.concluida" [class.proxima]="parada.proxima">
-              {{ parada.concluida ? 'concluída' : (parada.janela || 'sem horário') }}
+              {{ parada.concluida ? 'concluída' : parada.horario }}
             </span>
           </a>
         }

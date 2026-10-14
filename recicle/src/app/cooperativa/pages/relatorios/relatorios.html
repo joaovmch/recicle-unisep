@@ -64,7 +64,7 @@
       <h3>Material recebido por semana</h3>
 
       @if (volumeSemanal().length === 0) {
-        <p class="empty-hint">Nenhuma coleta concluída neste mês ainda.</p>
+        <p class="empty-hint">Sem dados para o período.</p>
       } @else {
         <div class="bar-chart">
           @for (semana of volumeSemanal(); track semana.label) {
@@ -87,7 +87,7 @@
       <h3>Por categoria</h3>
 
       @if (porCategoria().length === 0) {
-        <p class="empty-hint">Nenhum material recebido neste mês ainda.</p>
+        <p class="empty-hint">Sem dados para o período.</p>
       } @else {
         <table class="data-table material-table">
           <thead>
@@ -157,31 +157,103 @@
 <!-- MODAL — EXPORTAR RELATÓRIO -->
 @if (modalExportarAberto()) {
   <div class="modal-overlay" (click)="fecharExportar()">
-    <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-card wide" (click)="$event.stopPropagation()">
       <button class="modal-close" (click)="fecharExportar()">
         <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
       </button>
 
       <h2>Exportar relatório</h2>
       <p class="modal-description">
-        {{ rotuloMes() }}, com o que já está na tela: resumo, material por semana e tabela por categoria.
+        O arquivo sai com o CNPJ e a licença da cooperativa no cabeçalho.
       </p>
+
+      <span class="section-label">Período</span>
+      <div class="opcoes-periodo">
+        @for (periodo of periodosExportacao; track periodo.valor) {
+          <button
+            type="button"
+            class="opcao-chip"
+            [class.on]="periodoExportar() === periodo.valor"
+            (click)="periodoExportar.set(periodo.valor)"
+          >
+            {{ periodo.label }}
+          </button>
+        }
+      </div>
+
+      @if (periodoExportar() === 'datas') {
+        <div class="field-row">
+          <div class="field">
+            <label for="data-inicial">De</label>
+            <input
+              id="data-inicial"
+              type="date"
+              [value]="dataInicial()"
+              (input)="dataInicial.set($any($event.target).value)"
+            />
+          </div>
+          <div class="field" [class.campo-invalido]="erroPeriodo()">
+            <label for="data-final">Até</label>
+            <input
+              id="data-final"
+              type="date"
+              [value]="dataFinal()"
+              (input)="dataFinal.set($any($event.target).value)"
+            />
+            @if (erroPeriodo()) {
+              <span class="hint hint-erro">{{ erroPeriodo() }}</span>
+            }
+          </div>
+        </div>
+      }
+
+      <span class="section-label">O que incluir</span>
+      <div class="lista-conteudo">
+        @for (item of conteudosExportacao; track item.chave) {
+          <label class="confirm-checkbox">
+            <input
+              type="checkbox"
+              [checked]="conteudo()[item.chave]"
+              (change)="alternarConteudo(item.chave)"
+            />
+            <span>{{ item.label }}</span>
+          </label>
+        }
+      </div>
+
+      @if (nenhumConteudo()) {
+        <p class="hint hint-erro" style="margin: -8px 0 18px;">Marque ao menos um item para incluir.</p>
+      }
+
+      @if (conteudo()['solicitantes']) {
+        <div class="info-box">
+          <strong>Nome dos solicitantes</strong>
+          <p>
+            Só entram no arquivo os solicitantes que autorizaram essa divulgação no perfil. Os demais aparecem
+            com data, bairro, categoria e peso.
+          </p>
+        </div>
+      }
 
       <span class="section-label">Formato</span>
       <div class="option-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 20px;">
         <div class="option-card selectable" [class.on]="formatoExportar() === 'pdf'" (click)="formatoExportar.set('pdf')">
           <strong>PDF</strong>
-          <p>Abre a caixa de impressão do navegador — salve como PDF para prefeitura ou clientes.</p>
+          <p>Abre a caixa de impressão do navegador — salve como PDF para a prefeitura ou para clientes.</p>
         </div>
         <div class="option-card selectable" [class.on]="formatoExportar() === 'csv'" (click)="formatoExportar.set('csv')">
           <strong>CSV</strong>
-          <p>Baixa o consolidado do mês em planilha.</p>
+          <p>Baixa a lista em formato de planilha, sem o gráfico.</p>
         </div>
       </div>
 
+      <p class="nota-rodape">{{ rodapeMtr }}</p>
+
       <div class="modal-actions">
         <button class="btn btn-outline" (click)="fecharExportar()">Cancelar</button>
-        <button class="btn btn-primary" (click)="confirmarExportar()">Gerar arquivo</button>
+        <button class="btn btn-primary" [disabled]="exportacaoBloqueada()" (click)="confirmarExportar()">
+          Gerar arquivo
+        </button>
       </div>
     </div>
   </div>

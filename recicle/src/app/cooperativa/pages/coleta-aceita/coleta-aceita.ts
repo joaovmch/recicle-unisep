@@ -4,7 +4,7 @@ import { Solicitacao, SolicitacoesStore } from '../../data/solicitacoes.store';
 import { CooperativaService } from '../../data/cooperativa.service';
 import { SupabaseService } from '../../../supabase.service';
 import { ToastService } from '../../../shared/ui/toast.service';
-import { formatarPreco } from '../../../shared/util/format';
+import { formatarDistancia, formatarPreco } from '../../../shared/util/format';
 
 function paraISO(data: Date): string {
   return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')}`;
@@ -110,6 +110,6 @@ export class ColetaAceita {
   }
 
   resumoDe(s: Solicitacao): string {
-    return `#${s.numero} · ${s.solicitante} · ${s.distanciaKm.toFixed(1).replace('.', ',')} km${s.janela ? ' · ' + s.janela : ''}`;
+    return [`#${s.numero}`, s.solicitante, formatarDistancia(s.distanciaKm), s.janela].filter(Boolean).join(' · ');
   }
 }

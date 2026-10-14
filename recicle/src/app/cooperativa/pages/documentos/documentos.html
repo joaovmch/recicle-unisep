@@ -4,6 +4,10 @@
     <h1>Documentos e licença</h1>
     <p>É o que sustenta o selo "licença verificada" que os moradores veem.</p>
   </div>
+
+  <div class="header-actions">
+    <button class="btn btn-primary" (click)="abrirEnvio()">Enviar documento</button>
+  </div>
 </header>
 
 <input #fileInput type="file" class="hidden-file-input" (change)="arquivoSelecionado($event)" />
@@ -31,6 +35,20 @@
     </p>
 
     <button class="btn btn-outline small" (click)="verOQueEnviamos()">Ver documentos</button>
+  </div>
+}
+
+
+@if (avisoRenovacao(); as aviso) {
+  <div class="alert-banner" [class.critico]="licencaVencida()">
+    <svg viewBox="0 0 24 24">
+      <path d="M12 3 2 20h20L12 3Z"/>
+      <path d="M12 10v4M12 17h.01"/>
+    </svg>
+
+    <p>{{ aviso }}</p>
+
+    <button class="btn btn-outline small" (click)="enviarRenovacao()">Enviar renovação</button>
   </div>
 }
 
@@ -80,7 +98,7 @@
 
       <div class="licenca-acoes">
         <button class="btn btn-outline btn-sm" (click)="verArquivoLicenca(fileInput)">Ver arquivo</button>
-        <button class="btn btn-outline btn-sm" (click)="enviarRenovacao(fileInput)">Enviar renovação</button>
+        <button class="btn btn-outline btn-sm" (click)="enviarRenovacao()">Enviar renovação</button>
       </div>
     </div>
 
@@ -223,3 +241,99 @@
   </aside>
 
 </div>
+
+
+<!-- MODAL — ENVIAR DOCUMENTO -->
+@if (modalEnvioAberto()) {
+  <div class="modal-overlay" (click)="fecharEnvio()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="fecharEnvio()">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
+
+      @if (resumoEnvio(); as resumo) {
+        <h2>Documento enviado</h2>
+        <div class="success-box" style="margin-bottom: 22px;">
+          <strong>Em conferência</strong>
+          <p>{{ resumo }}</p>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-outline" (click)="abrirEnvio()">Enviar outro documento</button>
+          <button class="btn btn-primary" (click)="fecharEnvio()">Concluído</button>
+        </div>
+      } @else {
+        <h2>Enviar documento</h2>
+        <p class="modal-description">
+          PDF, JPG ou PNG de até 10 MB. A equipe do Re-cicle confere em até 2 dias úteis.
+        </p>
+
+        <div class="field campo-obrigatorio">
+          <label for="tipo-documento">Tipo do documento</label>
+          <select
+            id="tipo-documento"
+            [value]="tipoEscolhido()"
+            (change)="tipoEscolhido.set($any($event.target).value)"
+          >
+            @for (tipo of tiposEnviaveis; track tipo.valor) {
+              <option [value]="tipo.valor">{{ tipo.label }}</option>
+            }
+          </select>
+        </div>
+
+        @if (ehRenovacao()) {
+          <span class="section-label">Dados da nova licença</span>
+
+          <div class="field-row">
+            <div class="field campo-obrigatorio">
+              <label for="licenca-numero">Número</label>
+              <input
+                id="licenca-numero"
+                type="text"
+                placeholder="LO 0.000/0000"
+                [value]="licencaNumeroNovo()"
+                (input)="licencaNumeroNovo.set($any($event.target).value)"
+              />
+            </div>
+
+            <div class="field campo-obrigatorio">
+              <label for="licenca-orgao">Órgão emissor</label>
+              <input
+                id="licenca-orgao"
+                type="text"
+                placeholder="IAT-PR"
+                [value]="licencaOrgaoNovo()"
+                (input)="licencaOrgaoNovo.set($any($event.target).value)"
+              />
+            </div>
+          </div>
+
+          <div class="field campo-obrigatorio" [class.campo-invalido]="erroValidade() && licencaValidadeNova()">
+            <label for="licenca-validade">Validade</label>
+            <input
+              id="licenca-validade"
+              type="text"
+              placeholder="MM/AAAA"
+              [value]="licencaValidadeNova()"
+              (input)="licencaValidadeNova.set($any($event.target).value)"
+            />
+            <span class="hint" [class.hint-erro]="erroValidade() && licencaValidadeNova()">
+              {{ (licencaValidadeNova() && erroValidade()) || 'Mês posterior ao atual.' }}
+            </span>
+          </div>
+        }
+
+        <div class="modal-actions">
+          <button class="btn btn-outline" (click)="fecharEnvio()">Cancelar</button>
+          <button
+            class="btn btn-primary"
+            [disabled]="envioIncompleto()"
+            (click)="escolherArquivoDoEnvio(fileInput)"
+          >
+            Escolher arquivo
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+}

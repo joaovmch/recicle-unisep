@@ -3,7 +3,7 @@ import { ToastService } from '../../../shared/ui/toast.service';
 import { SupabaseService } from '../../../supabase.service';
 import { CooperativaService } from '../../data/cooperativa.service';
 import { erroArquivoInvalido, formatarTamanhoArquivo } from '../../../shared/util/upload';
-import { lerMesAno } from '../../../shared/util/validators';
+import { lerMesAno, licencaVencida } from '../../../shared/util/validators';
 import { NOME_TIPO_DOCUMENTO, TipoDocumentoDb } from '../../shared/documento-tipos';
 
 type StatusDocumento = 'validado' | 'em-analise' | 'nao-enviado' | 'reprovado';
@@ -39,6 +39,17 @@ const TIPOS_FIXOS: { tipo: TipoDocumentoDb; nome: string; metaVazia: string }[] 
     metaVazia: 'opcional · ajuda quando a licença estiver perto de vencer',
   },
 ];
+
+/** Tipos que o responsável pode enviar pelo painel (US13, campos obrigatórios). */
+const TIPOS_ENVIAVEIS: { valor: TipoDocumentoDb | 'renovacao_licenca'; label: string }[] = [
+  { valor: 'renovacao_licenca', label: 'Renovação da licença' },
+  { valor: 'ata_eleicao_diretoria', label: 'Estatuto social ou ata de constituição' },
+  { valor: 'cartao_cnpj', label: 'Cartão CNPJ' },
+  { valor: 'comprovante_endereco', label: 'Documento do responsável' },
+];
+
+/** A partir de quantos dias antes do vencimento o painel cobra a renovação (US13). */
+const AVISO_RENOVACAO_DIAS = 60;
 
 const STATUS_DB_PARA_UI: Record<string, StatusDocumento> = {
   validado: 'validado',
@@ -99,6 +110,37 @@ export class Documentos {
     return validade ? `${String(validade.mes).padStart(2, '0')}/${validade.ano}` : bruto;
   });
 
+  readonly tiposEnviaveis = TIPOS_ENVIAVEIS;
+
+  /**
+   * Quantos dias faltam para a licença vencer. Null quando não há validade cadastrada
+   * ou quando ela não está em formato legível.
+   */
+  readonly diasParaVencer = computed(() => {
+    const validade = lerMesAno(this.cooperativa()?.licencaValidade);
+    if (!validade) return null;
+    // A licença vale até o último dia do mês informado.
+    const fim = new Date(validade.ano, validade.mes, 0, 23, 59, 59);
+    return Math.ceil((fim.getTime() - Date.now()) / 86_400_000);
+  });
+
+  readonly licencaVencida = computed(() => {
+    const validade = lerMesAno(this.cooperativa()?.licencaValidade);
+    return validade ? licencaVencida(validade) : false;
+  });
+
+  readonly avisoRenovacao = computed(() => {
+    const dias = this.diasParaVencer();
+    if (dias === null) return '';
+    if (dias < 0) {
+      return 'A licença está vencida. Enquanto a renovação não for enviada e conferida, a cooperativa não recebe pedidos novos — as coletas já aceitas continuam.';
+    }
+    if (dias <= AVISO_RENOVACAO_DIAS) {
+      return `A licença vence em ${dias} ${dias === 1 ? 'dia' : 'dias'}. Envie a renovação para não parar de receber pedidos.`;
+    }
+    return '';
+  });
+
   readonly totalEntregues = computed(() => this.documentos().filter(d => d.status !== 'nao-enviado').length);
   readonly todosEntregues = computed(
     () => this.documentos().length > 0 && this.totalEntregues() === this.documentos().length
@@ -111,9 +153,66 @@ export class Documentos {
     await this.acaoDocumento({ ...doc, acaoLabel: 'Ver arquivo' }, indice, inputRef);
   }
 
-  enviarRenovacao(inputRef: HTMLInputElement): void {
-    const indice = this.documentos().findIndex(d => d.tipo === 'licenca_operacao');
+  // ===== Enviar documento (US13, passos 3 a 8) =====
+
+  readonly modalEnvioAberto = signal(false);
+  readonly tipoEscolhido = signal<string>(TIPOS_ENVIAVEIS[0].valor);
+  readonly licencaNumeroNovo = signal('');
+  readonly licencaOrgaoNovo = signal('');
+  readonly licencaValidadeNova = signal('');
+  readonly resumoEnvio = signal('');
+
+  readonly ehRenovacao = computed(() => this.tipoEscolhido() === 'renovacao_licenca');
+
+  /** A validade da renovação precisa ser um mês posterior ao atual (US13). */
+  readonly erroValidade = computed(() => {
+    if (!this.ehRenovacao()) return '';
+    const validade = lerMesAno(this.licencaValidadeNova());
+    if (!validade) return 'Informe a validade no formato MM/AAAA.';
+    const agora = new Date();
+    const posterior =
+      validade.ano > agora.getFullYear() ||
+      (validade.ano === agora.getFullYear() && validade.mes > agora.getMonth() + 1);
+    return posterior ? '' : 'A validade precisa ser posterior ao mês atual.';
+  });
+
+  readonly envioIncompleto = computed(() => {
+    if (!this.ehRenovacao()) return false;
+    return !this.licencaNumeroNovo().trim() || !this.licencaOrgaoNovo().trim() || !!this.erroValidade();
+  });
+
+  abrirEnvio(tipoInicial?: string): void {
+    this.tipoEscolhido.set(tipoInicial ?? TIPOS_ENVIAVEIS[0].valor);
+    const cooperativa = this.cooperativa();
+    this.licencaNumeroNovo.set(cooperativa?.licencaNumero ?? '');
+    this.licencaOrgaoNovo.set(cooperativa?.licencaOrgao ?? '');
+    this.licencaValidadeNova.set('');
+    this.resumoEnvio.set('');
+    this.modalEnvioAberto.set(true);
+  }
+
+  fecharEnvio(): void {
+    this.modalEnvioAberto.set(false);
+    this.resumoEnvio.set('');
+  }
+
+  enviarRenovacao(): void {
+    this.abrirEnvio('renovacao_licenca');
+  }
+
+  /** Dispara o seletor de arquivo já sabendo em qual documento o upload vai cair. */
+  escolherArquivoDoEnvio(inputRef: HTMLInputElement): void {
+    if (this.envioIncompleto()) {
+      this.toast.mostrar(this.erroValidade() || 'Preencha os dados da licença antes de enviar o arquivo.');
+      return;
+    }
+
+    const tipo: TipoDocumentoDb =
+      this.tipoEscolhido() === 'renovacao_licenca' ? 'licenca_operacao' : (this.tipoEscolhido() as TipoDocumentoDb);
+
+    const indice = this.documentos().findIndex(d => d.tipo === tipo);
     if (indice < 0) return;
+
     this.uploadAlvo = indice;
     inputRef.value = '';
     inputRef.click();
@@ -276,7 +375,25 @@ export class Documentos {
       titulo: `Documento enviado: ${arquivo.name}`,
     });
 
-    this.toast.mostrar(`${arquivo.name} enviado para análise.`);
+    // Renovação também atualiza os dados da licença no cadastro.
+    if (this.ehRenovacao() && tipo === 'licenca_operacao') {
+      await this.cooperativaService.atualizar({
+        licenca_numero: this.licencaNumeroNovo().trim(),
+        licenca_orgao: this.licencaOrgaoNovo().trim(),
+        licenca_validade: this.licencaValidadeNova().trim(),
+      });
+    }
+
+    // Passo 8: resumo do envio com o prazo de conferência.
+    this.resumoEnvio.set(
+      `${arquivo.name} (${formatarTamanhoArquivo(arquivo.size)}) enviado em ${new Date().toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      })}. A equipe do Re-cicle confere em até 2 dias úteis.`
+    );
+
     await this.carregar();
   }
 

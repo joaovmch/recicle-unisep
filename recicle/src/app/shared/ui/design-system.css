@@ -27,6 +27,8 @@
 
 .page-header h1 {
   margin: 0;
+  /* Nome digitado pelo usuário pode vir sem espaço ("Olá, Fulaninhooooo…"): quebra em vez de vazar. */
+  overflow-wrap: anywhere;
   color: var(--rc-texto);
   font-size: 29px;
   line-height: 1.15;
@@ -241,6 +243,11 @@
   grid-template-columns: minmax(0, 1fr) 310px;
   gap: 20px;
   align-items: start;
+}
+
+/* Item de grid não encolhe abaixo do conteúdo por padrão: uma tabela larga alargava a página. */
+.content-grid > * {
+  min-width: 0;
 }
 
 .right-column {
@@ -1208,9 +1215,45 @@
   animation: toast-in 0.2s ease;
 }
 
+.toast.com-acao {
+  align-items: flex-start;
+  max-width: 420px;
+}
+
+.toast-texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast-detalhe {
+  display: block;
+  margin-top: 4px;
+  color: #b9c9c3;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.toast-acao {
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  color: #4fdc8b;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 750;
+  cursor: pointer;
+  padding: 0;
+}
+
+.toast-acao:hover {
+  text-decoration: underline;
+}
+
 .toast svg {
   width: 16px;
   height: 16px;
+  margin-top: 1px;
   fill: none;
   stroke: #4fdc8b;
   stroke-width: 2.2;
@@ -1408,6 +1451,22 @@
 }
 
 @media (max-width: 760px) {
+  /* Tabela larga rola dentro dela mesma, em vez de arrastar a página inteira para o lado. */
+  .data-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding-right: 14px;
+  }
+
+  .data-table th {
+    white-space: nowrap;
+  }
+
   .page-header {
     flex-direction: column;
   }

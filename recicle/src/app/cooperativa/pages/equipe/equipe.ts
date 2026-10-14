@@ -1,7 +1,15 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { ToastService } from '../../../shared/ui/toast.service';
 import { SupabaseService } from '../../../supabase.service';
 import { CooperativaService } from '../../data/cooperativa.service';
+import {
+  SEM_PLACA,
+  nomePessoaValido,
+  normalizarPlaca,
+  placaValida,
+  telefoneValido,
+} from '../../../shared/util/validators';
 
 type SituacaoTipo = 'good' | 'info' | 'neutral';
 
@@ -31,7 +39,14 @@ interface Veiculo {
   extraValor: string;
 }
 
-const FUNCOES_DISPONIVEIS = ['Motorista', 'Coletor', 'Triagem', 'Administrativo'];
+const FUNCAO_RESPONSAVEL = 'Responsável legal';
+const FUNCOES_DISPONIVEIS = [FUNCAO_RESPONSAVEL, 'Coletor', 'Triagem'];
+
+/** Intervalos dos campos obrigatórios de veículo (US12). */
+const CAPACIDADE_MIN_KG = 1;
+const CAPACIDADE_MAX_KG = 20000;
+const VOLUME_MIN_M3 = 0.1;
+const VOLUME_MAX_M3 = 100;
 
 /** O que cada função faz — é o card "Quem pode o quê" da lateral. */
 const PAPEIS = [
@@ -76,7 +91,7 @@ function situacaoVeiculoTipo(situacao: string): SituacaoTipo {
 
 @Component({
   selector: 'app-equipe',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './equipe.html',
   styleUrls: ['../../../shared/ui/design-system.css', './equipe.css'],
 })
@@ -112,7 +127,8 @@ export class Equipe {
 
     const nome = this.cooperativaService.cooperativa()?.nome ?? 'a cooperativa';
     const coletas = this.cooperativaService.cooperativa()?.coletasPorDia ?? 0;
-    const teto = this.maiorVeiculoKg();
+    // Sem frota, o limite que vale é o do cadastro (RN41).
+    const teto = this.maiorVeiculoKg() || (this.cooperativaService.cooperativa()?.pesoMaximoKg ?? 0);
 
     const frota = veiculos === 1 ? 'Com um veículo' : `Com ${veiculos} veículos`;
     const agenda = coletas > 0 ? `, ${nome} sustenta ${coletas} coletas por período` : '';
@@ -120,11 +136,14 @@ export class Equipe {
     return `${frota}${agenda}.${limite}`;
   });
 
-  /** Mantém peso_maximo_kg igual ao maior veículo sempre que a frota muda. */
+  /**
+   * RN41: o teto por coleta é a capacidade do maior veículo. Sem veículo cadastrado
+   * vale o peso máximo informado no cadastro (US06) — por isso não zera a frota vazia.
+   */
   private async sincronizarTetoDaFrota(): Promise<void> {
     const cooperativa = this.cooperativaService.cooperativa();
     const teto = this.maiorVeiculoKg();
-    if (!cooperativa || teto === cooperativa.pesoMaximoKg) return;
+    if (!cooperativa || teto <= 0 || teto === cooperativa.pesoMaximoKg) return;
     await this.cooperativaService.atualizar({ peso_maximo_kg: teto });
   }
 
@@ -233,37 +252,88 @@ export class Equipe {
     this.equipe.update(lista => lista.map(m => (m.id === id ? { ...m, podeConfirmar: !m.podeConfirmar } : m)));
   }
 
-  // ===== Adicionar pessoa =====
+  // ===== Membro: adicionar e editar (US12 FA01) =====
 
   readonly modalPessoaAberto = signal(false);
+  readonly membroEmEdicao = signal<MembroEquipe | null>(null);
   readonly novoNome = signal('');
   readonly novoTelefone = signal('');
-  readonly novaFuncao = signal(FUNCOES_DISPONIVEIS[0]);
+  readonly novaFuncao = signal(FUNCOES_DISPONIVEIS[1]);
+  readonly novoAcessoPainel = signal(false);
 
-  abrirModalPessoa(): void {
-    this.novoNome.set('');
-    this.novoTelefone.set('');
-    this.novaFuncao.set(FUNCOES_DISPONIVEIS[0]);
+  abrirModalPessoa(membro: MembroEquipe | null = null): void {
+    this.membroEmEdicao.set(membro);
+    this.novoNome.set(membro?.nome ?? '');
+    this.novoTelefone.set(membro && membro.telefone !== '—' ? membro.telefone : '');
+    // Padrão "Coletor": o responsável legal já existe desde o cadastro.
+    this.novaFuncao.set(membro?.funcao ?? FUNCOES_DISPONIVEIS[1]);
+    this.novoAcessoPainel.set(membro?.acessoPainel ?? false);
     this.modalPessoaAberto.set(true);
   }
 
   fecharModalPessoa(): void {
     this.modalPessoaAberto.set(false);
+    this.membroEmEdicao.set(null);
   }
 
   async salvarPessoa(): Promise<void> {
-    const nome = this.novoNome().trim();
+    const nome = this.novoNome().trim().replace(/\s+/g, ' ');
     const cooperativa = this.cooperativaService.cooperativa();
-    if (!nome || !cooperativa) return;
+    if (!cooperativa) return;
+
+    if (!nomePessoaValido(nome)) {
+      this.toast.mostrar('Informe nome e sobrenome, usando apenas letras.');
+      return;
+    }
+    if (this.novoTelefone().trim() && !telefoneValido(this.novoTelefone())) {
+      this.toast.mostrar('Telefone inválido. Use o DDD e o número, ex.: (46) 99999-9999.');
+      return;
+    }
+
+    const emEdicao = this.membroEmEdicao();
+    const duplicado = this.equipe().some(
+      m => m.id !== emEdicao?.id && m.nome.toLowerCase() === nome.toLowerCase()
+    );
+    if (duplicado) {
+      this.toast.mostrar('Já existe alguém com esse nome na equipe.');
+      return;
+    }
+
+    const campos = {
+      nome,
+      telefone: this.novoTelefone().trim() || null,
+      funcao: this.novaFuncao(),
+      acesso_painel: this.novoAcessoPainel(),
+    };
+
+    if (emEdicao) {
+      const { error } = await this.client.from('equipe').update(campos).eq('id', emEdicao.id);
+      if (error) {
+        this.toast.mostrar('Não foi possível salvar as alterações.');
+        return;
+      }
+      this.equipe.update(lista =>
+        lista.map(m =>
+          m.id === emEdicao.id
+            ? {
+                ...m,
+                nome,
+                iniciais: gerarIniciais(nome),
+                telefone: campos.telefone || '—',
+                funcao: campos.funcao,
+                acessoPainel: campos.acesso_painel,
+              }
+            : m
+        )
+      );
+      this.fecharModalPessoa();
+      this.toast.mostrar(`Dados de ${nome} atualizados.`);
+      return;
+    }
 
     const { data, error } = await this.client
       .from('equipe')
-      .insert({
-        cooperativa_id: cooperativa.id,
-        nome,
-        telefone: this.novoTelefone().trim() || null,
-        funcao: this.novaFuncao(),
-      })
+      .insert({ cooperativa_id: cooperativa.id, ...campos })
       .select()
       .single();
 
@@ -272,58 +342,157 @@ export class Equipe {
       return;
     }
 
-    const membro: MembroEquipe = {
-      id: data.id,
-      nome: data.nome,
-      iniciais: gerarIniciais(data.nome),
-      telefone: data.telefone || '—',
-      funcao: data.funcao,
-      coletas: null,
-      situacao: data.situacao,
-      situacaoTipo: situacaoEquipeTipo(data.situacao),
-      podeConfirmar: data.pode_confirmar,
-      acessoPainel: data.acesso_painel,
-    };
-
-    this.equipe.update(lista => [...lista, membro]);
+    this.equipe.update(lista => [
+      ...lista,
+      {
+        id: data.id,
+        nome: data.nome,
+        iniciais: gerarIniciais(data.nome),
+        telefone: data.telefone || '—',
+        funcao: data.funcao,
+        coletas: null,
+        situacao: data.situacao,
+        situacaoTipo: situacaoEquipeTipo(data.situacao),
+        podeConfirmar: data.pode_confirmar,
+        acessoPainel: data.acesso_painel,
+      },
+    ]);
     this.fecharModalPessoa();
     this.toast.mostrar(`${nome} adicionado à equipe.`);
   }
 
-  // ===== Adicionar veículo =====
+  // ===== Membro: remover (US12 FA02 / FE03, RG07) =====
+
+  readonly membroParaRemover = signal<MembroEquipe | null>(null);
+  readonly coletasFuturasDoMembro = signal(0);
+
+  async abrirRemocao(membro: MembroEquipe): Promise<void> {
+    // FE03 — o responsável legal do cadastro só muda com a equipe do Re-cicle.
+    if (membro.funcao === FUNCAO_RESPONSAVEL) {
+      this.toast.mostrar(
+        'O responsável legal não pode ser removido. Fale com a equipe do Re-cicle para trocar o responsável.',
+        5200
+      );
+      return;
+    }
+
+    const { count } = await this.client
+      .from('solicitacoes')
+      .select('id', { count: 'exact', head: true })
+      .eq('atribuido_equipe_id', membro.id)
+      .eq('status', 'aceita');
+
+    this.coletasFuturasDoMembro.set(count ?? 0);
+    this.membroParaRemover.set(membro);
+  }
+
+  fecharRemocao(): void {
+    this.membroParaRemover.set(null);
+  }
+
+  /** Tira a pessoa da equipe. O histórico das coletas que ela confirmou é mantido (RG04). */
+  async confirmarRemocao(): Promise<void> {
+    const membro = this.membroParaRemover();
+    if (!membro || this.coletasFuturasDoMembro() > 0) return;
+
+    await this.client.from('equipe').delete().eq('id', membro.id);
+    this.equipe.update(lista => lista.filter(m => m.id !== membro.id));
+    this.fecharRemocao();
+    this.toast.mostrar(`${membro.nome} saiu da equipe. As coletas que ela confirmou continuam no histórico.`);
+  }
+
+  // ===== Veículo: adicionar e editar =====
 
   readonly modalVeiculoAberto = signal(false);
+  readonly veiculoEmEdicao = signal<Veiculo | null>(null);
   readonly novoVeiculoNome = signal('');
-  readonly novoVeiculoIdentificacao = signal('');
+  readonly novoVeiculoPlaca = signal('');
   readonly novoVeiculoCapacidade = signal(200);
+  readonly novoVeiculoVolume = signal<number | null>(null);
 
-  abrirModalVeiculo(): void {
-    this.novoVeiculoNome.set('');
-    this.novoVeiculoIdentificacao.set('');
-    this.novoVeiculoCapacidade.set(200);
+  readonly capacidadeMin = CAPACIDADE_MIN_KG;
+  readonly capacidadeMax = CAPACIDADE_MAX_KG;
+  readonly volumeMin = VOLUME_MIN_M3;
+  readonly volumeMax = VOLUME_MAX_M3;
+
+  abrirModalVeiculo(veiculo: Veiculo | null = null): void {
+    this.veiculoEmEdicao.set(veiculo);
+    this.novoVeiculoNome.set(veiculo?.nome ?? '');
+    this.novoVeiculoPlaca.set(veiculo?.identificacao ?? '');
+    this.novoVeiculoCapacidade.set(veiculo?.capacidadeKg ?? 200);
+    this.novoVeiculoVolume.set(veiculo?.capacidadeM3 || null);
     this.modalVeiculoAberto.set(true);
   }
 
   fecharModalVeiculo(): void {
     this.modalVeiculoAberto.set(false);
+    this.veiculoEmEdicao.set(null);
   }
 
   async salvarVeiculo(): Promise<void> {
     const nome = this.novoVeiculoNome().trim();
     const cooperativa = this.cooperativaService.cooperativa();
-    if (!nome || !cooperativa) return;
+    if (!cooperativa) return;
 
-    const capacidadeM3 = +(this.novoVeiculoCapacidade() / 200).toFixed(1);
+    if (nome.length < 3 || nome.length > 40) {
+      this.toast.mostrar('O nome do veículo precisa ter de 3 a 40 caracteres.');
+      return;
+    }
+    if (!placaValida(this.novoVeiculoPlaca())) {
+      this.toast.mostrar('Placa inválida. Use AAA-0A00, AAA-0000 ou "sem placa".');
+      return;
+    }
+
+    const placa = normalizarPlaca(this.novoVeiculoPlaca());
+    const emEdicao = this.veiculoEmEdicao();
+
+    // FE02 — placa única na cooperativa; "sem placa" pode repetir.
+    if (placa !== SEM_PLACA && this.veiculos().some(v => v.id !== emEdicao?.id && v.identificacao === placa)) {
+      this.toast.mostrar('Veículo já cadastrado nesta cooperativa.');
+      return;
+    }
+
+    const capacidade = this.novoVeiculoCapacidade();
+    if (capacidade < CAPACIDADE_MIN_KG || capacidade > CAPACIDADE_MAX_KG) {
+      this.toast.mostrar(`A capacidade precisa estar entre ${CAPACIDADE_MIN_KG} e ${CAPACIDADE_MAX_KG} kg.`);
+      return;
+    }
+
+    const volume = this.novoVeiculoVolume();
+    if (volume !== null && (volume < VOLUME_MIN_M3 || volume > VOLUME_MAX_M3)) {
+      this.toast.mostrar(`O volume precisa estar entre ${VOLUME_MIN_M3} e ${VOLUME_MAX_M3} m³.`);
+      return;
+    }
+
+    const campos = {
+      nome,
+      identificacao: placa,
+      capacidade_kg: capacidade,
+      capacidade_m3: volume,
+    };
+
+    if (emEdicao) {
+      const { error } = await this.client.from('veiculos').update(campos).eq('id', emEdicao.id);
+      if (error) {
+        this.toast.mostrar('Não foi possível salvar as alterações.');
+        return;
+      }
+      this.veiculos.update(lista =>
+        lista.map(v =>
+          v.id === emEdicao.id
+            ? { ...v, nome, identificacao: placa, capacidadeKg: capacidade, capacidadeM3: volume ?? 0 }
+            : v
+        )
+      );
+      await this.sincronizarTetoDaFrota();
+      this.fecharModalVeiculo();
+      this.toast.mostrar(`${nome} atualizado.`);
+      return;
+    }
 
     const { data, error } = await this.client
       .from('veiculos')
-      .insert({
-        cooperativa_id: cooperativa.id,
-        nome,
-        identificacao: this.novoVeiculoIdentificacao().trim() || null,
-        capacidade_kg: this.novoVeiculoCapacidade(),
-        capacidade_m3: capacidadeM3,
-      })
+      .insert({ cooperativa_id: cooperativa.id, ...campos })
       .select()
       .single();
 
@@ -332,45 +501,23 @@ export class Equipe {
       return;
     }
 
-    const veiculo: Veiculo = {
-      id: data.id,
-      nome: data.nome,
-      identificacao: data.identificacao || 'sem placa',
-      situacao: data.situacao,
-      situacaoTipo: situacaoVeiculoTipo(data.situacao),
-      capacidadeKg: Number(data.capacidade_kg),
-      capacidadeM3: data.capacidade_m3 !== null ? Number(data.capacidade_m3) : 0,
-      extraLabel: 'Próxima revisão',
-      extraValor: data.proxima_revisao ?? '—',
-    };
-
-    this.veiculos.update(lista => [...lista, veiculo]);
+    this.veiculos.update(lista => [
+      ...lista,
+      {
+        id: data.id,
+        nome: data.nome,
+        identificacao: data.identificacao || SEM_PLACA,
+        situacao: data.situacao,
+        situacaoTipo: situacaoVeiculoTipo(data.situacao),
+        capacidadeKg: Number(data.capacidade_kg),
+        capacidadeM3: data.capacidade_m3 !== null ? Number(data.capacidade_m3) : 0,
+        extraLabel: 'Próxima revisão',
+        extraValor: data.proxima_revisao ?? '—',
+      },
+    ]);
     await this.sincronizarTetoDaFrota();
     this.fecharModalVeiculo();
     this.toast.mostrar(`${nome} adicionado à frota.`);
   }
 
-  // ===== Gerenciar permissões =====
-
-  readonly modalPermissoesAberto = signal(false);
-
-  abrirModalPermissoes(): void {
-    this.modalPermissoesAberto.set(true);
-  }
-
-  fecharModalPermissoes(): void {
-    this.modalPermissoesAberto.set(false);
-  }
-
-  async alternarAcessoPainel(id: string): Promise<void> {
-    const membro = this.equipe().find(m => m.id === id);
-    if (!membro) return;
-
-    const { error } = await this.client.from('equipe').update({ acesso_painel: !membro.acessoPainel }).eq('id', id);
-    if (error) {
-      this.toast.mostrar('Não foi possível alterar o acesso ao painel.');
-      return;
-    }
-    this.equipe.update(lista => lista.map(m => (m.id === id ? { ...m, acessoPainel: !m.acessoPainel } : m)));
-  }
 }

@@ -42,6 +42,15 @@ app.use(
   }),
 );
 
+/**
+ * Atrás de proxy (Nginx, Render, Railway…) o IP real vem no X-Forwarded-For; sem isto,
+ * todo mundo teria o IP do proxy e dividiria o mesmo limite da IA. Só ligue quando houver
+ * proxy na frente — senão qualquer um forja o cabeçalho e foge do limite.
+ * Ex.: TRUST_PROXY=1 (um proxy na frente).
+ */
+const trustProxy = process.env['TRUST_PROXY']?.trim();
+if (trustProxy) app.set('trust proxy', /^\d+$/.test(trustProxy) ? Number(trustProxy) : trustProxy);
+
 app.use(express.json({ limit: '10kb' }));
 
 /** Descrição de um item cabe folgada nisso; texto maior só gastaria cota da IA. */
@@ -70,6 +79,19 @@ function excedeuLimite(ip: string): boolean {
   return registro.total > MAX_POR_JANELA;
 }
 
+let avisouSemChave = false;
+
+/** Sem chave é configuração, não falha: avisa uma vez só em vez de a cada mensagem do chat. */
+function avisarFalhaDaIa(erro: unknown): void {
+  const mensagem = erro instanceof Error ? erro.message : String(erro);
+  if (mensagem.includes('GEMINI_API_KEY')) {
+    if (!avisouSemChave) console.warn('[classificar] GEMINI_API_KEY não configurada — usando só a regra local.');
+    avisouSemChave = true;
+    return;
+  }
+  console.warn('[classificar] IA indisponível, usando regra local:', mensagem);
+}
+
 /**
  * Classifica a descrição de um resíduo com o Gemini. A chave (GEMINI_API_KEY) só existe
  * aqui no servidor — o navegador nunca a vê. Se a IA falhar por qualquer motivo (sem
@@ -96,7 +118,7 @@ app.post('/api/classificar', async (req, res) => {
   try {
     res.json(await classificarComGemini(descricao));
   } catch (erro) {
-    console.warn('[classificar] IA indisponível, usando regra local:', erro);
+    avisarFalhaDaIa(erro);
     res.json(classificar(descricao));
   }
 });

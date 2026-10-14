@@ -80,7 +80,7 @@
             <div class="field campo-obrigatorio" [class.campo-invalido]="invalido('nome')">
               <label for="org-nome">Nome da organização</label>
               <input
-                id="org-nome"
+                id="org-nome" maxlength="80"
                 type="text"
                 required
                 placeholder="Ex.: Cooperativa Nova Esperança"
@@ -135,7 +135,7 @@
             <div class="field campo-obrigatorio" [class.campo-invalido]="invalido('responsavelNome')">
               <label for="resp-nome">Nome completo</label>
               <input
-                id="resp-nome"
+                id="resp-nome" maxlength="80"
                 type="text"
                 required
                 placeholder="Nome e sobrenome"
@@ -174,7 +174,8 @@
               <label for="resp-telefone">Telefone com WhatsApp</label>
               <input
                 id="resp-telefone"
-                type="text"
+                type="tel"
+                maxlength="20"
                 required
                 placeholder="(00) 00000-0000"
                 [value]="organizacao().responsavelTelefone"

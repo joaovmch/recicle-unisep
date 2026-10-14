@@ -119,7 +119,8 @@
 
   .publico-nav {
     order: 3;
-    width: 100%;
+    /* flex-basis, não width: o "flex: 1" da regra base zera a base e ignoraria o width. */
+    flex: 1 1 100%;
     overflow-x: auto;
   }
 }

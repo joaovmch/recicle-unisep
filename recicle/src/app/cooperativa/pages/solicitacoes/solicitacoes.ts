@@ -4,8 +4,9 @@ import { ToastService } from '../../../shared/ui/toast.service';
 import { Solicitacao, SolicitacoesStore } from '../../data/solicitacoes.store';
 import { CooperativaService } from '../../data/cooperativa.service';
 import { SupabaseService } from '../../../supabase.service';
-import { formatarPreco, hojeISO } from '../../../shared/util/format';
+import { formatarDistancia, formatarPreco, hojeISO } from '../../../shared/util/format';
 import { MembroSelecionavel } from '../../shared/equipe-basico';
+import { mesmoNome, tiposDaCategoria } from '../../../shared/data/classificador';
 
 type Aba = 'pendente' | 'aceita' | 'concluida' | 'recusada';
 
@@ -176,11 +177,9 @@ export class Solicitacoes {
     const ativos = this.residuosAtivos();
     if (ativos.length === 0) return null;
 
-    const categoria = s.categoria.toLowerCase();
-    const aceita = ativos.some(nome => {
-      const tipo = nome.toLowerCase();
-      return categoria.includes(tipo) || tipo.includes(categoria);
-    });
+    // "Resíduo perigoso" é recebido por quem liga "Pilhas e baterias" ou "Lâmpadas".
+    const tipos = tiposDaCategoria(s.categoria);
+    const aceita = ativos.some(nome => tipos.some(tipo => mesmoNome(tipo, nome)));
     return aceita ? null : 'tipo desligado no cadastro';
   }
 
@@ -250,9 +249,7 @@ export class Solicitacoes {
     });
   }
 
-  formatarDistancia(km: number): string {
-    return `${km.toFixed(1).replace('.', ',')} km`;
-  }
+  readonly formatarDistancia = formatarDistancia;
 
   // ===== Equipe e veículos (para o modal de aceite) =====
 

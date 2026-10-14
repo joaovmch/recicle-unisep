@@ -57,10 +57,7 @@
     <div class="cooperativa-card">
       <strong>{{ adminService.admin()?.nome ?? 'Admin' }}</strong>
 
-      <div class="license">
-        <span class="status-dot"></span>
-        {{ adminService.admin()?.email }}
-      </div>
+      <span class="licenca">{{ adminService.admin()?.email }}</span>
 
       <button class="logout-btn" (click)="sair()">Sair da conta</button>
     </div>

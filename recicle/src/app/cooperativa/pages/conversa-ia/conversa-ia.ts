@@ -2,12 +2,30 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Solicitacao, SolicitacoesStore } from '../../data/solicitacoes.store';
 import { CooperativaService } from '../../data/cooperativa.service';
-import { classificar, respostaDaIa } from '../../../shared/data/classificador';
-import { formatarPreco } from '../../../shared/util/format';
+import { PassoPreparo, classificar, respostaDaIa } from '../../../shared/data/classificador';
+import { SupabaseService } from '../../../supabase.service';
+import { UUID_RE } from '../../../shared/util/validators';
+import { formatarDistancia, formatarPreco } from '../../../shared/util/format';
 
 interface Mensagem {
   autor: 'morador' | 'ia';
   texto: string;
+}
+
+interface ResumoResiduo {
+  categoria: string;
+  materiais: string;
+  reciclavel: string;
+  atencao: string | null;
+  passos: PassoPreparo[];
+}
+
+/** O que `conversa_da_solicitacao` devolve: a conversa gravada que gerou o pedido. */
+interface ConversaGravada {
+  materiais: string | null;
+  reciclavel: string | null;
+  atencao: string | null;
+  mensagens: { autor: 'morador' | 'ia'; texto: string; passos: PassoPreparo[] | null }[];
 }
 
 @Component({
@@ -21,6 +39,7 @@ export class ConversaIa {
   private readonly cooperativaService = inject(CooperativaService);
   private readonly rota = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly client = inject(SupabaseService).client;
 
   readonly formatarPreco = formatarPreco;
 
@@ -31,26 +50,51 @@ export class ConversaIa {
     () => this.store.solicitacoes().find(s => s.id === this.id) ?? null
   );
 
+  /** Conversa gravada no chat do morador; null quando não existe (pedido antigo) ou não carregou. */
+  private readonly conversa = signal<ConversaGravada | null>(null);
+
   /**
-   * A conversa é reconstruída a partir do mesmo classificador que o chat do morador usa:
-   * é ele que transforma a descrição em categoria, materiais e passos de preparo. O que a
-   * cooperativa lê aqui é, portanto, o raciocínio real que gerou o pedido — não um texto fixo.
+   * Sem conversa gravada, a tela mostra uma reconstrução feita pelo classificador local a
+   * partir do título — e avisa que é uma reconstrução, não o que o morador leu.
    */
-  readonly classificacao = computed(() => {
+  readonly reconstruida = computed(() => !this.conversa());
+
+  private readonly reconstrucao = computed(() => {
     const s = this.solicitacao();
-    return s ? classificar(`${s.titulo} ${s.pesoEstimadoKg} kg`) : null;
+    return s && !this.conversa() ? classificar(`${s.titulo} ${s.pesoEstimadoKg} kg`) : null;
+  });
+
+  readonly classificacao = computed<ResumoResiduo | null>(() => {
+    const s = this.solicitacao();
+    if (!s) return null;
+
+    const gravada = this.conversa();
+    if (gravada) {
+      // Os passos que valem são os da última resposta da IA antes do pedido.
+      const passos = [...gravada.mensagens].reverse().find(m => m.autor === 'ia' && m.passos?.length)?.passos ?? [];
+      return {
+        categoria: s.categoria,
+        materiais: gravada.materiais ?? '—',
+        reciclavel: gravada.reciclavel ?? '—',
+        atencao: gravada.atencao,
+        passos,
+      };
+    }
+
+    const c = this.reconstrucao();
+    return c ? { categoria: s.categoria, materiais: c.materiais, reciclavel: c.reciclavel, atencao: c.atencao, passos: c.passos } : null;
   });
 
   readonly mensagens = computed<Mensagem[]>(() => {
-    const s = this.solicitacao();
-    const c = this.classificacao();
-    if (!s || !c) return [];
+    const gravada = this.conversa();
+    if (gravada) return gravada.mensagens.map(m => ({ autor: m.autor, texto: m.texto }));
 
+    const s = this.solicitacao();
+    const c = this.reconstrucao();
+    if (!s || !c) return [];
     return [
-      { autor: 'ia', texto: 'Oi! Me conta o que você quer descartar hoje.' },
-      { autor: 'morador', texto: s.titulo.toLowerCase() },
+      { autor: 'morador', texto: s.titulo },
       { autor: 'ia', texto: respostaDaIa(c) },
-      { autor: 'morador', texto: 'prefiro que venham buscar, tenho como pagar' },
     ];
   });
 
@@ -59,10 +103,13 @@ export class ConversaIa {
     const cooperativa = this.cooperativaService.cooperativa();
     if (!s) return '';
 
+    // Não afirma que a cooperativa aceita o material: quem diz isso é a etiqueta da lista de
+    // solicitações, que confere com os tipos ligados no cadastro.
     const nome = cooperativa?.nome ?? 'a cooperativa';
-    const distancia = `${s.distanciaKm.toFixed(1).replace('.', ',')} km`;
+    const distancia = formatarDistancia(s.distanciaKm);
+    const onde = distancia ? `${s.bairro}, a ${distancia} de ${nome}` : s.bairro;
     const janela = s.janela ? `, janela preferida ${s.janela}` : '';
-    return `${nome} fica a ${distancia} e aceita esse material. Pedido enviado em ${this.quando(s.criadoEm)}${janela}, ${formatarPreco(s.preco)} pagos na retirada.`;
+    return `Coleta em ${onde}. Pedido enviado em ${this.quando(s.criadoEm)}${janela}, ${formatarPreco(s.preco)} pagos na retirada.`;
   });
 
   readonly aindaPendente = computed(() => this.solicitacao()?.status === 'pendente');
@@ -93,8 +140,20 @@ export class ConversaIa {
   }
 
   private async carregar(): Promise<void> {
-    if (this.store.solicitacoes().length === 0) await this.store.carregar();
+    const [, conversa] = await Promise.all([
+      this.store.solicitacoes().length === 0 ? this.store.carregar() : Promise.resolve(),
+      this.carregarConversa(),
+    ]);
+    this.conversa.set(conversa);
     this.carregando.set(false);
+  }
+
+  /** Falha aqui (função ainda não criada no banco, rede) só cai na reconstrução. */
+  private async carregarConversa(): Promise<ConversaGravada | null> {
+    if (!UUID_RE.test(this.id)) return null;
+    const { data, error } = await this.client.rpc('conversa_da_solicitacao', { p_solicitacao: this.id });
+    if (error || !data || !Array.isArray(data.mensagens) || data.mensagens.length === 0) return null;
+    return data as ConversaGravada;
   }
 
   quando(iso: string): string {

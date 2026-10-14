@@ -25,6 +25,9 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  /* Quem usa muito acumula dezenas de conversas: a lista rola sozinha em vez de esticar a página. */
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
 .conversa-item {
@@ -349,6 +352,8 @@
 
 .chat-entrada input {
   flex: 1;
+  /* Sem isto o input não encolhe abaixo da largura padrão e empurra o botão para fora no celular. */
+  min-width: 0;
   min-height: 46px;
   padding: 0 16px;
   border-radius: 10px;
@@ -426,6 +431,15 @@
 
   .chat-lateral {
     min-height: auto;
+  }
+
+  /* No celular a lista vem antes do chat: curta, para a caixa de mensagem ficar à vista. */
+  .conversa-lista {
+    max-height: 210px;
+  }
+
+  .chat-entrada {
+    padding: 14px 14px 16px;
   }
 
   .destino-grid {

@@ -25,13 +25,15 @@
         <div class="field-row">
           <div class="field">
             <label for="perfil-nome">Nome completo</label>
-            <input id="perfil-nome" type="text" [value]="nome()" (input)="nome.set($any($event.target).value)" />
+            <input id="perfil-nome" type="text" maxlength="80" autocomplete="name" [value]="nome()" (input)="nome.set($any($event.target).value)" />
           </div>
           <div class="field">
             <label for="perfil-telefone">Telefone com WhatsApp</label>
             <input
               id="perfil-telefone"
-              type="text"
+              type="tel"
+              maxlength="20"
+              autocomplete="tel"
               placeholder="(00) 00000-0000"
               [value]="telefone()"
               (input)="telefone.set($any($event.target).value)"

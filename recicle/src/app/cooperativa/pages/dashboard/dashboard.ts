@@ -3,7 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { Solicitacao, SolicitacoesStore } from '../../data/solicitacoes.store';
 import { CooperativaService } from '../../data/cooperativa.service';
 import { SupabaseService } from '../../../supabase.service';
-import { formatarPreco, hojeISO } from '../../../shared/util/format';
+import { formatarDistancia, formatarPreco, hojeISO } from '../../../shared/util/format';
 
 interface MaterialBarra {
   material: string;
@@ -12,11 +12,23 @@ interface MaterialBarra {
 
 interface ParadaRota {
   id: string;
+  ordem: number;
   categoria: string;
   solicitante: string;
-  janela: string;
+  horario: string;
   concluida: boolean;
   proxima: boolean;
+}
+
+/** Início de cada janela e tempo reservado por parada, usados para prever o horário da rota. */
+const INICIO_JANELA: Record<string, number> = { manhã: 8, manha: 8, tarde: 13 };
+const INICIO_PADRAO_H = 8;
+const MINUTOS_POR_PARADA = 50;
+
+function horarioPrevisto(janela: string, indice: number): string {
+  const inicio = INICIO_JANELA[janela.trim().toLowerCase()] ?? INICIO_PADRAO_H;
+  const total = inicio * 60 + indice * MINUTOS_POR_PARADA;
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 
 function inicioDoMes(): Date {
@@ -191,7 +203,7 @@ export class Dashboard {
       `≈ ${s.pesoEstimadoKg} kg`,
       s.solicitante,
       s.bairro,
-      `${s.distanciaKm.toFixed(1).replace('.', ',')} km`,
+      formatarDistancia(s.distanciaKm),
       s.janela,
     ];
     return partes.filter(Boolean).join(' · ');
@@ -229,10 +241,11 @@ export class Dashboard {
           .gte('criado_em', desde),
         this.client
           .from('solicitacoes')
-          .select('id, categoria, solicitante_nome, janela_confirmada, status')
+          .select('id, categoria, solicitante_nome, janela_confirmada, status, distancia_km')
           .eq('cooperativa_id', cooperativa.id)
           .eq('data_agendada', hoje)
-          .order('janela_confirmada'),
+          .order('janela_confirmada')
+          .order('distancia_km'),
         this.client
           .from('bairros_atendidos')
           .select('nome')
@@ -268,15 +281,16 @@ export class Dashboard {
 
     let proximaMarcada = false;
     this.rotaDeHoje.set(
-      (rota ?? []).map((r: any) => {
+      (rota ?? []).map((r: any, i: number) => {
         const concluida = r.status === 'concluida';
         const proxima = !concluida && !proximaMarcada;
         if (proxima) proximaMarcada = true;
         return {
           id: r.id,
+          ordem: i + 1,
           categoria: maiuscula(r.categoria ?? ''),
           solicitante: r.solicitante_nome,
-          janela: r.janela_confirmada ?? '',
+          horario: horarioPrevisto(r.janela_confirmada ?? '', i),
           concluida,
           proxima,
         };

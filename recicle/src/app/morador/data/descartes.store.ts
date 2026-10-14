@@ -3,6 +3,7 @@ import { SupabaseService } from '../../supabase.service';
 import { MoradorService } from './morador.service';
 import { hojeISO } from '../../shared/util/format';
 import { mensagemDoBanco } from '../../shared/util/erros';
+import { UUID_RE } from '../../shared/util/validators';
 
 export type DescarteStatus = 'pendente' | 'aceita' | 'concluida' | 'recusada' | 'cancelada';
 export type Destino = 'coleta_casa' | 'entrega_ecoponto';
@@ -122,6 +123,7 @@ export class DescartesStore {
   }
 
   async buscarPorId(id: string): Promise<Descarte | undefined> {
+    if (!UUID_RE.test(id)) return undefined;
     const { data } = await this.client
       .from('solicitacoes')
       .select('*, ecopontos(nome), solicitacao_codigos(codigo)')

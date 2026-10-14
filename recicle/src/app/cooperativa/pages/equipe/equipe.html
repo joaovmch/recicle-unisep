@@ -42,8 +42,10 @@
             </div>
 
             <div class="membro-acoes">
-              <button class="link-acao" (click)="abrirModalPermissoes()">Permissões</button>
-              <button class="link-acao remover" (click)="removerPessoa(m)">Remover</button>
+              <button class="link-acao" (click)="abrirModalPessoa(m)">Editar</button>
+              @if (m.funcao !== 'Responsável legal') {
+                <button class="link-acao remover" (click)="abrirRemocao(m)">Remover</button>
+              }
             </div>
           </div>
         }
@@ -87,6 +89,8 @@
               >
                 {{ v.situacao }}
               </span>
+
+              <button class="link-acao" (click)="abrirModalVeiculo(v)">Editar</button>
             </div>
 
             <div class="veiculo-rows">
@@ -154,7 +158,7 @@
 </div>
 
 
-<!-- MODAL — ADICIONAR PESSOA -->
+<!-- MODAL — MEMBRO DA EQUIPE -->
 @if (modalPessoaAberto()) {
   <div class="modal-overlay" (click)="fecharModalPessoa()">
     <div class="modal-card" (click)="$event.stopPropagation()">
@@ -162,12 +166,21 @@
         <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
       </button>
 
-      <h2>Adicionar pessoa à equipe</h2>
-      <p class="modal-description">Ela aparece na tabela de equipe e pode ganhar acesso para confirmar recebimento.</p>
+      <h2>{{ membroEmEdicao() ? 'Editar membro' : 'Adicionar membro' }}</h2>
+      <p class="modal-description">
+        O papel define o que a pessoa pode fazer; o acesso ao painel define se ela entra no sistema.
+      </p>
 
-      <div class="field">
+      <div class="field campo-obrigatorio">
         <label for="pessoa-nome">Nome completo</label>
-        <input id="pessoa-nome" type="text" [value]="novoNome()" (input)="novoNome.set($any($event.target).value)" />
+        <input
+          id="pessoa-nome"
+          type="text"
+          maxlength="100"
+          [value]="novoNome()"
+          (input)="novoNome.set($any($event.target).value)"
+        />
+        <span class="hint">Nome e sobrenome, de 3 a 100 caracteres.</span>
       </div>
 
       <div class="field-row">
@@ -182,8 +195,8 @@
           />
         </div>
 
-        <div class="field">
-          <label for="pessoa-funcao">Função</label>
+        <div class="field campo-obrigatorio">
+          <label for="pessoa-funcao">Papel</label>
           <select id="pessoa-funcao" [value]="novaFuncao()" (change)="novaFuncao.set($any($event.target).value)">
             @for (f of funcoesDisponiveis; track f) {
               <option [value]="f">{{ f }}</option>
@@ -192,16 +205,77 @@
         </div>
       </div>
 
+      <div class="toggle-row" style="margin-bottom: 20px;">
+        <span>
+          Acesso ao painel
+          <small>entra no sistema com o próprio login</small>
+        </span>
+        <label class="toggle-switch">
+          <input
+            type="checkbox"
+            [checked]="novoAcessoPainel()"
+            (change)="novoAcessoPainel.set($any($event.target).checked)"
+          />
+          <span class="track"></span>
+        </label>
+      </div>
+
+      @if (novoAcessoPainel()) {
+        <div class="info-box">
+          <strong>Convite de acesso</strong>
+          <p>
+            O login individual de membro da equipe ainda não está liberado nesta versão — por enquanto o acesso
+            ao painel é só pela conta da cooperativa. A marcação fica registrada para quando o convite por
+            e-mail entrar no ar.
+          </p>
+        </div>
+      }
+
       <div class="modal-actions">
         <button class="btn btn-outline" (click)="fecharModalPessoa()">Cancelar</button>
-        <button class="btn btn-primary" [disabled]="!novoNome().trim()" (click)="salvarPessoa()">Adicionar</button>
+        <button class="btn btn-primary" (click)="salvarPessoa()">Salvar membro</button>
       </div>
     </div>
   </div>
 }
 
 
-<!-- MODAL — ADICIONAR VEÍCULO -->
+<!-- MODAL — CONFIRMAR REMOÇÃO DE MEMBRO -->
+@if (membroParaRemover(); as membro) {
+  <div class="modal-overlay" (click)="fecharRemocao()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <h2>Remover {{ membro.nome }}?</h2>
+
+      @if (coletasFuturasDoMembro() > 0) {
+        <p class="modal-description">
+          {{ membro.nome }} está designado para
+          {{ coletasFuturasDoMembro() }} {{ coletasFuturasDoMembro() === 1 ? 'coleta aceita' : 'coletas aceitas' }}.
+          Troque o coletor dessas coletas antes de concluir a remoção.
+        </p>
+
+        <div class="modal-actions">
+          <button class="btn btn-outline" (click)="fecharRemocao()">Voltar</button>
+          <button class="btn btn-primary" routerLink="/cooperativa/solicitacoes" (click)="fecharRemocao()">
+            Ver coletas aceitas
+          </button>
+        </div>
+      } @else {
+        <p class="modal-description">
+          A pessoa perde o acesso e deixa de aparecer para designação. As coletas que ela já confirmou
+          continuam no histórico da cooperativa.
+        </p>
+
+        <div class="modal-actions">
+          <button class="btn btn-outline" (click)="fecharRemocao()">Cancelar</button>
+          <button class="btn btn-danger" (click)="confirmarRemocao()">Remover da equipe</button>
+        </div>
+      }
+    </div>
+  </div>
+}
+
+
+<!-- MODAL — VEÍCULO -->
 @if (modalVeiculoAberto()) {
   <div class="modal-overlay" (click)="fecharModalVeiculo()">
     <div class="modal-card" (click)="$event.stopPropagation()">
@@ -209,84 +283,71 @@
         <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
       </button>
 
-      <h2>Adicionar veículo</h2>
-      <p class="modal-description">A capacidade entra direto no teto que a IA considera para oferecer coletas.</p>
+      <h2>{{ veiculoEmEdicao() ? 'Editar veículo' : 'Adicionar veículo' }}</h2>
+      <p class="modal-description">
+        A capacidade do maior veículo é o peso máximo que a IA pode oferecer para a cooperativa.
+      </p>
 
-      <div class="field">
-        <label for="veiculo-nome">Nome do veículo</label>
-        <input
-          id="veiculo-nome"
-          type="text"
-          placeholder="Ex.: Furgão"
-          [value]="novoVeiculoNome()"
-          (input)="novoVeiculoNome.set($any($event.target).value)"
-        />
+      <div class="field-row">
+        <div class="field campo-obrigatorio">
+          <label for="veiculo-nome">Nome do veículo</label>
+          <input
+            id="veiculo-nome"
+            type="text"
+            maxlength="40"
+            placeholder="Ex.: Caminhonete"
+            [value]="novoVeiculoNome()"
+            (input)="novoVeiculoNome.set($any($event.target).value)"
+          />
+          <span class="hint">De 3 a 40 caracteres.</span>
+        </div>
+
+        <div class="field campo-obrigatorio">
+          <label for="veiculo-placa">Placa</label>
+          <input
+            id="veiculo-placa"
+            type="text"
+            placeholder="AAA-0A00"
+            [value]="novoVeiculoPlaca()"
+            (input)="novoVeiculoPlaca.set($any($event.target).value)"
+          />
+          <span class="hint">Padrão Mercosul ou antigo. Para uso urbano, escreva "sem placa".</span>
+        </div>
       </div>
 
       <div class="field-row">
-        <div class="field">
-          <label for="veiculo-identificacao">Placa e motorista</label>
-          <input
-            id="veiculo-identificacao"
-            type="text"
-            placeholder="Ex.: ABC-1234 · Nome"
-            [value]="novoVeiculoIdentificacao()"
-            (input)="novoVeiculoIdentificacao.set($any($event.target).value)"
-          />
-        </div>
-
-        <div class="field">
+        <div class="field campo-obrigatorio">
           <label for="veiculo-capacidade">Capacidade (kg)</label>
           <input
             id="veiculo-capacidade"
             type="number"
+            [min]="capacidadeMin"
+            [max]="capacidadeMax"
             step="10"
             [value]="novoVeiculoCapacidade()"
             (input)="novoVeiculoCapacidade.set(+$any($event.target).value || 0)"
           />
+          <span class="hint">De {{ capacidadeMin }} a {{ capacidadeMax }} kg.</span>
+        </div>
+
+        <div class="field">
+          <label for="veiculo-volume">Volume de carga (m³) · opcional</label>
+          <input
+            id="veiculo-volume"
+            type="number"
+            [min]="volumeMin"
+            [max]="volumeMax"
+            step="0.1"
+            [value]="novoVeiculoVolume()"
+            (input)="novoVeiculoVolume.set($any($event.target).value ? +$any($event.target).value : null)"
+          />
+          <span class="hint">De {{ volumeMin }} a {{ volumeMax }} m³.</span>
         </div>
       </div>
 
       <div class="modal-actions">
         <button class="btn btn-outline" (click)="fecharModalVeiculo()">Cancelar</button>
-        <button class="btn btn-primary" [disabled]="!novoVeiculoNome().trim()" (click)="salvarVeiculo()">
-          Adicionar
-        </button>
-      </div>
-    </div>
-  </div>
-}
-
-
-<!-- MODAL — GERENCIAR PERMISSÕES -->
-@if (modalPermissoesAberto()) {
-  <div class="modal-overlay" (click)="fecharModalPermissoes()">
-    <div class="modal-card" (click)="$event.stopPropagation()">
-      <button class="modal-close" (click)="fecharModalPermissoes()">
-        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
-      </button>
-
-      <h2>Gerenciar permissões</h2>
-      <p class="modal-description">Quem tem acesso ao painel do parceiro para ver solicitações e relatórios.</p>
-
-      @if (equipe().length === 0) {
-        <p class="empty-hint">Nenhuma pessoa cadastrada ainda.</p>
-      } @else {
-        <div class="toggle-row-list">
-          @for (m of equipe(); track m.id) {
-            <div class="toggle-row">
-              <span>{{ m.nome }} <small>· {{ m.funcao }}</small></span>
-              <label class="toggle-switch">
-                <input type="checkbox" [checked]="m.acessoPainel" (change)="alternarAcessoPainel(m.id)" />
-                <span class="track"></span>
-              </label>
-            </div>
-          }
-        </div>
-      }
-
-      <div class="modal-actions" style="margin-top: 20px;">
-        <button class="btn btn-primary" (click)="fecharModalPermissoes()">Concluído</button>
+        <button class="btn btn-primary" (click)="salvarVeiculo()">Salvar veículo</button>
       </div>
     </div>
   </div>

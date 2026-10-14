@@ -35,7 +35,7 @@
       @for (c of listaAtiva(); track c.id) {
         <tr>
           <td><strong>{{ c.nome }}</strong></td>
-          <td>{{ c.cnpj }}</td>
+          <td>{{ formatarCnpj(c.cnpj) }}</td>
           <td>{{ c.responsavelNome }}</td>
           <td>{{ c.cidade || '—' }}{{ c.uf ? ' / ' + c.uf : '' }}</td>
           <td>{{ formatarData(c.criadoEm) }}</td>
@@ -68,7 +68,7 @@
       </button>
 
       <h2>{{ c.nome }}</h2>
-      <p class="modal-description">{{ c.tipo }} · CNPJ {{ c.cnpj }}</p>
+      <p class="modal-description">{{ c.tipo }} · CNPJ {{ formatarCnpj(c.cnpj) }}</p>
 
       <div class="field-row">
         <div class="field">

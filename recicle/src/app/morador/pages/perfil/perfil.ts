@@ -4,7 +4,7 @@ import { Endereco, MoradorService } from '../../data/morador.service';
 import { AuthService } from '../../../shared/data/auth.service';
 import { ToastService } from '../../../shared/ui/toast.service';
 import { SupabaseService, traduzirErroAuth } from '../../../supabase.service';
-import { SENHA_MIN_CARACTERES, UFS, ufValida } from '../../../shared/util/validators';
+import { NOME_MAX_CARACTERES, SENHA_MIN_CARACTERES, UFS, telefoneValido, ufValida } from '../../../shared/util/validators';
 
 type Aba = 'dados' | 'notificacoes' | 'seguranca';
 
@@ -72,6 +72,14 @@ export class Perfil {
   async salvarDados(): Promise<void> {
     if (!this.nome().trim()) {
       this.toast.mostrar('O nome não pode ficar em branco.');
+      return;
+    }
+    if (this.nome().trim().length > NOME_MAX_CARACTERES) {
+      this.toast.mostrar(`O nome pode ter até ${NOME_MAX_CARACTERES} caracteres.`);
+      return;
+    }
+    if (this.telefone().trim() && !telefoneValido(this.telefone())) {
+      this.toast.mostrar('Telefone inválido. Use o DDD e o número, ex.: (46) 99999-9999.');
       return;
     }
 

@@ -127,7 +127,10 @@ export class ChatStore {
   private async enviarComoMorador(moradorId: string, descricao: string): Promise<{ erro: string | null }> {
     const falha = { erro: 'Não foi possível enviar sua mensagem. Tente novamente.' };
 
+    // Conversa que já virou pedido fica congelada: a categoria dela é a do pedido enviado.
+    // Mensagem nova ali vira um descarte novo, em vez de reclassificar o que já foi pedido.
     let conversa = this._ativa();
+    if (conversa?.solicitacaoId) conversa = null;
     const classificacao = await classificarComIA(descricao);
 
     if (!conversa) {
@@ -145,10 +148,11 @@ export class ChatStore {
       conversa = paraConversa(data);
       this._ativa.set(conversa);
     } else {
-      // Nova descrição na mesma conversa reclassifica o item.
+      // Nova descrição na mesma conversa reclassifica o item — e o título acompanha, porque
+      // é ele que vai como título da solicitação.
       const { error } = await this.client
         .from('chat_conversas')
-        .update(this.camposClassificacao(classificacao))
+        .update({ titulo: tituloDe(descricao), ...this.camposClassificacao(classificacao) })
         .eq('id', conversa.id);
       if (error) return falha;
     }

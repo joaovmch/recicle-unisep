@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { SupabaseService } from '../../../supabase.service';
 import { ToastService } from '../../../shared/ui/toast.service';
-import { formatarData } from '../../../shared/util/format';
+import { formatarCnpj, formatarData } from '../../../shared/util/format';
 import { StatusCadastro } from '../../../cooperativa/data/cooperativa.service';
 import {
   NOME_TIPO_DOCUMENTO,
@@ -245,4 +245,5 @@ export class Cooperativas {
   }
 
   readonly formatarData = formatarData;
+  readonly formatarCnpj = formatarCnpj;
 }

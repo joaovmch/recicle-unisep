@@ -41,4 +41,7 @@ export const routes: Routes = [
     path: '',
     loadChildren: () => import('./morador/morador.routes').then(m => m.MORADOR_ROUTES),
   },
+
+  // Endereço que não existe (link velho, digitação) volta para o início em vez de tela branca.
+  { path: '**', redirectTo: '' },
 ];

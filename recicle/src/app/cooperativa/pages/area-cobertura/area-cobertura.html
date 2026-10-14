@@ -6,7 +6,7 @@
   </div>
 
   <div class="header-actions">
-    <button class="btn btn-primary" (click)="salvarAlteracoes()">Salvar alterações</button>
+    <button class="btn btn-primary" [disabled]="temErro()" (click)="salvarAlteracoes()">Salvar alterações</button>
   </div>
 </header>
 
@@ -48,29 +48,36 @@
       <p class="subtitle">Os mesmos limites definidos no cadastro. Dá para mudar quando a equipe crescer.</p>
 
       <div class="field-row" style="margin-top: 18px;">
-        <div class="field">
+        <div class="field" [class.campo-invalido]="erroRaio()">
           <label for="raio">Raio de atendimento (km)</label>
           <input
             id="raio"
             type="number"
-            min="1"
-            max="50"
+            [min]="raioMin"
+            [max]="raioMax"
             step="1"
             [value]="raio()"
             (input)="atualizarRaio($any($event.target).value)"
           />
+          <span class="hint" [class.hint-erro]="erroRaio()">
+            {{ erroRaio() || 'De ' + raioMin + ' a ' + raioMax + ' km, em linha reta a partir do galpão.' }}
+          </span>
         </div>
 
-        <div class="field">
+        <div class="field" [class.campo-invalido]="erroColetas()">
           <label for="coletas-periodo">Coletas por período</label>
           <input
             id="coletas-periodo"
             type="number"
-            min="0"
+            [min]="coletasMin"
+            [max]="coletasMax"
             step="1"
             [value]="coletasPorPeriodo()"
             (input)="atualizarColetasPorPeriodo($any($event.target).value)"
           />
+          <span class="hint" [class.hint-erro]="erroColetas()">
+            {{ erroColetas() || 'De ' + coletasMin + ' a ' + coletasMax + ' coletas por período.' }}
+          </span>
         </div>
       </div>
 

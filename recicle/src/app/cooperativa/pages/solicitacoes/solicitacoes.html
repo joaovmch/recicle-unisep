@@ -64,7 +64,7 @@
 
         <div>
           <span>Local</span>
-          <strong>{{ s.bairro }} · {{ formatarDistancia(s.distanciaKm) }}</strong>
+          <strong>{{ s.bairro }}@if (formatarDistancia(s.distanciaKm); as d) { · {{ d }} }</strong>
         </div>
 
         <div>
@@ -132,7 +132,7 @@
         </div>
         <div>
           <span>Endereço</span>
-          <strong>{{ s.endereco }} — {{ s.bairro }} · {{ formatarDistancia(s.distanciaKm) }}</strong>
+          <strong>{{ s.endereco }} — {{ s.bairro }}@if (formatarDistancia(s.distanciaKm); as d) { · {{ d }} }</strong>
         </div>
       </div>
 

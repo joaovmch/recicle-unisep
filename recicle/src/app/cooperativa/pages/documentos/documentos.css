@@ -46,6 +46,19 @@
   line-height: 1.5;
 }
 
+/* Licença já vencida bloqueia pedidos novos: o aviso deixa de ser laranja. */
+.alert-banner.critico {
+  background: var(--rc-erro-bg);
+}
+
+.alert-banner.critico svg {
+  stroke: var(--rc-perigo);
+}
+
+.alert-banner.critico p {
+  color: var(--rc-erro-texto);
+}
+
 
 /* =========================
    LISTA DE DOCUMENTOS

@@ -28,6 +28,12 @@ function inicioDoMesISO(): string {
   return new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString();
 }
 
+/** Intervalos aceitos pelos campos obrigatórios da US11. */
+const RAIO_MIN_KM = 1;
+const RAIO_MAX_KM = 50;
+const COLETAS_MIN = 1;
+const COLETAS_MAX = 20;
+
 /** Mesmo texto usado como motivo de recusa em Solicitações — é assim que uma coleta fora do raio fica registrada. */
 const MOTIVO_RECUSA_AREA = 'Endereço fora da área de coleta';
 
@@ -66,6 +72,27 @@ export class AreaCobertura {
   readonly coletasPorPeriodo = signal(0);
 
   readonly mesAtual = new Date().toLocaleDateString('pt-BR', { month: 'long' });
+
+  readonly raioMin = RAIO_MIN_KM;
+  readonly raioMax = RAIO_MAX_KM;
+  readonly coletasMin = COLETAS_MIN;
+  readonly coletasMax = COLETAS_MAX;
+
+  /** Campo destacado pela FE01 enquanto o valor estiver fora do intervalo. */
+  readonly erroRaio = computed(() =>
+    this.raio() < RAIO_MIN_KM || this.raio() > RAIO_MAX_KM
+      ? `Informe um raio entre ${RAIO_MIN_KM} e ${RAIO_MAX_KM} km.`
+      : ''
+  );
+  readonly erroColetas = computed(() =>
+    this.coletasPorPeriodo() < COLETAS_MIN || this.coletasPorPeriodo() > COLETAS_MAX
+      ? `Informe de ${COLETAS_MIN} a ${COLETAS_MAX} coletas por período.`
+      : ''
+  );
+  readonly temErro = computed(() => !!this.erroRaio() || !!this.erroColetas());
+
+  /** Configuração salva, para o "Desfazer" da confirmação (US11 FA02). */
+  private salvo = { raio: 0, coletas: 0, bairros: [] as Bairro[] };
 
   /** Texto do aviso laranja: quanto pedido o raio atual está deixando passar. */
   readonly avisoDistancia = computed(() => {
@@ -134,6 +161,8 @@ export class AreaCobertura {
         .slice(0, 6)
     );
 
+    this.salvo = { raio: this.raio(), coletas: this.coletasPorPeriodo(), bairros: this.bairros() };
+
     const porBairro = new Map<string, { distanciaKm: number; pedidos: number }>();
     for (const r of recusadasPorArea ?? []) {
       const atual = porBairro.get(r.bairro) ?? { distanciaKm: 0, pedidos: 0 };
@@ -150,11 +179,11 @@ export class AreaCobertura {
   }
 
   atualizarRaio(valor: string): void {
-    this.raio.set(Math.max(1, Number(valor) || 0));
+    this.raio.set(Number(valor) || 0);
   }
 
   atualizarColetasPorPeriodo(valor: string): void {
-    this.coletasPorPeriodo.set(Math.max(0, Math.round(Number(valor) || 0)));
+    this.coletasPorPeriodo.set(Math.round(Number(valor) || 0));
   }
 
   alternarBairro(index: number): void {

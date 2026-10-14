@@ -68,7 +68,11 @@ export class AnaliseCadastro {
    */
   private async verificarStatus(): Promise<void> {
     const sessao = await this.auth.sessaoAtual();
-    if (!sessao) return;
+    if (!sessao) {
+      // Sem login não há cadastro para acompanhar (link salvo, sessão expirada).
+      this.router.navigate(['/cooperativa/entrar']);
+      return;
+    }
 
     const cooperativa = await this.cooperativaService.carregar();
     if (!cooperativa) {

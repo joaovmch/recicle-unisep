@@ -10,7 +10,7 @@ import {
 } from '../../data/cooperativa.service';
 import { AuthService } from '../../../shared/data/auth.service';
 import { SupabaseService } from '../../../supabase.service';
-import { EMAIL_RE, HORA_RE, SENHA_MIN_CARACTERES, UFS, lerMesAno, ufValida } from '../../../shared/util/validators';
+import { EMAIL_RE, HORA_RE, NOME_MAX_CARACTERES, SENHA_MIN_CARACTERES, UFS, lerMesAno, telefoneValido, ufValida } from '../../../shared/util/validators';
 import { erroArquivoInvalido, formatarTamanhoArquivo } from '../../../shared/util/upload';
 
 interface DadosOrganizacao {
@@ -399,10 +399,10 @@ export class Cadastro {
   private validarEtapa1(): string[] {
     const o = this.organizacao();
     const invalidos: string[] = [];
-    if (!o.nome.trim()) invalidos.push('nome');
+    if (!o.nome.trim() || o.nome.trim().length > NOME_MAX_CARACTERES) invalidos.push('nome');
     if (o.cnpj.replace(/\D/g, '').length !== 14) invalidos.push('cnpj');
-    if (!o.responsavelNome.trim()) invalidos.push('responsavelNome');
-    if (!o.responsavelTelefone.trim()) invalidos.push('responsavelTelefone');
+    if (!o.responsavelNome.trim() || o.responsavelNome.trim().length > NOME_MAX_CARACTERES) invalidos.push('responsavelNome');
+    if (!telefoneValido(o.responsavelTelefone)) invalidos.push('responsavelTelefone');
     if (!EMAIL_RE.test(o.responsavelEmail.trim())) invalidos.push('responsavelEmail');
     if (!this.modoEdicao() && this.senha().length < SENHA_MIN_CARACTERES) invalidos.push('senha');
     return invalidos;

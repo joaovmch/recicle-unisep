@@ -6,6 +6,7 @@ import { MoradorService, enderecoResumido } from '../../data/morador.service';
 import { PontosStore } from '../../data/pontos.store';
 import { ToastService } from '../../../shared/ui/toast.service';
 import { formatarPreco } from '../../../shared/util/format';
+import { mesmoNome, tiposDaCategoria } from '../../../shared/data/classificador';
 
 /** Preço de referência por kg da coleta em casa, até existir tabela por cooperativa. */
 const PRECO_BASE_POR_KG = 3.75;
@@ -47,9 +48,10 @@ export class Chat {
   readonly ecopontosProximos = computed(() => {
     const c = this.ativa();
     if (!c) return [];
+    const tipos = tiposDaCategoria(c.categoria ?? '');
     return this.ecopontosStore
       .ecopontos()
-      .filter(e => e.aceita.length === 0 || e.aceita.some(t => t.toLowerCase().includes((c.categoria ?? '').toLowerCase().split(' ')[0])))
+      .filter(e => e.aceita.length === 0 || e.aceita.some(a => tipos.some(t => mesmoNome(t, a))))
       .slice(0, 4);
   });
 

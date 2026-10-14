@@ -35,6 +35,12 @@ interface Regra {
   aceitaColetaComum: boolean;
   atencao: string | null;
   passos: PassoPreparo[];
+  /**
+   * Vence regras de prioridade menor que também casem: 2 para resíduo perigoso (o alerta não
+   * pode se perder), 1 para termos que, quando aparecem, são o próprio item ("isopor da TV" é
+   * isopor, não eletrônico). Sem valor = 0.
+   */
+  prioridade?: number;
 }
 
 const PASSO_JUNTAR: PassoPreparo = {
@@ -90,6 +96,7 @@ const REGRAS: Regra[] = [
   },
   {
     termos: ['pilha', 'bateria', 'lâmpada', 'lampada'],
+    prioridade: 2,
     categoria: 'Resíduo perigoso',
     materiais: 'Metais pesados',
     reciclavel: 'Sim',
@@ -99,6 +106,21 @@ const REGRAS: Regra[] = [
     passos: [
       { titulo: 'Não perfure nem queime', descricao: 'Pilha estufada ou vazando deve ir em saco plástico separado.' },
       { titulo: 'Guarde em recipiente rígido', descricao: 'Uma caixa ou pote fechado evita contato entre os polos.' },
+      { titulo: 'Confirme quem recebe', descricao: 'Só leve a locais marcados como licenciados para resíduo perigoso.' },
+    ],
+  },
+  {
+    termos: ['remédio', 'remedio', 'medicamento', 'tinta', 'solvente', 'thinner', 'agrotóxico', 'agrotoxico', 'veneno', 'inseticida'],
+    prioridade: 2,
+    categoria: 'Resíduo químico',
+    materiais: 'Produto químico ou medicamento',
+    reciclavel: 'Não',
+    pesoPadraoKg: 1,
+    aceitaColetaComum: false,
+    atencao: 'Não jogue na pia, no ralo nem no lixo comum. Remédio vai para farmácia com ponto de coleta; tinta e químicos, só para quem tem licença.',
+    passos: [
+      { titulo: 'Mantenha na embalagem original', descricao: 'Feche bem e não misture produtos diferentes no mesmo recipiente.' },
+      { titulo: 'Não lave nem esvazie', descricao: 'Resto de tinta ou remédio na água contamina a rede de esgoto.' },
       { titulo: 'Confirme quem recebe', descricao: 'Só leve a locais marcados como licenciados para resíduo perigoso.' },
     ],
   },
@@ -142,6 +164,49 @@ const REGRAS: Regra[] = [
       { titulo: 'Desmonte as caixas', descricao: 'Papelão aberto e achatado rende muito mais espaço no transporte.' },
       { titulo: 'Tire fitas e etiquetas', descricao: 'Fita adesiva e plástico atrapalham a reciclagem do papel.' },
       { titulo: 'Mantenha seco', descricao: 'Papel molhado ou engordurado perde valor e vira rejeito.' },
+    ],
+  },
+  {
+    termos: ['roupa', 'tecido', 'pano', 'lençol', 'lencol', 'toalha', 'cobertor', 'sapato', 'calçado', 'calcado', 'tênis', 'tenis'],
+    categoria: 'Têxteis',
+    materiais: 'Tecido, couro, borracha',
+    reciclavel: 'Parcialmente',
+    pesoPadraoKg: 3,
+    aceitaColetaComum: false,
+    atencao: 'Peça em bom estado vale mais doada do que reciclada — considere doar antes.',
+    passos: [
+      { titulo: 'Separe o que ainda dá para usar', descricao: 'Roupa e calçado em bom estado vão para doação, o resto para reciclagem.' },
+      { titulo: 'Lave e deixe secar', descricao: 'Tecido úmido mofa no saco e estraga o lote inteiro.' },
+      { titulo: 'Ensaque por tipo', descricao: 'Roupas num saco, calçados em outro, amarrados aos pares.' },
+    ],
+  },
+  {
+    termos: ['orgânico', 'organico', 'comida', 'casca', 'borra', 'poda', 'composteira'],
+    categoria: 'Resíduo orgânico',
+    materiais: 'Restos de alimento, folhas, poda',
+    reciclavel: 'Não',
+    pesoPadraoKg: 3,
+    aceitaColetaComum: true,
+    atencao: 'Não é reciclável, mas vira adubo. Nunca misture com recicláveis: contamina papel e plástico.',
+    passos: [
+      { titulo: 'Separe dos recicláveis', descricao: 'Sem plástico, vidro, guardanapo engordurado ou fita no meio.' },
+      { titulo: 'Escorra o líquido', descricao: 'Resto molhado demais apodrece rápido e atrai bichos.' },
+      { titulo: 'Use recipiente fechado', descricao: 'Balde com tampa ou saco bem amarrado até a entrega.' },
+    ],
+  },
+  {
+    termos: ['isopor', 'eps'],
+    prioridade: 1,
+    categoria: 'Plástico',
+    materiais: 'Isopor (EPS)',
+    reciclavel: 'Parcialmente',
+    pesoPadraoKg: 1,
+    aceitaColetaComum: false,
+    atencao: 'Isopor é reciclável, mas nem toda cooperativa recebe. Confira antes de levar.',
+    passos: [
+      { titulo: 'Limpe bem', descricao: 'Isopor com resto de comida (bandeja, marmita) costuma ir para rejeito.' },
+      { titulo: 'Não quebre em pedaços', descricao: 'Bolinhas soltas se espalham e não são aproveitadas.' },
+      { titulo: 'Junte num saco grande', descricao: 'É leve e volumoso: um saco cheio facilita o transporte.' },
     ],
   },
   {
@@ -201,6 +266,56 @@ const PADRAO: Omit<Regra, 'termos'> = {
   ],
 };
 
+/**
+ * Categorias que o app conhece — as mesmas das regras locais. A IA remota é obrigada a
+ * escolher uma delas (enum no schema), para o pedido casar com os tipos de resíduo das
+ * cooperativas e dos ecopontos.
+ */
+export const CATEGORIAS: readonly string[] = [...new Set([...REGRAS.map(r => r.categoria), PADRAO.categoria])];
+
+/** Tipos de resíduo do cadastro (tabela `tipos_residuo`) que recebem cada categoria. */
+const TIPOS_POR_CATEGORIA: Record<string, string[]> = {
+  'Plástico': ['Plástico'],
+  'Papel e papelão': ['Papel e papelão'],
+  'Vidro': ['Vidro'],
+  'Metal': ['Metal'],
+  'Óleo de cozinha': ['Óleo de cozinha'],
+  'Eletrônico': ['Eletrônicos'],
+  'Eletrodoméstico': ['Eletrônicos', 'Metal'],
+  'Volumoso / mobiliário': ['Móveis e estofados', 'Madeira'],
+  'Entulho classe A': ['Entulho classe A'],
+  'Têxteis': ['Têxteis'],
+  'Resíduo orgânico': ['Resíduo orgânico'],
+  'Resíduo perigoso': ['Pilhas e baterias', 'Lâmpadas'],
+  'Resíduo químico': [],
+};
+
+/**
+ * Nomes de tipo de resíduo que aceitam a categoria. Categoria desconhecida (pedido antigo,
+ * gravado antes desta lista) devolve ela mesma, para ainda casar pelo nome.
+ */
+export function tiposDaCategoria(categoria: string): string[] {
+  return TIPOS_POR_CATEGORIA[categoria] ?? [categoria];
+}
+
+/** Compara nomes de categoria/tipo sem diferença de maiúscula ou acento. */
+export function mesmoNome(a: string, b: string): boolean {
+  return normalizar(a).trim() === normalizar(b).trim();
+}
+
+/** Nunca vão na coleta comum e sempre levam alerta, diga a IA o que disser. */
+const CATEGORIAS_PERIGOSAS = new Set(['Resíduo perigoso', 'Resíduo químico', 'Eletrônico']);
+
+/**
+ * Regras de segurança são política do produto, como a pontuação: valem por cima da
+ * resposta da IA remota, que pode errar.
+ */
+export function aplicarPolitica(c: Classificacao): Classificacao {
+  if (!CATEGORIAS_PERIGOSAS.has(c.categoria)) return c;
+  const regra = REGRAS.find(r => r.categoria === c.categoria);
+  return { ...c, aceitaColetaComum: false, atencao: c.atencao || regra?.atencao || null };
+}
+
 /** Pontos por kg conforme a tabela mostrada em "Meus pontos". */
 const PONTOS_POR_KG_ENTREGA = 5;
 const PONTOS_POR_LITRO_OLEO = 16;
@@ -235,11 +350,25 @@ function pesoInformado(texto: string): number | null {
  * falsos positivos de substring ("tapete" contém "pet", "automóvel" contém "movel").
  */
 function radicais(texto: string): string {
-  return normalizar(texto)
-    .split(/[^a-z0-9]+/)
-    .filter(Boolean)
+  return semNegados(normalizar(texto).split(/[^a-z0-9]+/).filter(Boolean))
     .map(p => p.replace(/s$/, '').replace(/[nm]$/, '').replace(/[aeo]$/, ''))
     .join(' ');
+}
+
+const ARTIGOS = new Set(['a', 'o', 'as', 'os', 'um', 'uma']);
+
+/** Tira a palavra negada: "notebook sem bateria" não deve contar "bateria". */
+function semNegados(palavras: string[]): string[] {
+  const resto: string[] = [];
+  for (let i = 0; i < palavras.length; i++) {
+    if (palavras[i] !== 'sem') {
+      resto.push(palavras[i]);
+      continue;
+    }
+    while (ARTIGOS.has(palavras[i + 1])) i++;
+    i++;
+  }
+  return resto;
 }
 
 /** Tamanho do termo mais longo da regra que aparece no texto (0 = nenhum). */
@@ -256,10 +385,12 @@ export function classificar(descricao: string): Classificacao {
   const alvo = radicais(descricao);
 
   // O termo mais específico vence: "garrafa de vidro" é Vidro, não Plástico por causa de "garrafa".
+  // Prioridade maior ganha antes do tamanho: "bateria de celular" é resíduo perigoso.
   let regra: Regra = { ...PADRAO, termos: [] };
   let melhor = 0;
   for (const r of REGRAS) {
-    const forca = forcaDaRegra(r, alvo);
+    const casou = forcaDaRegra(r, alvo);
+    const forca = casou && casou + (r.prioridade ?? 0) * 1000;
     if (forca > melhor) {
       melhor = forca;
       regra = r;
@@ -286,9 +417,11 @@ export function respostaDaIa(c: Classificacao): string {
   if (c.categoria === 'A conferir') {
     return 'Ainda não consegui identificar esse item. Me conta do que ele é feito e o tamanho aproximado.';
   }
-  const tipo = c.aceitaColetaComum
-    ? 'dá para reciclar na coleta comum, mas rende mais numa cooperativa'
-    : 'não vai na coleta comum';
+  const tipo = !c.aceitaColetaComum
+    ? 'não vai na coleta comum'
+    : c.reciclavel === 'Não'
+      ? 'pode ir na coleta comum, mas rende mais na compostagem'
+      : 'dá para reciclar na coleta comum, mas rende mais numa cooperativa';
   return `Identifiquei: ${c.categoria.toLowerCase()} (${c.materiais.toLowerCase()}). Esse resíduo ${tipo}. Faz assim antes de entregar:`;
 }
 
@@ -303,6 +436,7 @@ function ehClassificacaoValida(v: unknown): v is Classificacao {
   const c = v as Record<string, unknown>;
   return (
     typeof c['categoria'] === 'string' &&
+    CATEGORIAS.includes(c['categoria']) &&
     typeof c['materiais'] === 'string' &&
     (c['reciclavel'] === 'Sim' || c['reciclavel'] === 'Parcialmente' || c['reciclavel'] === 'Não') &&
     typeof c['pesoEstimadoKg'] === 'number' &&
@@ -324,6 +458,8 @@ export async function classificarComIA(descricao: string): Promise<Classificacao
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ descricao }),
+      // O servidor já desiste do Gemini antes disso; aqui é só para o chat nunca ficar preso.
+      signal: AbortSignal.timeout(20_000),
     });
     if (!resposta.ok) throw new Error(`classificar: ${resposta.status}`);
 

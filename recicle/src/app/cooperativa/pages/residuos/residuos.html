@@ -6,9 +6,19 @@
   </div>
 
   <div class="header-actions">
-    <button class="btn btn-primary" (click)="salvarAlteracoes()">Salvar alterações</button>
+    <button class="btn btn-primary" [disabled]="nenhumAtivo()" (click)="salvarAlteracoes()">
+      Salvar alterações
+    </button>
   </div>
 </header>
+
+
+@if (nenhumAtivo()) {
+  <div class="warning-box" style="margin-bottom: 18px;">
+    <strong>Mantenha ao menos um tipo ativo</strong>
+    <p>Com todos desligados a cooperativa deixa de receber qualquer pedido da IA.</p>
+  </div>
+}
 
 
 <div class="content-grid">

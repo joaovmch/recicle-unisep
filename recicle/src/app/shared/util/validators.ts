@@ -1,5 +1,22 @@
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/** Id de linha do banco. Id que não é UUID (URL digitada, link quebrado) nem vai ao Supabase, que responderia 400. */
+export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Nome de pessoa ou organização: cabe em cartão, lista e cabeçalho sem estourar o layout. */
+export const NOME_MAX_CARACTERES = 80;
+
+/**
+ * Telefone brasileiro com DDD — 10 dígitos (fixo) ou 11 (celular), com ou sem +55 e
+ * máscara. Antes qualquer texto passava ("abcdefgh" ficava salvo como telefone).
+ */
+export function telefoneValido(texto: string): boolean {
+  const t = texto.trim();
+  if (!/^[\d\s()+.-]+$/.test(t)) return false;
+  const digitos = t.replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '');
+  return digitos.length === 10 || digitos.length === 11;
+}
+
 /** Abaixo de 8 caracteres não é recomendado (OWASP / guia de senhas do Supabase). */
 export const SENHA_MIN_CARACTERES = 8;
 
@@ -31,4 +48,36 @@ export const UFS = [
 
 export function ufValida(uf: string): boolean {
   return (UFS as readonly string[]).includes(uf.trim().toUpperCase());
+}
+
+/**
+ * Nome de pessoa conforme a seção 5.2 do documento de requisitos: 3 a 100 caracteres,
+ * apenas letras e espaços, e exige nome e sobrenome.
+ */
+export const NOME_PESSOA_MIN = 3;
+export const NOME_PESSOA_MAX = 100;
+
+export function nomePessoaValido(texto: string): boolean {
+  const t = texto.trim().replace(/\s+/g, ' ');
+  if (t.length < NOME_PESSOA_MIN || t.length > NOME_PESSOA_MAX) return false;
+  if (!/^[A-Za-zÀ-ÖØ-öø-ÿ' ]+$/.test(t)) return false;
+  return t.split(' ').filter(p => p.length >= 2).length >= 2;
+}
+
+/**
+ * Placa no padrão Mercosul (AAA-0A00) ou no antigo (AAA-0000). Veículos de uso urbano
+ * sem emplacamento são registrados como "sem placa" (US12 FA03).
+ */
+export const SEM_PLACA = 'sem placa';
+
+export function normalizarPlaca(texto: string): string {
+  const t = texto.trim();
+  if (!t || t.toLowerCase() === SEM_PLACA) return SEM_PLACA;
+  return t.toUpperCase().replace(/[^A-Z0-9]/g, '').replace(/^([A-Z]{3})(.*)$/, '$1-$2');
+}
+
+export function placaValida(texto: string): boolean {
+  const placa = normalizarPlaca(texto);
+  if (placa === SEM_PLACA) return true;
+  return /^[A-Z]{3}-\d[A-Z]\d{2}$/.test(placa) || /^[A-Z]{3}-\d{4}$/.test(placa);
 }
