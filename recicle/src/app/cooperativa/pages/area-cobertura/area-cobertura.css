@@ -105,3 +105,61 @@
   gap: 18px;
   min-width: 0;
 }
+
+
+/* =========================
+   BAIRROS ATENDIDOS
+========================= */
+
+.bairros-acoes {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* O chip vira dois botões — alternar e remover — então o estilo de "pílula" sai do
+   <button> e passa para o <span> que envolve os dois. */
+.chip-removivel {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.chip-removivel .chip-texto,
+.chip-removivel .chip-remover {
+  border: none;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  cursor: pointer;
+}
+
+.chip-removivel .chip-texto {
+  padding: 8px 4px 8px 14px;
+}
+
+.chip-removivel .chip-remover {
+  padding: 8px 12px 8px 4px;
+  font-size: 15px;
+  line-height: 1;
+  opacity: 0.55;
+}
+
+.chip-removivel .chip-remover:hover {
+  opacity: 1;
+  color: var(--rc-perigo);
+}
+
+.bairros-sugestao {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--rc-borda);
+}
+
+.chip-sugestao {
+  border-style: dashed;
+}

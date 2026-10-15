@@ -1,5 +1,6 @@
 import { Component, afterNextRender, computed, inject, signal } from '@angular/core';
 import { PrecisaoCoordenada, descreverPrecisao, geocodificar } from '../../../shared/data/geocodificacao';
+import { distanciaKm } from '../../../shared/util/geo';
 import { UFS, ufValida } from '../../../shared/util/validators';
 import { Mapa, MarcadorMapa } from '../../../shared/ui/mapa/mapa';
 import { ToastService } from '../../../shared/ui/toast.service';
@@ -169,6 +170,21 @@ export class AreaCobertura {
   readonly avisoPrecisao = signal('');
 
   readonly ufs = UFS;
+
+  readonly modalBairro = signal(false);
+  readonly novoBairroNome = signal('');
+  readonly salvandoBairro = signal(false);
+
+  /**
+   * Bairros que já pediram coleta neste mês e ainda não estão na lista. É daqui que a
+   * cooperativa descobre o que falta cadastrar, em vez de ter que lembrar de cor.
+   */
+  readonly bairrosSugeridos = computed(() => {
+    const jaCadastrados = new Set(this.bairros().map(b => b.nome.trim().toLowerCase()));
+    return this.pedidosPorBairro()
+      .map(p => p.nome)
+      .filter(nome => nome && !jaCadastrados.has(nome.trim().toLowerCase()));
+  });
   readonly modalEndereco = signal(false);
   readonly salvandoEndereco = signal(false);
   readonly formEndereco = signal({ ...ENDERECO_VAZIO });
@@ -270,6 +286,8 @@ export class AreaCobertura {
             latitude: coordenada.latitude,
             longitude: coordenada.longitude,
           });
+          // Galpão em outro lugar muda a distância de todo bairro já cadastrado.
+          await this.recalcularDistancias();
         }
       }
 
@@ -379,6 +397,108 @@ export class AreaCobertura {
    */
   private anotarPrecisao(precisao: PrecisaoCoordenada): void {
     this.avisoPrecisao.set(precisao === 'endereco' ? '' : descreverPrecisao(precisao));
+  }
+
+  abrirNovoBairro(): void {
+    this.novoBairroNome.set('');
+    this.modalBairro.set(true);
+  }
+
+  fecharNovoBairro(): void {
+    if (this.salvandoBairro()) return;
+    this.modalBairro.set(false);
+  }
+
+  /**
+   * Cadastra um bairro na área de cobertura. Antes disso não havia caminho nenhum pela
+   * interface: a tela só sabia listar e marcar bairros que já existissem no banco, então
+   * a lista ficava permanentemente vazia.
+   *
+   * A distância sai da coordenada, não de digitação: é o mesmo critério do raio (linha
+   * reta a partir do galpão), então bate com o círculo desenhado no mapa.
+   */
+  async adicionarBairro(nomeBruto?: string): Promise<void> {
+    const cooperativa = this.cooperativaService.cooperativa();
+    if (!cooperativa) return;
+
+    const nome = (nomeBruto ?? this.novoBairroNome()).trim();
+    if (!nome) {
+      this.toast.mostrar('Informe o nome do bairro.');
+      return;
+    }
+    if (this.bairros().some(b => b.nome.trim().toLowerCase() === nome.toLowerCase())) {
+      this.toast.mostrar(`${nome} já está na lista.`);
+      return;
+    }
+
+    this.salvandoBairro.set(true);
+    const coordenada = await geocodificar({ bairro: nome, cidade: cooperativa.cidade, uf: cooperativa.uf });
+
+    const galpao =
+      cooperativa.latitude !== null && cooperativa.longitude !== null
+        ? { latitude: cooperativa.latitude, longitude: cooperativa.longitude }
+        : null;
+    const distancia = coordenada && galpao ? distanciaKm(galpao, coordenada) : 0;
+
+    const { data, error } = await this.client
+      .from('bairros_atendidos')
+      .insert({
+        cooperativa_id: cooperativa.id,
+        nome,
+        distancia_km: Number(distancia.toFixed(1)),
+        atendido: !distancia || distancia <= this.raio(),
+        latitude: coordenada?.latitude ?? null,
+        longitude: coordenada?.longitude ?? null,
+      })
+      .select('*')
+      .single();
+    this.salvandoBairro.set(false);
+
+    if (error || !data) {
+      this.toast.mostrar('Não foi possível adicionar o bairro. Tente novamente.');
+      return;
+    }
+
+    this.bairros.update(lista => [...lista, paraBairro(data)].sort((a, b) => a.nome.localeCompare(b.nome)));
+    this.modalBairro.set(false);
+    this.novoBairroNome.set('');
+    this.toast.mostrar(
+      coordenada ? `${nome} adicionado a ${distancia.toFixed(1)} km do galpão.` : `${nome} adicionado (sem localização no mapa).`
+    );
+  }
+
+  async removerBairro(bairro: Bairro): Promise<void> {
+    const { error } = await this.client.from('bairros_atendidos').delete().eq('id', bairro.id);
+    if (error) {
+      this.toast.mostrar('Não foi possível remover o bairro.');
+      return;
+    }
+    this.bairros.update(lista => lista.filter(b => b.id !== bairro.id));
+    this.toast.mostrar(`${bairro.nome} removido.`);
+  }
+
+  /**
+   * O galpão mudou de lugar, então toda distância guardada passou a se referir ao endereço
+   * antigo. Recalcula a partir das coordenadas que já estão salvas — sem consultar o
+   * serviço de mapas de novo, porque a posição dos bairros não mudou.
+   */
+  private async recalcularDistancias(): Promise<void> {
+    const cooperativa = this.cooperativaService.cooperativa();
+    if (!cooperativa?.latitude || !cooperativa?.longitude) return;
+
+    const galpao = { latitude: cooperativa.latitude, longitude: cooperativa.longitude };
+    const atualizados = this.bairros().filter(b => b.latitude !== null && b.longitude !== null);
+    if (atualizados.length === 0) return;
+
+    for (const bairro of atualizados) {
+      const distancia = Number(
+        distanciaKm(galpao, { latitude: bairro.latitude!, longitude: bairro.longitude! }).toFixed(1)
+      );
+      if (distancia === bairro.distanciaKm) continue;
+
+      this.bairros.update(lista => lista.map(b => (b.id === bairro.id ? { ...b, distanciaKm: distancia } : b)));
+      await this.client.from('bairros_atendidos').update({ distancia_km: distancia }).eq('id', bairro.id);
+    }
   }
 
   /** Clicar no pino de um bairro liga/desliga o atendimento, igual ao chip da lista. */

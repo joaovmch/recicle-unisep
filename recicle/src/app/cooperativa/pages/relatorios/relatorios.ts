@@ -18,6 +18,16 @@ interface CategoriaRelatorio {
   rejeitoPercent: number;
 }
 
+/** Linha da "Lista das coletas" do arquivo exportado. */
+interface ColetaExportada {
+  data: string;
+  categoria: string;
+  pesoKg: number;
+  rejeitoKg: number;
+  preco: number;
+  solicitante: string;
+}
+
 interface MesAnterior {
   mes: string;
   rotulo: string;
@@ -94,6 +104,41 @@ function rotuloDoMes(mes: string): string {
   return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
+/** Início e fim (exclusivo) do período escolhido no modal de exportação. */
+function limitesDaExportacao(
+  periodo: PeriodoExportacao,
+  mes: string,
+  dataInicial: string,
+  dataFinal: string
+): { inicio: Date; fim: Date; rotulo: string } | null {
+  const hoje = new Date();
+
+  if (periodo === 'mes') {
+    const { inicio, fim } = limitesDoMes(mes);
+    return { inicio, fim, rotulo: rotuloDoMes(mes) };
+  }
+  if (periodo === '90dias') {
+    const inicio = new Date(hoje);
+    inicio.setDate(inicio.getDate() - 90);
+    return { inicio, fim: hoje, rotulo: 'Últimos 90 dias' };
+  }
+  if (periodo === 'ano') {
+    return { inicio: new Date(hoje.getFullYear(), 0, 1), fim: hoje, rotulo: `Ano de ${hoje.getFullYear()}` };
+  }
+
+  if (!dataInicial || !dataFinal) return null;
+  const inicio = new Date(`${dataInicial}T00:00:00`);
+  // Fim exclusivo: somando um dia, a data final escolhida entra inteira no arquivo.
+  const fim = new Date(`${dataFinal}T00:00:00`);
+  fim.setDate(fim.getDate() + 1);
+  if (Number.isNaN(inicio.getTime()) || Number.isNaN(fim.getTime()) || inicio >= fim) return null;
+
+  const formato = (d: Date) => d.toLocaleDateString('pt-BR');
+  const ultimoDia = new Date(fim);
+  ultimoDia.setDate(ultimoDia.getDate() - 1);
+  return { inicio, fim, rotulo: `${formato(inicio)} a ${formato(ultimoDia)}` };
+}
+
 function formatarPeso(kg: number): string {
   if (kg < 1000) return `${kg.toLocaleString('pt-BR')} kg`;
   return `${(kg / 1000).toFixed(1).replace('.', ',')} t`;
@@ -101,6 +146,65 @@ function formatarPeso(kg: number): string {
 
 function maiuscula(texto: string): string {
   return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+/**
+ * Monta o consolidado de um intervalo qualquer. Fica fora do componente porque a tela
+ * usa para o mês selecionado e a exportação usa para o período escolhido no modal —
+ * antes a exportação reaproveitava o dataset do mês e ignorava o período pedido.
+ */
+function agregar(linhas: any[], inicio: Date, fim: Date): RelatorioDataset {
+  if (linhas.length === 0) return DATASET_VAZIO;
+
+  const recebidoKg = linhas.reduce((total, l) => total + Number(l.peso_recebido_kg ?? 0), 0);
+  const rejeitoKg = linhas.reduce((total, l) => total + Number(l.rejeito_kg ?? 0), 0);
+  const receitaRecebida = linhas.reduce((total, l) => total + Number(l.preco ?? 0), 0);
+
+  const porCategoriaMapa = new Map<string, { pesoKg: number; rejeitoKg: number; coletas: number }>();
+  for (const l of linhas) {
+    const chave = l.categoria || 'Sem categoria';
+    const atual = porCategoriaMapa.get(chave) ?? { pesoKg: 0, rejeitoKg: 0, coletas: 0 };
+    porCategoriaMapa.set(chave, {
+      pesoKg: atual.pesoKg + Number(l.peso_recebido_kg ?? 0),
+      rejeitoKg: atual.rejeitoKg + Number(l.rejeito_kg ?? 0),
+      coletas: atual.coletas + 1,
+    });
+  }
+
+  const porCategoria: CategoriaRelatorio[] = [...porCategoriaMapa.entries()]
+    .map(([nome, v]) => ({
+      nome: maiuscula(nome),
+      pesoKg: v.pesoKg,
+      coletas: v.coletas,
+      rejeitoPercent: v.pesoKg > 0 ? Math.round((v.rejeitoKg / v.pesoKg) * 100) : 0,
+    }))
+    .sort((a, b) => b.pesoKg - a.pesoKg);
+
+  // Blocos de 7 dias a partir do início do intervalo.
+  const dias = Math.max(1, Math.ceil((fim.getTime() - inicio.getTime()) / 86_400_000));
+  const semanas = Math.ceil(dias / 7);
+  const hoje = new Date();
+
+  const volumeSemanal: SemanaVolume[] = Array.from({ length: semanas }, (_, i) => {
+    const de = new Date(inicio);
+    de.setDate(de.getDate() + i * 7);
+    const ate = new Date(inicio);
+    ate.setDate(ate.getDate() + (i + 1) * 7);
+    const kg = linhas
+      .filter(l => {
+        const quando = new Date(l.confirmado_em);
+        return quando >= de && quando < ate;
+      })
+      .reduce((total, l) => total + Number(l.peso_recebido_kg ?? 0), 0);
+    return { label: `${i + 1}ª sem`, kg, emCurso: hoje >= de && hoje < ate, destaque: false };
+  });
+
+  const maior = Math.max(...volumeSemanal.filter(s => !s.emCurso).map(s => s.kg), 0);
+  for (const semana of volumeSemanal) {
+    semana.destaque = !semana.emCurso && semana.kg === maior && maior > 0;
+  }
+
+  return { volumeSemanal, porCategoria, recebidoKg, rejeitoKg, coletasConcluidas: linhas.length, receitaRecebida };
 }
 
 @Component({
@@ -113,6 +217,8 @@ export class Relatorios {
   private readonly toast = inject(ToastService);
   private readonly client = inject(SupabaseService).client;
   private readonly cooperativaService = inject(CooperativaService);
+  /** Usado no cabeçalho da folha de impressão (CNPJ e licença). */
+  readonly cooperativa = this.cooperativaService.cooperativa;
 
   readonly mesSelecionado = signal(mesAtualISO());
   readonly mesMaximo = mesAtualISO();
@@ -216,67 +322,20 @@ export class Relatorios {
       })
     );
 
-    if (linhas.length === 0) {
-      this._dataset.set(DATASET_VAZIO);
-      return;
-    }
-
-    const recebidoKg = linhas.reduce((total, l) => total + Number(l.peso_recebido_kg ?? 0), 0);
-    const rejeitoKg = linhas.reduce((total, l) => total + Number(l.rejeito_kg ?? 0), 0);
-    const receitaRecebida = linhas.reduce((total, l) => total + Number(l.preco ?? 0), 0);
-
-    // Rejeito por categoria sai da própria coleta (peso recebido × rejeito daquela coleta),
-    // não de um percentual único repetido em todas as linhas.
-    const porCategoriaMapa = new Map<string, { pesoKg: number; rejeitoKg: number; coletas: number }>();
-    for (const l of linhas) {
-      const chave = l.categoria || 'Sem categoria';
-      const atual = porCategoriaMapa.get(chave) ?? { pesoKg: 0, rejeitoKg: 0, coletas: 0 };
-      porCategoriaMapa.set(chave, {
-        pesoKg: atual.pesoKg + Number(l.peso_recebido_kg ?? 0),
-        rejeitoKg: atual.rejeitoKg + Number(l.rejeito_kg ?? 0),
-        coletas: atual.coletas + 1,
-      });
-    }
-
-    const porCategoria: CategoriaRelatorio[] = [...porCategoriaMapa.entries()]
-      .map(([nome, v]) => ({
-        nome: maiuscula(nome),
-        pesoKg: v.pesoKg,
-        coletas: v.coletas,
-        rejeitoPercent: v.pesoKg > 0 ? Math.round((v.rejeitoKg / v.pesoKg) * 100) : 0,
-      }))
-      .sort((a, b) => b.pesoKg - a.pesoKg);
-
-    // Semanas do mês: blocos de 7 dias a partir do dia 1.
-    const diasNoMes = new Date(inicio.getFullYear(), inicio.getMonth() + 1, 0).getDate();
-    const semanas = Math.ceil(diasNoMes / 7);
-    const hoje = new Date();
-
-    const volumeSemanal: SemanaVolume[] = Array.from({ length: semanas }, (_, i) => {
-      const de = new Date(inicio.getFullYear(), inicio.getMonth(), 1 + i * 7);
-      const ate = new Date(inicio.getFullYear(), inicio.getMonth(), Math.min(1 + (i + 1) * 7, diasNoMes + 1));
-      const kg = noIntervalo(de, ate).reduce((total, l) => total + Number(l.peso_recebido_kg ?? 0), 0);
-      const emCurso = hoje >= de && hoje < ate;
-      return { label: `${i + 1}ª sem`, kg, emCurso, destaque: false };
-    });
-
-    const maior = Math.max(...volumeSemanal.filter(s => !s.emCurso).map(s => s.kg), 0);
-    for (const semana of volumeSemanal) {
-      semana.destaque = !semana.emCurso && semana.kg === maior && maior > 0;
-    }
-
-    this._dataset.set({
-      volumeSemanal,
-      porCategoria,
-      recebidoKg,
-      rejeitoKg,
-      coletasConcluidas: linhas.length,
-      receitaRecebida,
-    });
+    this._dataset.set(agregar(linhas, inicio, fim));
   }
 
   alturaBarra(kg: number): number {
     return Math.max(4, Math.round((kg / this.volumeMaximo()) * 100));
+  }
+
+  /** O `formatarPeso` do módulo não é visível no template; a folha chama por aqui. */
+  formatarPesoFolha(kg: number): string {
+    return formatarPeso(kg);
+  }
+
+  rejeitoDoDataset(dataset: RelatorioDataset): number {
+    return dataset.recebidoKg > 0 ? Math.round((dataset.rejeitoKg / dataset.recebidoKg) * 100) : 0;
   }
 
   formatarPreco(valor: number): string {
@@ -330,7 +389,22 @@ export class Relatorios {
     this.modalExportarAberto.set(false);
   }
 
-  confirmarExportar(): void {
+  /** Dados da folha de impressão (PDF); vazio enquanto ninguém mandou imprimir. */
+  readonly folha = signal<{
+    rotuloPeriodo: string;
+    dataset: RelatorioDataset;
+    coletas: ColetaExportada[];
+    incluir: Record<ChaveConteudo, boolean>;
+  } | null>(null);
+
+  readonly exportando = signal(false);
+
+  /**
+   * Antes isto era `window.print()` puro: o período e os itens marcados no modal não
+   * entravam na conta, e o PDF saía com a tela como estava. Agora os dois formatos
+   * consultam o intervalo pedido e montam o conteúdo escolhido.
+   */
+  async confirmarExportar(): Promise<void> {
     // FE02 — sem conteúdo marcado não há arquivo para gerar.
     if (this.nenhumConteudo()) {
       this.toast.mostrar('Marque ao menos um item para incluir.');
@@ -341,13 +415,87 @@ export class Relatorios {
       return;
     }
 
+    const limites = limitesDaExportacao(
+      this.periodoExportar(),
+      this.mesSelecionado(),
+      this.dataInicial(),
+      this.dataFinal()
+    );
+    if (!limites) {
+      this.toast.mostrar('Informe a data inicial e a final.');
+      return;
+    }
+
+    this.exportando.set(true);
+    const dados = await this.buscarPeriodo(limites.inicio, limites.fim);
+    this.exportando.set(false);
+
+    if (!dados) {
+      this.toast.mostrar('Não foi possível montar o relatório. Tente novamente.');
+      return;
+    }
+    if (dados.dataset.coletasConcluidas === 0) {
+      this.toast.mostrar(`Nenhuma coleta concluída em ${limites.rotulo.toLowerCase()}.`);
+      return;
+    }
+
     this.fecharExportar();
-    if (this.formatoExportar() === 'pdf') window.print();
-    else this.baixarCsv();
+
+    if (this.formatoExportar() === 'pdf') {
+      await this.imprimir(limites.rotulo, dados);
+    } else {
+      this.baixarCsv(limites.rotulo, dados);
+    }
   }
 
-  baixarCsv(): void {
-    const dataset = this._dataset();
+  /** Busca as coletas concluídas do intervalo pedido (não as do mês da tela). */
+  private async buscarPeriodo(
+    inicio: Date,
+    fim: Date
+  ): Promise<{ dataset: RelatorioDataset; coletas: ColetaExportada[] } | null> {
+    const cooperativa = this.cooperativaService.cooperativa();
+    if (!cooperativa) return null;
+
+    const { data, error } = await this.client
+      .from('solicitacoes')
+      .select('categoria, preco, peso_recebido_kg, rejeito_kg, confirmado_em, solicitante_nome')
+      .eq('cooperativa_id', cooperativa.id)
+      .eq('status', 'concluida')
+      .gte('confirmado_em', inicio.toISOString())
+      .lt('confirmado_em', fim.toISOString())
+      .order('confirmado_em');
+    if (error) return null;
+
+    const linhas = data ?? [];
+    return {
+      dataset: agregar(linhas, inicio, fim),
+      coletas: linhas.map(l => ({
+        data: new Date(l.confirmado_em).toLocaleDateString('pt-BR'),
+        categoria: maiuscula(l.categoria || 'Sem categoria'),
+        pesoKg: Number(l.peso_recebido_kg ?? 0),
+        rejeitoKg: Number(l.rejeito_kg ?? 0),
+        preco: Number(l.preco ?? 0),
+        solicitante: l.solicitante_nome ?? '—',
+      })),
+    };
+  }
+
+  /**
+   * Monta a folha no DOM, espera um quadro para ela existir e só então chama a impressão.
+   * O `@media print` do CSS esconde o painel e deixa apenas essa folha na página.
+   */
+  private async imprimir(
+    rotuloPeriodo: string,
+    dados: { dataset: RelatorioDataset; coletas: ColetaExportada[] }
+  ): Promise<void> {
+    this.folha.set({ rotuloPeriodo, dataset: dados.dataset, coletas: dados.coletas, incluir: this._conteudo() });
+    await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
+    window.print();
+    this.folha.set(null);
+  }
+
+  private baixarCsv(rotuloPeriodo: string, dados: { dataset: RelatorioDataset; coletas: ColetaExportada[] }): void {
+    const { dataset, coletas } = dados;
     const cooperativa = this.cooperativaService.cooperativa();
     const incluir = this._conteudo();
 
@@ -355,6 +503,7 @@ export class Relatorios {
     const linhas: unknown[][] = [
       [cooperativa?.nome ?? 'Cooperativa'],
       [`CNPJ ${cooperativa?.cnpj ?? '—'} · Licença ${cooperativa?.licencaNumero ?? '—'} (${cooperativa?.licencaOrgao ?? '—'})`],
+      [`Período: ${rotuloPeriodo}`],
       [],
     ];
 
@@ -363,7 +512,7 @@ export class Relatorios {
         ['Material recebido', formatarPeso(dataset.recebidoKg)],
         ['Coletas concluídas', dataset.coletasConcluidas],
         ['Recebido em coletas', this.formatarPreco(dataset.receitaRecebida)],
-        ['Rejeito na triagem', `${this.rejeitoTriagem()}%`],
+        ['Rejeito na triagem', `${dataset.recebidoKg > 0 ? Math.round((dataset.rejeitoKg / dataset.recebidoKg) * 100) : 0}%`],
         []
       );
     }
@@ -380,9 +529,23 @@ export class Relatorios {
       linhas.push([]);
     }
 
+    if (incluir.coletas) {
+      const cabecalho = ['Data', 'Categoria', 'Recebido (kg)', 'Rejeito (kg)', 'Valor'];
+      if (incluir.solicitantes) cabecalho.push('Solicitante');
+      linhas.push(cabecalho);
+      linhas.push(
+        ...coletas.map(c => {
+          const linha: unknown[] = [c.data, c.categoria, c.pesoKg, c.rejeitoKg, this.formatarPreco(c.preco)];
+          if (incluir.solicitantes) linha.push(c.solicitante);
+          return linha;
+        })
+      );
+      linhas.push([]);
+    }
+
     linhas.push([RODAPE_MTR]);
 
-    baixarCsv(`relatorio-${this.mesSelecionado()}.csv`, [`Consolidado · ${this.rotuloMes()}`], linhas);
+    baixarCsv(`relatorio-${this.mesSelecionado()}.csv`, [`Consolidado · ${rotuloPeriodo}`], linhas);
     this.toast.mostrar('CSV exportado.');
   }
 }

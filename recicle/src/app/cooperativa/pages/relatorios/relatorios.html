@@ -258,3 +258,90 @@
     </div>
   </div>
 }
+
+
+<!-- FOLHA DE IMPRESSÃO (PDF) — só existe no DOM durante a exportação e só aparece no @media print -->
+@if (folha(); as f) {
+  <section class="folha-impressao">
+    <header class="folha-cabecalho">
+      <div>
+        <h1>{{ cooperativa()?.nome ?? 'Cooperativa' }}</h1>
+        <p>
+          CNPJ {{ cooperativa()?.cnpj ?? '—' }} ·
+          Licença {{ cooperativa()?.licencaNumero ?? '—' }} ({{ cooperativa()?.licencaOrgao ?? '—' }})
+        </p>
+      </div>
+      <div class="folha-periodo">
+        <strong>Relatório consolidado</strong>
+        <span>{{ f.rotuloPeriodo }}</span>
+      </div>
+    </header>
+
+    @if (f.incluir.resumo) {
+      <h2>Resumo do período</h2>
+      <table class="folha-tabela">
+        <tbody>
+          <tr><th>Material recebido</th><td>{{ formatarPesoFolha(f.dataset.recebidoKg) }}</td></tr>
+          <tr><th>Coletas concluídas</th><td>{{ f.dataset.coletasConcluidas }}</td></tr>
+          <tr><th>Recebido em coletas</th><td>{{ formatarPreco(f.dataset.receitaRecebida) }}</td></tr>
+          <tr><th>Rejeito na triagem</th><td>{{ rejeitoDoDataset(f.dataset) }}%</td></tr>
+        </tbody>
+      </table>
+    }
+
+    @if (f.incluir.semana) {
+      <h2>Volume por semana</h2>
+      <table class="folha-tabela">
+        <thead><tr><th>Semana</th><th>Recebido</th></tr></thead>
+        <tbody>
+          @for (s of f.dataset.volumeSemanal; track s.label) {
+            <tr><td>{{ s.label }}</td><td>{{ formatarPesoFolha(s.kg) }}</td></tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    @if (f.incluir.categoria) {
+      <h2>Por categoria</h2>
+      <table class="folha-tabela">
+        <thead><tr><th>Categoria</th><th>Recebido</th><th>Rejeito</th><th>Coletas</th></tr></thead>
+        <tbody>
+          @for (c of f.dataset.porCategoria; track c.nome) {
+            <tr>
+              <td>{{ c.nome }}</td>
+              <td>{{ formatarPesoFolha(c.pesoKg) }}</td>
+              <td>{{ c.rejeitoPercent }}%</td>
+              <td>{{ c.coletas }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    @if (f.incluir.coletas) {
+      <h2>Coletas do período</h2>
+      <table class="folha-tabela">
+        <thead>
+          <tr>
+            <th>Data</th><th>Categoria</th><th>Recebido</th><th>Rejeito</th><th>Valor</th>
+            @if (f.incluir.solicitantes) { <th>Solicitante</th> }
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of f.coletas; track $index) {
+            <tr>
+              <td>{{ c.data }}</td>
+              <td>{{ c.categoria }}</td>
+              <td>{{ formatarPesoFolha(c.pesoKg) }}</td>
+              <td>{{ formatarPesoFolha(c.rejeitoKg) }}</td>
+              <td>{{ formatarPreco(c.preco) }}</td>
+              @if (f.incluir.solicitantes) { <td>{{ c.solicitante }}</td> }
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    <footer class="folha-rodape">{{ rodapeMtr }}</footer>
+  </section>
+}

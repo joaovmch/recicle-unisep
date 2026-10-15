@@ -97,20 +97,46 @@
 
       <div class="side-card-header" style="padding-top: 6px;">
         <span class="section-label" style="margin: 0;">Bairros atendidos</span>
-        @if (bairros().length > 0) {
-          <button (click)="alternarTodos()">{{ todosMarcados() ? 'Desmarcar todos' : 'Marcar todos' }}</button>
-        }
+        <div class="bairros-acoes">
+          @if (bairros().length > 0) {
+            <button (click)="alternarTodos()">{{ todosMarcados() ? 'Desmarcar todos' : 'Marcar todos' }}</button>
+          }
+          <button (click)="abrirNovoBairro()">Adicionar bairro</button>
+        </div>
       </div>
 
       @if (bairros().length === 0) {
-        <p class="empty-hint">Nenhum bairro identificado dentro do raio ainda.</p>
+        <p class="empty-hint">
+          Nenhum bairro cadastrado ainda. Use "Adicionar bairro" para dizer onde a coleta chega.
+        </p>
       } @else {
         <div class="chip-list">
-          @for (b of bairros(); track b.nome; let i = $index) {
-            <button class="chip" [class.on]="b.atendido" (click)="alternarBairro(i)">
-              {{ b.nome }}@if (!b.atendido) { · {{ b.distanciaKm.toFixed(0) }} km }
-            </button>
+          @for (b of bairros(); track b.id; let i = $index) {
+            <span class="chip chip-removivel" [class.on]="b.atendido">
+              <button class="chip-texto" (click)="alternarBairro(i)">
+                {{ b.nome }}@if (b.distanciaKm > 0) { · {{ b.distanciaKm.toFixed(1) }} km }
+              </button>
+              <button
+                class="chip-remover"
+                [attr.aria-label]="'Remover ' + b.nome"
+                title="Remover da área de cobertura"
+                (click)="removerBairro(b)"
+              >×</button>
+            </span>
           }
+        </div>
+      }
+
+      @if (bairrosSugeridos().length > 0) {
+        <div class="bairros-sugestao">
+          <span class="section-label" style="margin: 0 0 8px;">Pediram coleta e não estão na lista</span>
+          <div class="chip-list">
+            @for (nome of bairrosSugeridos(); track nome) {
+              <button class="chip chip-sugestao" [disabled]="salvandoBairro()" (click)="adicionarBairro(nome)">
+                + {{ nome }}
+              </button>
+            }
+          </div>
         </div>
       }
     </div>
@@ -155,6 +181,45 @@
   </aside>
 
 </div>
+
+
+<!-- MODAL: NOVO BAIRRO -->
+@if (modalBairro()) {
+  <div class="modal-overlay" (click)="fecharNovoBairro()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="fecharNovoBairro()">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
+
+      <h2>Adicionar bairro</h2>
+      <p class="modal-description">
+        A distância até o galpão é calculada sozinha pela localização do bairro, no mesmo
+        critério do raio (linha reta).
+      </p>
+
+      <div class="field campo-obrigatorio">
+        <label for="bairro-nome">Nome do bairro</label>
+        <input
+          id="bairro-nome"
+          type="text"
+          maxlength="80"
+          placeholder="Ex.: Centro"
+          [value]="novoBairroNome()"
+          (input)="novoBairroNome.set($any($event.target).value)"
+          (keyup.enter)="adicionarBairro()"
+        />
+        <span class="hint">Em {{ cooperativa()?.cidade ?? 'sua cidade' }}.</span>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-outline" (click)="fecharNovoBairro()" [disabled]="salvandoBairro()">Cancelar</button>
+        <button class="btn btn-primary" (click)="adicionarBairro()" [disabled]="salvandoBairro()">
+          {{ salvandoBairro() ? 'Localizando...' : 'Adicionar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
 
 
 <!-- MODAL: ENDEREÇO DO GALPÃO -->
