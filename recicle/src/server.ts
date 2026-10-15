@@ -30,7 +30,8 @@ app.use(
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'", "'unsafe-inline'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", 'data:', 'blob:'],
+        // tile.openstreetmap.org: os quadradinhos do mapa (Leaflet) são imagens vindas de lá.
+        imgSrc: ["'self'", 'data:', 'blob:', 'https://tile.openstreetmap.org', 'https://*.tile.openstreetmap.org'],
         connectSrc: ["'self'", environment.supabaseUrl, environment.supabaseUrl.replace('https://', 'wss://')],
         objectSrc: ["'none'"],
         frameAncestors: ["'none'"],
@@ -65,11 +66,11 @@ const JANELA_MS = 60_000;
 const MAX_POR_JANELA = 20;
 const chamadasPorIp = new Map<string, { inicio: number; total: number }>();
 
-function excedeuLimite(ip: string): boolean {
+function excedeuLimite(chave: string): boolean {
   const agora = Date.now();
-  const registro = chamadasPorIp.get(ip);
+  const registro = chamadasPorIp.get(chave);
   if (!registro || agora - registro.inicio > JANELA_MS) {
-    chamadasPorIp.set(ip, { inicio: agora, total: 1 });
+    chamadasPorIp.set(chave, { inicio: agora, total: 1 });
     if (chamadasPorIp.size > 10_000) {
       for (const [chave, r] of chamadasPorIp) if (agora - r.inicio > JANELA_MS) chamadasPorIp.delete(chave);
     }
@@ -110,7 +111,7 @@ app.post('/api/classificar', async (req, res) => {
   }
 
   // Acima do limite não é erro para quem usa: cai na regra local, sem gastar cota da IA.
-  if (excedeuLimite(req.ip ?? 'desconhecido')) {
+  if (excedeuLimite(`ia:${req.ip ?? 'desconhecido'}`)) {
     res.json(classificar(descricao));
     return;
   }
@@ -120,6 +121,142 @@ app.post('/api/classificar', async (req, res) => {
   } catch (erro) {
     avisarFalhaDaIa(erro);
     res.json(classificar(descricao));
+  }
+});
+
+/**
+ * Geocodificação (endereço -> latitude/longitude) para os mapas.
+ *
+ * Passa pelo servidor em vez de o navegador chamar o Nominatim direto por três motivos:
+ * a CSP da página não precisa liberar um domínio externo, dá para respeitar a política de
+ * uso do serviço (um pedido por segundo, com User-Agent identificando o projeto) e o
+ * resultado fica em cache — o mesmo endereço de galpão não é consultado duas vezes.
+ */
+const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
+const CAMPO_MAX_CARACTERES = 200;
+const INTERVALO_NOMINATIM_MS = 1100;
+const CACHE_GEOCODIFICACAO_MAX = 500;
+
+/**
+ * Quão perto do endereço pedido o ponto devolvido realmente está. O OpenStreetMap é
+ * mapeado por voluntários e muita rua de cidade pequena simplesmente não está lá — sem
+ * esse degrau, um endereço real como "Rua Léo Tedesco, Dois Vizinhos" não devolve nada e
+ * o mapa fica vazio. Com ele, cai no bairro ou na cidade e a tela avisa a diferença.
+ */
+type Precisao = 'endereco' | 'rua' | 'bairro' | 'cidade';
+
+interface Coordenada {
+  latitude: number;
+  longitude: number;
+  precisao: Precisao;
+}
+
+interface EnderecoBusca {
+  rua: string;
+  numero: string;
+  bairro: string;
+  cidade: string;
+  uf: string;
+}
+
+/** `null` guardado de propósito: endereço que não existe não deve ser reconsultado toda hora. */
+const cacheGeocodificacao = new Map<string, Coordenada | null>();
+let proximaChamadaNominatim = 0;
+
+function texto(valor: unknown): string {
+  return typeof valor === 'string' ? valor.trim().slice(0, CAMPO_MAX_CARACTERES) : '';
+}
+
+async function consultarNominatim(parametros: Record<string, string>): Promise<Coordenada | null> {
+  // Fila simples: as chamadas se enfileiram com pelo menos 1,1s entre elas.
+  const agora = Date.now();
+  const espera = Math.max(0, proximaChamadaNominatim - agora);
+  proximaChamadaNominatim = agora + espera + INTERVALO_NOMINATIM_MS;
+  if (espera > 0) await new Promise(resolve => setTimeout(resolve, espera));
+
+  const busca = new URLSearchParams({ format: 'jsonv2', limit: '1', countrycodes: 'br', ...parametros });
+  const resposta = await fetch(`${NOMINATIM_URL}?${busca}`, {
+    headers: {
+      'User-Agent': 'Recicle/1.0 (projeto academico UNISEP)',
+      'Accept-Language': 'pt-BR',
+    },
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!resposta.ok) throw new Error(`Nominatim respondeu ${resposta.status}`);
+
+  const resultados = (await resposta.json()) as { lat?: string; lon?: string }[];
+  const primeiro = resultados[0];
+  if (!primeiro?.lat || !primeiro?.lon) return null;
+  return { latitude: Number(primeiro.lat), longitude: Number(primeiro.lon), precisao: 'endereco' };
+}
+
+/**
+ * Tenta do mais específico ao mais genérico e para na primeira tentativa que acerta.
+ * A busca estruturada (street/city/state) acerta bem mais que jogar o endereço inteiro
+ * num campo de texto livre, que é onde a versão anterior falhava.
+ */
+async function geocodificar(endereco: EnderecoBusca): Promise<Coordenada | null> {
+  const { rua, numero, bairro, cidade, uf } = endereco;
+  const regiao = [cidade, uf].filter(Boolean).join(', ');
+
+  const tentativas: { parametros: Record<string, string>; precisao: Precisao }[] = [];
+  if (rua && cidade) {
+    if (numero) {
+      tentativas.push({ parametros: { street: `${numero} ${rua}`, city: cidade, state: uf }, precisao: 'endereco' });
+    }
+    tentativas.push({ parametros: { street: rua, city: cidade, state: uf }, precisao: 'rua' });
+  }
+  if (bairro && regiao) tentativas.push({ parametros: { q: `${bairro}, ${regiao}` }, precisao: 'bairro' });
+  if (regiao) tentativas.push({ parametros: { q: regiao }, precisao: 'cidade' });
+  if (tentativas.length === 0) return null;
+
+  const chave = JSON.stringify(endereco).toLowerCase();
+  const emCache = cacheGeocodificacao.get(chave);
+  if (emCache !== undefined) return emCache;
+
+  let encontrada: Coordenada | null = null;
+  for (const tentativa of tentativas) {
+    const resultado = await consultarNominatim(tentativa.parametros);
+    if (resultado) {
+      encontrada = { ...resultado, precisao: tentativa.precisao };
+      break;
+    }
+  }
+
+  if (cacheGeocodificacao.size >= CACHE_GEOCODIFICACAO_MAX) {
+    cacheGeocodificacao.delete(cacheGeocodificacao.keys().next().value!);
+  }
+  cacheGeocodificacao.set(chave, encontrada);
+  return encontrada;
+}
+
+app.post('/api/geocodificar', async (req, res) => {
+  const endereco: EnderecoBusca = {
+    rua: texto(req.body?.rua),
+    numero: texto(req.body?.numero),
+    bairro: texto(req.body?.bairro),
+    cidade: texto(req.body?.cidade),
+    uf: texto(req.body?.uf),
+  };
+  if (!endereco.cidade) {
+    res.status(400).json({ erro: 'Informe ao menos a cidade a localizar.' });
+    return;
+  }
+  if (excedeuLimite(`geo:${req.ip ?? 'desconhecido'}`)) {
+    res.status(429).json({ erro: 'Muitas buscas seguidas. Tente de novo em um minuto.' });
+    return;
+  }
+
+  try {
+    const coordenada = await geocodificar(endereco);
+    if (!coordenada) {
+      res.status(404).json({ erro: 'Endereço não encontrado no mapa.' });
+      return;
+    }
+    res.json(coordenada);
+  } catch (erro) {
+    console.warn('[geocodificar] servico indisponivel:', erro instanceof Error ? erro.message : erro);
+    res.status(503).json({ erro: 'Serviço de mapas indisponível agora.' });
   }
 });
 

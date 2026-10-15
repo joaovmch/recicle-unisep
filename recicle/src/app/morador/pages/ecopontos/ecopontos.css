@@ -78,33 +78,13 @@
   background: #e9ebe2;
 }
 
-.mapa-pino {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  padding: 0;
-  transform: translate(-50%, -50%);
-  border: 2.5px solid #ffffff;
-  border-radius: 50%;
-  background: var(--rc-verde-600);
-  box-shadow: 0 2px 6px rgba(10, 30, 24, 0.3);
-  cursor: pointer;
-  z-index: 2;
-}
-
-.mapa-pino.ativo {
-  width: 24px;
-  height: 24px;
-  background: var(--rc-verde-900);
-  z-index: 3;
-}
-
 .mapa-popup {
   position: absolute;
   left: 50%;
   bottom: 22px;
   transform: translateX(-50%);
-  z-index: 4;
+  /* Acima de tudo que o Leaflet desenha — os controles dele chegam a z-index 1000. */
+  z-index: 1100;
   width: min(420px, calc(100% - 32px));
   padding: 16px 18px;
   border-radius: 14px;

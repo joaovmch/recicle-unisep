@@ -1,11 +1,12 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { Mapa, MarcadorMapa } from '../../../shared/ui/mapa/mapa';
 import { Ecoponto, EcopontosStore } from '../../data/ecopontos.store';
 
 type Aba = 'cooperativas' | 'publicos';
 
 @Component({
   selector: 'app-morador-ecopontos',
-  imports: [],
+  imports: [Mapa],
   templateUrl: './ecopontos.html',
   styleUrls: ['../../../shared/ui/design-system.css', './ecopontos.css'],
 })
@@ -42,6 +43,15 @@ export class Ecopontos {
     });
   });
 
+  /** Só entra no mapa quem tem coordenada; o resto continua na lista ao lado. */
+  readonly marcadores = computed<MarcadorMapa[]>(() =>
+    this.lista()
+      .filter(e => e.latitude !== null && e.longitude !== null)
+      .map(e => ({ id: e.id, latitude: e.latitude!, longitude: e.longitude!, titulo: e.nome }))
+  );
+
+  readonly semCoordenada = computed(() => this.lista().length - this.marcadores().length);
+
   constructor() {
     this.store.carregar();
   }
@@ -59,6 +69,11 @@ export class Ecopontos {
     this.selecionado.set(e);
   }
 
+  /** O mapa devolve só o id do pino clicado. */
+  selecionarPorId(id: string): void {
+    this.selecionado.set(this.lista().find(e => e.id === id) ?? null);
+  }
+
   /** Abre a rota no mapa externo — não há navegação embarcada no projeto. */
   comoChegar(e: Ecoponto): void {
     const destino =
@@ -67,13 +82,5 @@ export class Ecopontos {
         : `${e.endereco}, ${e.bairro}, ${e.cidade} - ${e.uf}`;
     const url = `https://www.openstreetmap.org/search?query=${encodeURIComponent(destino)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
-  }
-
-  /** Posição do pino no mapa ilustrativo, derivada do id para ficar estável entre recargas. */
-  posicao(e: Ecoponto, eixo: 'top' | 'left'): number {
-    let hash = 0;
-    const semente = eixo === 'top' ? e.id : e.id.split('').reverse().join('');
-    for (const c of semente) hash = (hash * 31 + c.charCodeAt(0)) >>> 0;
-    return 18 + (hash % 64);
   }
 }

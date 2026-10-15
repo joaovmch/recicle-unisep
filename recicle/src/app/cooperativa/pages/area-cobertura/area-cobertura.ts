@@ -1,4 +1,7 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, afterNextRender, computed, inject, signal } from '@angular/core';
+import { PrecisaoCoordenada, descreverPrecisao, geocodificar } from '../../../shared/data/geocodificacao';
+import { UFS, ufValida } from '../../../shared/util/validators';
+import { Mapa, MarcadorMapa } from '../../../shared/ui/mapa/mapa';
 import { ToastService } from '../../../shared/ui/toast.service';
 import { SupabaseService } from '../../../supabase.service';
 import { CooperativaService } from '../../data/cooperativa.service';
@@ -8,8 +11,9 @@ interface Bairro {
   nome: string;
   distanciaKm: number;
   atendido: boolean;
-  top: number;
-  left: number;
+  /** Coordenada guardada no banco; só vira pino no mapa quando existe. */
+  latitude: number | null;
+  longitude: number | null;
 }
 
 interface ForaDoRaio {
@@ -37,26 +41,39 @@ const COLETAS_MAX = 20;
 /** Mesmo texto usado como motivo de recusa em Solicitações — é assim que uma coleta fora do raio fica registrada. */
 const MOTIVO_RECUSA_AREA = 'Endereço fora da área de coleta';
 
+/** Id do pino do galpão no mapa: não é bairro, então não pode colidir com o id de um. */
+const GALPAO_ID = 'galpao';
+
+const ENDERECO_VAZIO = {
+  cep: '',
+  rua: '',
+  numero: '',
+  complemento: '',
+  bairro: '',
+  cidade: '',
+  uf: '',
+};
+
 function ha90DiasISO(): string {
   const data = new Date();
   data.setDate(data.getDate() - 90);
   return data.toISOString();
 }
 
-function paraBairro(row: any, index: number): Bairro {
+function paraBairro(row: any): Bairro {
   return {
     id: row.id,
     nome: row.nome,
     distanciaKm: Number(row.distancia_km),
     atendido: row.atendido,
-    top: 20 + ((index * 37) % 60),
-    left: 20 + ((index * 53) % 60),
+    latitude: row.latitude !== null && row.latitude !== undefined ? Number(row.latitude) : null,
+    longitude: row.longitude !== null && row.longitude !== undefined ? Number(row.longitude) : null,
   };
 }
 
 @Component({
   selector: 'app-area-cobertura',
-  imports: [],
+  imports: [Mapa],
   templateUrl: './area-cobertura.html',
   styleUrls: ['../../../shared/ui/design-system.css', './area-cobertura.css'],
 })
@@ -108,7 +125,53 @@ export class AreaCobertura {
   readonly cooperativa = this.cooperativaService.cooperativa;
 
   readonly bairrosNoRaio = computed(() => this.bairros().filter(b => b.atendido).length);
-  readonly raioPx = computed(() => Math.round(this.raio() * 22));
+
+  /** Centro do mapa e do círculo de raio: o galpão, depois de localizado. */
+  readonly centroMapa = computed<[number, number] | null>(() => {
+    const c = this.cooperativa();
+    return c && c.latitude !== null && c.longitude !== null ? [c.latitude, c.longitude] : null;
+  });
+
+  /** Galpão em destaque + um pino por bairro já localizado; apagado = fora do atendimento. */
+  readonly marcadoresMapa = computed<MarcadorMapa[]>(() => {
+    const marcadores: MarcadorMapa[] = [];
+    const c = this.cooperativa();
+
+    if (c && c.latitude !== null && c.longitude !== null) {
+      marcadores.push({
+        id: GALPAO_ID,
+        latitude: c.latitude,
+        longitude: c.longitude,
+        titulo: `Galpão da ${c.nome}`,
+        destaque: true,
+      });
+    }
+
+    for (const b of this.bairros()) {
+      if (b.latitude === null || b.longitude === null) continue;
+      marcadores.push({
+        id: b.id,
+        latitude: b.latitude,
+        longitude: b.longitude,
+        titulo: `${b.nome} · ${b.distanciaKm.toFixed(0)} km · ${b.atendido ? 'atendido' : 'fora do atendimento'}`,
+        atenuado: !b.atendido,
+      });
+    }
+
+    return marcadores;
+  });
+
+  /** Enquanto o endereço do galpão não for localizado, não há onde centrar o mapa. */
+  readonly galpaoLocalizado = computed(() => this.centroMapa() !== null);
+  readonly localizando = signal(false);
+
+  /** Aviso quando o pino não ficou exatamente no endereço (rua ausente no OpenStreetMap). */
+  readonly avisoPrecisao = signal('');
+
+  readonly ufs = UFS;
+  readonly modalEndereco = signal(false);
+  readonly salvandoEndereco = signal(false);
+  readonly formEndereco = signal({ ...ENDERECO_VAZIO });
 
   readonly enderecoGalpao = computed(() => {
     const c = this.cooperativaService.cooperativa();
@@ -121,7 +184,10 @@ export class AreaCobertura {
   readonly todosMarcados = computed(() => this.bairros().length > 0 && this.bairros().every(b => b.atendido));
 
   constructor() {
-    this.carregar();
+    const carregamento = this.carregar();
+    // Geocodificar depende de `fetch` numa URL relativa, que não existe no SSR —
+    // daí a localização no mapa só começar depois que a tela chega ao navegador.
+    afterNextRender(() => void carregamento.then(() => this.localizarNoMapa()));
   }
 
   private async carregar(): Promise<void> {
@@ -178,6 +244,149 @@ export class AreaCobertura {
     );
   }
 
+  /**
+   * Transforma endereço em coordenada uma vez só: o resultado é gravado no banco, então
+   * a próxima abertura da tela já desenha o mapa sem passar pelo serviço de mapas.
+   * Falha em localizar não é erro para quem usa — o pino simplesmente não aparece.
+   */
+  private async localizarNoMapa(): Promise<void> {
+    const cooperativa = this.cooperativaService.cooperativa();
+    if (!cooperativa) return;
+
+    this.localizando.set(true);
+    try {
+      if (cooperativa.latitude === null || cooperativa.longitude === null) {
+        const coordenada = await geocodificar({
+          rua: cooperativa.rua,
+          numero: cooperativa.numero,
+          bairro: cooperativa.bairro,
+          cidade: cooperativa.cidade,
+          uf: cooperativa.uf,
+        });
+
+        if (coordenada) {
+          this.anotarPrecisao(coordenada.precisao);
+          await this.cooperativaService.atualizar({
+            latitude: coordenada.latitude,
+            longitude: coordenada.longitude,
+          });
+        }
+      }
+
+      // Um bairro de cada vez: o serviço de mapas aceita uma consulta por segundo, e o
+      // servidor já enfileira as chamadas — disparar tudo junto só faria a tela esperar mais.
+      for (const bairro of this.bairros().filter(b => b.latitude === null || b.longitude === null)) {
+        if (!cooperativa.cidade) break;
+
+        const coordenada = await geocodificar({
+          bairro: bairro.nome,
+          cidade: cooperativa.cidade,
+          uf: cooperativa.uf,
+        });
+        if (!coordenada) continue;
+
+        const { latitude, longitude } = coordenada;
+        this.bairros.update(lista =>
+          lista.map(b => (b.id === bairro.id ? { ...b, latitude, longitude } : b))
+        );
+        await this.client.from('bairros_atendidos').update({ latitude, longitude }).eq('id', bairro.id);
+      }
+    } finally {
+      this.localizando.set(false);
+    }
+  }
+
+  abrirEdicaoEndereco(): void {
+    const c = this.cooperativaService.cooperativa();
+    if (!c) return;
+
+    this.formEndereco.set({
+      cep: c.cep ?? '',
+      rua: c.rua ?? '',
+      numero: c.numero ?? '',
+      complemento: c.complemento ?? '',
+      bairro: c.bairro ?? '',
+      cidade: c.cidade ?? '',
+      uf: c.uf ?? '',
+    });
+    this.modalEndereco.set(true);
+  }
+
+  fecharEdicaoEndereco(): void {
+    if (this.salvandoEndereco()) return;
+    this.modalEndereco.set(false);
+  }
+
+  atualizarEndereco<K extends keyof typeof ENDERECO_VAZIO>(campo: K, valor: string): void {
+    this.formEndereco.update(f => ({ ...f, [campo]: valor }));
+  }
+
+  /**
+   * Muda só o endereço do galpão, sem passar pelo wizard de cadastro: o status de aprovação
+   * continua como está (o wizard reenviaria a cooperativa para análise e tiraria o acesso ao
+   * painel). A troca fica registrada em `cooperativa_eventos` para o admin ver o que mudou.
+   */
+  async salvarEndereco(): Promise<void> {
+    const cooperativa = this.cooperativaService.cooperativa();
+    if (!cooperativa) return;
+
+    const f = this.formEndereco();
+    if (!f.rua.trim() || !f.numero.trim() || !f.bairro.trim() || !f.cidade.trim()) {
+      this.toast.mostrar('Preencha rua, número, bairro e cidade.');
+      return;
+    }
+    if (!ufValida(f.uf)) {
+      this.toast.mostrar('Escolha a UF na lista.');
+      return;
+    }
+
+    this.salvandoEndereco.set(true);
+    const { erro } = await this.cooperativaService.atualizar({
+      cep: f.cep.trim() || null,
+      rua: f.rua.trim(),
+      numero: f.numero.trim(),
+      complemento: f.complemento.trim() || null,
+      bairro: f.bairro.trim(),
+      cidade: f.cidade.trim(),
+      uf: f.uf.trim().toUpperCase(),
+      // Endereço novo com coordenada velha deixaria o pino e o círculo do raio no lugar
+      // antigo; zerando, a tela localiza o galpão de novo logo abaixo.
+      latitude: null,
+      longitude: null,
+    });
+    this.salvandoEndereco.set(false);
+
+    if (erro) {
+      this.toast.mostrar('Não foi possível salvar o endereço. Tente novamente.');
+      return;
+    }
+
+    await this.client.from('cooperativa_eventos').insert({
+      cooperativa_id: cooperativa.id,
+      titulo: 'Endereço do galpão alterado',
+    });
+
+    this.modalEndereco.set(false);
+    this.avisoPrecisao.set('');
+    this.toast.mostrar('Endereço atualizado.');
+    await this.localizarNoMapa();
+  }
+
+  /**
+   * O OpenStreetMap só conhece o que voluntários mapearam, e rua de cidade pequena falta
+   * com frequência. Quando o pino não ficou no número exato, a tela diz onde ele ficou em
+   * vez de deixar a cooperativa achar que o galpão está marcado errado.
+   */
+  private anotarPrecisao(precisao: PrecisaoCoordenada): void {
+    this.avisoPrecisao.set(precisao === 'endereco' ? '' : descreverPrecisao(precisao));
+  }
+
+  /** Clicar no pino de um bairro liga/desliga o atendimento, igual ao chip da lista. */
+  alternarBairroPorId(id: string): void {
+    if (id === GALPAO_ID) return;
+    this.bairros.update(lista => lista.map(b => (b.id === id ? { ...b, atendido: !b.atendido } : b)));
+  }
+
   atualizarRaio(valor: string): void {
     this.raio.set(Number(valor) || 0);
   }
@@ -207,6 +416,8 @@ export class AreaCobertura {
           nome: b.nome,
           distancia_km: b.distanciaKm,
           atendido: b.atendido,
+          latitude: b.latitude,
+          longitude: b.longitude,
         }))
       );
       if (error) {

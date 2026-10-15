@@ -18,27 +18,41 @@
 
     <!-- MAPA -->
     <div class="side-card map-card">
-      <div class="map-canvas">
-        <div class="map-grid"></div>
-
-        <div class="map-radius" [style.width.px]="raioPx()" [style.height.px]="raioPx()"></div>
-
-        <div class="map-center">
-          <span class="map-pin"></span>
-          <span class="map-pin-label">
-            <strong>Galpão da {{ cooperativa()?.nome ?? 'cooperativa' }}</strong>
-            raio de {{ raio() }} km
-          </span>
+      <div class="map-card-header">
+        <div>
+          <span class="section-label" style="margin: 0;">Galpão</span>
+          <p class="map-endereco">{{ enderecoGalpao() }}</p>
         </div>
-
-        @for (b of bairros(); track b.nome) {
-          <span class="map-label" [class.dim]="!b.atendido" [style.top.%]="b.top" [style.left.%]="b.left">
-            {{ b.nome }}
-          </span>
-        }
+        <button class="btn btn-outline small" (click)="abrirEdicaoEndereco()" [disabled]="!cooperativa()">
+          Alterar endereço
+        </button>
       </div>
 
-      <p class="map-attribution">Mapa · Leaflet · dados © OpenStreetMap contributors</p>
+      <div class="map-canvas">
+        <app-mapa
+          [marcadores]="marcadoresMapa()"
+          [centro]="centroMapa()"
+          [raioKm]="erroRaio() ? null : raio()"
+          (selecionado)="alternarBairroPorId($event)"
+        />
+      </div>
+
+      <div class="map-legenda">
+        <span class="map-legenda-item"><i class="galpao"></i> Galpão da {{ cooperativa()?.nome ?? 'cooperativa' }}</span>
+        <span class="map-legenda-item"><i class="atendido"></i> Bairro atendido</span>
+        <span class="map-legenda-item"><i class="fora"></i> Fora do atendimento</span>
+        <span class="map-legenda-raio">raio de {{ raio() }} km</span>
+      </div>
+
+      @if (localizando()) {
+        <p class="map-attribution">Localizando os endereços no mapa...</p>
+      } @else if (cooperativa() && !galpaoLocalizado()) {
+        <p class="map-attribution">
+          Não foi possível localizar nem a cidade informada. Confira bairro, cidade e UF em "Alterar endereço".
+        </p>
+      } @else if (avisoPrecisao()) {
+        <p class="map-attribution aviso">{{ avisoPrecisao() }}</p>
+      }
     </div>
 
 
@@ -141,3 +155,104 @@
   </aside>
 
 </div>
+
+
+<!-- MODAL: ENDEREÇO DO GALPÃO -->
+@if (modalEndereco()) {
+  <div class="modal-overlay" (click)="fecharEdicaoEndereco()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="fecharEdicaoEndereco()">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
+
+      <h2>Alterar endereço do galpão</h2>
+      <p class="modal-description">
+        É daqui que sai a área de cobertura: o raio e o mapa são recalculados a partir deste endereço.
+        O cadastro continua aprovado — não passa por nova análise.
+      </p>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="galpao-cep">CEP</label>
+          <input
+            id="galpao-cep"
+            type="text"
+            placeholder="00000-000"
+            [value]="formEndereco().cep"
+            (input)="atualizarEndereco('cep', $any($event.target).value)"
+          />
+        </div>
+        <div class="field campo-obrigatorio">
+          <label for="galpao-rua">Rua</label>
+          <input
+            id="galpao-rua"
+            type="text"
+            [value]="formEndereco().rua"
+            (input)="atualizarEndereco('rua', $any($event.target).value)"
+          />
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field campo-obrigatorio">
+          <label for="galpao-numero">Número</label>
+          <input
+            id="galpao-numero"
+            type="text"
+            [value]="formEndereco().numero"
+            (input)="atualizarEndereco('numero', $any($event.target).value)"
+          />
+        </div>
+        <div class="field">
+          <label for="galpao-complemento">Complemento · opcional</label>
+          <input
+            id="galpao-complemento"
+            type="text"
+            placeholder="Ex.: fundos, barracão 2"
+            [value]="formEndereco().complemento"
+            (input)="atualizarEndereco('complemento', $any($event.target).value)"
+          />
+        </div>
+      </div>
+
+      <div class="field-row three">
+        <div class="field campo-obrigatorio">
+          <label for="galpao-bairro">Bairro</label>
+          <input
+            id="galpao-bairro"
+            type="text"
+            [value]="formEndereco().bairro"
+            (input)="atualizarEndereco('bairro', $any($event.target).value)"
+          />
+        </div>
+        <div class="field campo-obrigatorio">
+          <label for="galpao-cidade">Cidade</label>
+          <input
+            id="galpao-cidade"
+            type="text"
+            [value]="formEndereco().cidade"
+            (input)="atualizarEndereco('cidade', $any($event.target).value)"
+          />
+        </div>
+        <div class="field campo-obrigatorio">
+          <label for="galpao-uf">UF</label>
+          <select id="galpao-uf" (change)="atualizarEndereco('uf', $any($event.target).value)">
+            <option value="" [selected]="!formEndereco().uf">UF</option>
+            @for (uf of ufs; track uf) {
+              <option [value]="uf" [selected]="uf === formEndereco().uf.toUpperCase()">{{ uf }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-outline" (click)="fecharEdicaoEndereco()" [disabled]="salvandoEndereco()">
+          Cancelar
+        </button>
+        <button class="btn btn-primary" (click)="salvarEndereco()" [disabled]="salvandoEndereco()">
+          {{ salvandoEndereco() ? 'Salvando...' : 'Salvar endereço' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
