@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { AdminService } from '../../data/admin.service';
 import { ToastService } from '../../../shared/ui/toast.service';
 import { formatarData } from '../../../shared/util/format';
-import { EMAIL_RE, SENHA_MIN_CARACTERES } from '../../../shared/util/validators';
+import { EMAIL_RE, SENHA_MIN_CARACTERES, erroSenha } from '../../../shared/util/validators';
 
 @Component({
   selector: 'app-admin-administradores',
@@ -51,8 +51,9 @@ export class Administradores {
       this.erro.set('Digite um e-mail válido.');
       return;
     }
-    if (this.novaSenha().length < SENHA_MIN_CARACTERES) {
-      this.erro.set(`A senha precisa ter pelo menos ${SENHA_MIN_CARACTERES} caracteres.`);
+    const erroSenhaMsg = erroSenha(this.novaSenha());
+    if (erroSenhaMsg) {
+      this.erro.set(erroSenhaMsg);
       return;
     }
 

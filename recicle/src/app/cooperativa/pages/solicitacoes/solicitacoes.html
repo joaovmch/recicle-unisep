@@ -59,7 +59,7 @@
       <div class="request-info">
         <div>
           <span>Solicitante</span>
-          <strong>{{ s.solicitante }}</strong>
+          <strong>{{ s.solicitante || 'Identificado ao aceitar' }}</strong>
         </div>
 
         <div>
@@ -132,7 +132,7 @@
         </div>
         <div>
           <span>Endereço</span>
-          <strong>{{ s.endereco }} — {{ s.bairro }}@if (formatarDistancia(s.distanciaKm); as d) { · {{ d }} }</strong>
+          <strong>{{ enderecoComBairro(s.endereco, s.bairro) }}@if (formatarDistancia(s.distanciaKm); as d) { · {{ d }} }</strong>
         </div>
       </div>
 

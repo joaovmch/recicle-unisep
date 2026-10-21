@@ -169,16 +169,24 @@ export class Cooperativas {
     const motivo = window.prompt(`Por que "${doc.nome}" está sendo reprovado? (a cooperativa vai ver esse texto)`);
     if (motivo === null) return;
 
+    // O motivo é obrigatório: é o que diz à cooperativa o que corrigir. Sem ele, a reprovação
+    // vira um "não aprovado" sem explicação.
+    const motivoLimpo = motivo.trim();
+    if (!motivoLimpo) {
+      this.toast.mostrar('Explique o motivo da reprovação — a cooperativa precisa saber o que corrigir.');
+      return;
+    }
+
     const { error } = await this.client
       .from('documentos')
-      .update({ status: 'reprovado', motivo_recusa: motivo.trim() || null })
+      .update({ status: 'reprovado', motivo_recusa: motivoLimpo })
       .eq('id', doc.id);
     if (error) {
       this.toast.mostrar('Não foi possível reprovar esse documento.');
       return;
     }
     this.documentosDetalhe.update(lista =>
-      lista.map(d => (d.id === doc.id ? { ...d, status: 'reprovado', motivoRecusa: motivo.trim() || null } : d))
+      lista.map(d => (d.id === doc.id ? { ...d, status: 'reprovado', motivoRecusa: motivoLimpo } : d))
     );
     this.toast.mostrar(`${doc.nome}: reprovado.`);
   }

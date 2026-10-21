@@ -4,20 +4,24 @@ export const routes: Routes = [
   // --- Público ---
   {
     path: '',
+    title: 'Re-cicle',
     pathMatch: 'full',
     loadComponent: () => import('./publico/home/home').then(m => m.Home),
   },
   {
     path: 'como-funciona',
+    title: 'Como funciona · Re-cicle',
     loadComponent: () => import('./publico/como-funciona/como-funciona').then(m => m.ComoFunciona),
   },
   {
     path: 'entrar',
+    title: 'Entrar · Re-cicle',
     loadComponent: () => import('./publico/entrar/entrar').then(m => m.Entrar),
   },
   {
     // Destino do link de "esqueci a senha" (vale para morador e cooperativa).
     path: 'nova-senha',
+    title: 'Nova senha · Re-cicle',
     loadComponent: () => import('./publico/nova-senha/nova-senha').then(m => m.NovaSenha),
   },
   {

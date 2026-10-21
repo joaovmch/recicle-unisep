@@ -4,7 +4,7 @@ import { Endereco, MoradorService } from '../../data/morador.service';
 import { AuthService } from '../../../shared/data/auth.service';
 import { ToastService } from '../../../shared/ui/toast.service';
 import { SupabaseService, traduzirErroAuth } from '../../../supabase.service';
-import { NOME_MAX_CARACTERES, SENHA_MIN_CARACTERES, UFS, telefoneValido, ufValida } from '../../../shared/util/validators';
+import { NOME_MAX_CARACTERES, SENHA_MIN_CARACTERES, erroSenha, UFS, telefoneValido, ufValida } from '../../../shared/util/validators';
 
 type Aba = 'dados' | 'notificacoes' | 'seguranca';
 
@@ -173,8 +173,9 @@ export class Perfil {
   // ===== Segurança =====
 
   async alterarSenha(): Promise<void> {
-    if (this.novaSenha().length < SENHA_MIN_CARACTERES) {
-      this.toast.mostrar(`A senha precisa ter pelo menos ${SENHA_MIN_CARACTERES} caracteres.`);
+    const erroSenhaMsg = erroSenha(this.novaSenha());
+    if (erroSenhaMsg) {
+      this.toast.mostrar(erroSenhaMsg);
       return;
     }
     if (this.novaSenha() !== this.confirmacaoSenha()) {

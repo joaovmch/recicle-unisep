@@ -156,6 +156,14 @@
   border-radius: 14px;
   font-size: 13.5px;
   line-height: 1.55;
+  /* Texto colado sem espaço (URL, "garrafagarrafa…") quebra em vez de estourar a bolha. */
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+/* A IA pode quebrar linha na resposta. */
+.chat-texto {
+  white-space: pre-line;
 }
 
 .chat-bolha.ia {

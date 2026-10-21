@@ -39,7 +39,7 @@
       <header class="chat-cabecalho">
         <div>
           <h1>{{ c.titulo }}</h1>
-          <p>{{ c.categoria ?? 'identificando...' }}</p>
+          <p>{{ c.categoria ?? 'Conversando com o assistente' }}</p>
         </div>
         @if (c.solicitacaoId) {
           <span class="status-pill info">Solicitação criada</span>
@@ -49,7 +49,7 @@
       <header class="chat-cabecalho">
         <div>
           <h1>Novo descarte</h1>
-          <p>Descreva o que você quer descartar e eu digo o que fazer.</p>
+          <p>Conte o que quer descartar ou tire suas dúvidas sobre reciclagem.</p>
         </div>
       </header>
     }
@@ -58,7 +58,7 @@
       @if (mensagens().length === 0) {
         <div class="chat-bolha ia">
           <span class="chat-autor">Assistente Re-cicle</span>
-          Oi! Me conta o que você quer descartar hoje.
+          Oi! Pode me contar o que você quer descartar, ou perguntar o que quiser sobre separação, reciclagem e descarte. Estou aqui pra ajudar.
         </div>
       }
 
@@ -67,7 +67,7 @@
           @if (m.autor === 'ia') {
             <span class="chat-autor">Assistente Re-cicle</span>
           }
-          {{ m.texto }}
+          <span class="chat-texto">{{ m.texto }}</span>
 
           @if (m.passos && m.passos.length > 0) {
             <ol class="passos">
@@ -143,7 +143,8 @@
     <div class="chat-entrada">
       <input
         type="text"
-        placeholder="Descreva o resíduo (ex.: uma cadeira de escritório quebrada)"
+        placeholder="Escreva sua mensagem (ex.: como descarto uma cadeira quebrada?)"
+        aria-label="Mensagem para o assistente"
         maxlength="500"
         [value]="texto()"
         (input)="texto.set($any($event.target).value)"
@@ -197,9 +198,10 @@
     } @else {
       <h3 class="summary-title">Como funciona</h3>
       <p class="side-card-texto">
-        Descreva o resíduo com o máximo de detalhe que conseguir — material, tamanho e
-        quantidade. O assistente identifica o tipo, explica o preparo e mostra onde levar
-        ou chama uma cooperativa.
+        Converse com o assistente como faria com alguém que entende do assunto. Conte o que
+        quer descartar — material, tamanho e quantidade ajudam — ou tire dúvidas sobre
+        reciclagem. Quando ele identificar o item, mostra o preparo e onde levar ou chama
+        uma cooperativa.
       </p>
     }
   </aside>

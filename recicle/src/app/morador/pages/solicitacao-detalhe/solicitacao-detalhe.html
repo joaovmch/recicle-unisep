@@ -59,7 +59,7 @@
 
           <div>
             <span>{{ d.destino === 'entrega_ecoponto' ? 'Endereço do local' : 'Endereço da coleta' }}</span>
-            <strong>{{ d.endereco }}@if (d.bairro) { — {{ d.bairro }} }</strong>
+            <strong>{{ enderecoComBairro(d.endereco, d.bairro) }}</strong>
           </div>
 
           <div>
@@ -221,6 +221,7 @@
               id="nova-data"
               type="date"
               [min]="hoje"
+              [max]="dataMaxima"
               [value]="novaData()"
               (input)="novaData.set($any($event.target).value)"
             />
@@ -262,10 +263,14 @@
           <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
         </button>
 
-        <h2>Cancelar a coleta #{{ d.numero }}</h2>
+        <h2>Cancelar @if (d.destino === 'entrega_ecoponto') { a entrega } @else { a coleta } #{{ d.numero }}</h2>
         <p class="modal-description">
-          {{ d.titulo }} · {{ d.categoria }}. Conta pra gente o motivo — isso ajuda a cooperativa
-          a organizar a rota e não conta como falta.
+          {{ d.titulo }} · {{ d.categoria }}. Conta pra gente o motivo —
+          @if (d.destino === 'entrega_ecoponto') {
+            assim a gente entende o que não deu certo e melhora o app.
+          } @else {
+            isso ajuda a cooperativa a organizar a rota e não conta como falta.
+          }
         </p>
 
         <div class="reason-list">

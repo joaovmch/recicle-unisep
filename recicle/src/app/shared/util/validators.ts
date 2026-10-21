@@ -20,6 +20,20 @@ export function telefoneValido(texto: string): boolean {
 /** Abaixo de 8 caracteres não é recomendado (OWASP / guia de senhas do Supabase). */
 export const SENHA_MIN_CARACTERES = 8;
 
+/** O Supabase (bcrypt) usa só os primeiros 72 bytes; acima disso o resto é ignorado. */
+export const SENHA_MAX_CARACTERES = 72;
+
+/**
+ * Valida a senha e devolve a mensagem de erro, ou null se estiver boa. Além do tamanho,
+ * recusa senha formada só por espaços (passava na contagem de 8 caracteres).
+ */
+export function erroSenha(senha: string): string | null {
+  if (senha.length < SENHA_MIN_CARACTERES) return `A senha precisa ter pelo menos ${SENHA_MIN_CARACTERES} caracteres.`;
+  if (senha.length > SENHA_MAX_CARACTERES) return `A senha pode ter no máximo ${SENHA_MAX_CARACTERES} caracteres.`;
+  if (!senha.trim()) return 'A senha não pode ser só espaços.';
+  return null;
+}
+
 /** "08:30" ou "08:30:00" (como o Postgres devolve colunas `time`). */
 export const HORA_RE = /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/;
 

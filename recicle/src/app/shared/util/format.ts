@@ -25,3 +25,17 @@ export function formatarCnpj(cnpj: string | null | undefined): string {
   const d = (cnpj ?? '').replace(/\D/g, '');
   return d.length === 14 ? d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : (cnpj ?? '');
 }
+
+/**
+ * Junta endereço e bairro sem duplicar: pedidos antigos guardavam o endereço já com o
+ * bairro no fim ("Rua X, 45 — Centro"), então só acrescenta o bairro quando ele ainda
+ * não está lá.
+ */
+export function enderecoComBairro(endereco: string | null | undefined, bairro: string | null | undefined): string {
+  const end = (endereco ?? '').trim();
+  const b = (bairro ?? '').trim();
+  if (!b) return end;
+  const normal = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+  if (normal(end).endsWith(normal(b))) return end;
+  return `${end} — ${b}`;
+}

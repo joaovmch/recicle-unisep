@@ -16,6 +16,7 @@
     type="search"
     class="ecoponto-busca"
     placeholder="Buscar por bairro ou CEP"
+    aria-label="Buscar ecoponto por bairro ou CEP"
     [value]="busca()"
     (input)="busca.set($any($event.target).value)"
   />

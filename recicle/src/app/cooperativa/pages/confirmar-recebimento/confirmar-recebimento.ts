@@ -8,6 +8,9 @@ import { MembroSelecionavel } from '../../shared/equipe-basico';
 
 const PONTOS_POR_KG = 4.2;
 
+/** Teto são para uma coleta: acima disso é quase certo erro de digitação. */
+const PESO_MAXIMO_RECEBIDO_KG = 2_000;
+
 const MOTIVOS_PROBLEMA = [
   'Endereço não encontrado ou morador ausente',
   'Material divergente do combinado',
@@ -69,6 +72,17 @@ export class ConfirmarRecebimento {
   readonly pontosCreditados = computed(() =>
     Math.max(0, Math.round((this.pesoRecebido() - this.rejeitoKg()) * PONTOS_POR_KG))
   );
+
+  /** Peso recebido maior que 0, dentro de um teto são, e rejeito entre 0 e o peso. */
+  readonly erroPeso = computed<string | null>(() => {
+    const p = this.pesoRecebido();
+    const r = this.rejeitoKg();
+    if (p <= 0) return 'Informe o peso recebido (maior que zero).';
+    if (p > PESO_MAXIMO_RECEBIDO_KG) return `Peso acima do limite (${PESO_MAXIMO_RECEBIDO_KG} kg). Confira o valor.`;
+    if (r < 0) return 'O rejeito não pode ser negativo.';
+    if (r > p) return 'O rejeito não pode passar do peso recebido.';
+    return null;
+  });
 
   readonly problemaAberto = signal(false);
   readonly motivoProblema = signal(MOTIVOS_PROBLEMA[0]);
@@ -139,6 +153,10 @@ export class ConfirmarRecebimento {
 
   async confirmar(): Promise<void> {
     if (!this.codigoPreenchido() || !this.podeConfirmar() || !this.valorRecebidoConfirmado()) return;
+    if (this.erroPeso()) {
+      this.toast.mostrar(this.erroPeso()!);
+      return;
+    }
 
     const dados: DadosColeta = {
       pesoRecebidoKg: this.pesoRecebido(),
@@ -182,6 +200,10 @@ export class ConfirmarRecebimento {
 
   async confirmarPorFoto(): Promise<void> {
     if (!this.fotoSelecionada() || !this.podeConfirmar()) return;
+    if (this.erroPeso()) {
+      this.toast.mostrar(this.erroPeso()!);
+      return;
+    }
 
     const dados: DadosColeta = {
       pesoRecebidoKg: this.pesoRecebido(),

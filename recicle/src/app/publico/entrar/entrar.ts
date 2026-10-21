@@ -4,7 +4,7 @@ import { AuthService } from '../../shared/data/auth.service';
 import { MoradorService } from '../../morador/data/morador.service';
 import { CooperativaService } from '../../cooperativa/data/cooperativa.service';
 import { ToastService } from '../../shared/ui/toast.service';
-import { EMAIL_RE, SENHA_MIN_CARACTERES } from '../../shared/util/validators';
+import { EMAIL_RE, SENHA_MIN_CARACTERES, erroSenha } from '../../shared/util/validators';
 import { definirContinuarConectado } from '../../supabase.service';
 
 type Aba = 'criar' | 'entrar';
@@ -77,9 +77,8 @@ export class Entrar {
 
     if (!this.nome().trim()) return this.erro.set('Informe seu nome completo.');
     if (!EMAIL_RE.test(this.email().trim())) return this.erro.set('Digite um e-mail válido.');
-    if (this.senha().length < SENHA_MIN_CARACTERES) {
-      return this.erro.set(`A senha precisa ter pelo menos ${SENHA_MIN_CARACTERES} caracteres.`);
-    }
+    const erroSenhaMsg = erroSenha(this.senha());
+    if (erroSenhaMsg) return this.erro.set(erroSenhaMsg);
     if (!this.aceitouTermos()) return this.erro.set('É preciso aceitar os termos de uso para continuar.');
 
     this.processando.set(true);

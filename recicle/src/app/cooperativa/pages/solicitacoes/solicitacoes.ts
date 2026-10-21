@@ -4,7 +4,7 @@ import { ToastService } from '../../../shared/ui/toast.service';
 import { Solicitacao, SolicitacoesStore } from '../../data/solicitacoes.store';
 import { CooperativaService } from '../../data/cooperativa.service';
 import { SupabaseService } from '../../../supabase.service';
-import { formatarDistancia, formatarPreco, hojeISO } from '../../../shared/util/format';
+import { enderecoComBairro, formatarDistancia, formatarPreco, hojeISO } from '../../../shared/util/format';
 import { MembroSelecionavel } from '../../shared/equipe-basico';
 import { mesmoNome, tiposDaCategoria } from '../../../shared/data/classificador';
 
@@ -250,6 +250,7 @@ export class Solicitacoes {
   }
 
   readonly formatarDistancia = formatarDistancia;
+  readonly enderecoComBairro = enderecoComBairro;
 
   // ===== Equipe e veículos (para o modal de aceite) =====
 

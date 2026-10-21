@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Descarte, DescartesStore, STATUS_DESCARTE } from '../../data/descartes.store';
 import { ToastService } from '../../../shared/ui/toast.service';
-import { formatarData, formatarPreco, hojeISO } from '../../../shared/util/format';
+import { enderecoComBairro, formatarData, formatarPreco, hojeISO } from '../../../shared/util/format';
 
 const MOTIVOS_CANCELAMENTO = [
   { valor: 'levei', label: 'Já levei ao ecoponto', ajuda: 'Você entrega por conta própria e ainda pontua' },
@@ -27,10 +27,17 @@ export class SolicitacaoDetalhe {
 
   readonly formatarData = formatarData;
   readonly formatarPreco = formatarPreco;
+  readonly enderecoComBairro = enderecoComBairro;
   readonly statusLabel = STATUS_DESCARTE;
   readonly motivos = MOTIVOS_CANCELAMENTO;
   readonly limiteRemarcacoes = this.store.limiteRemarcacoes;
   readonly hoje = hojeISO();
+  /** Remarcação só até 90 dias à frente: evita datas soltas tipo 2030. */
+  readonly dataMaxima = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 90);
+    return d.toISOString().slice(0, 10);
+  })();
 
   readonly id = this.route.snapshot.paramMap.get('id') ?? '';
   readonly descarte = signal<Descarte | undefined>(undefined);

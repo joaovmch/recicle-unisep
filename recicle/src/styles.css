@@ -34,3 +34,35 @@ body {
   --rc-neutro-bg: #edebe4;
   --rc-neutro-texto: #5c6b64;
 }
+/*
+ * Impressão: o morador imprime o comprovante da coleta (botão "Imprimir" no detalhe).
+ * Sem isto, a página inteira sai com a barra de navegação, o menu e os botões. Aqui
+ * escondemos a navegação e os controles e deixamos só o conteúdo.
+ */
+@media print {
+  .morador-topbar,
+  .cooperativa-layout .sidebar,
+  .admin-layout .sidebar,
+  .publico-topbar,
+  .chat-lateral,
+  .toast-host,
+  nav,
+  .btn,
+  button,
+  .page-header .header-actions,
+  .modal-overlay {
+    display: none !important;
+  }
+
+  body,
+  .morador-conteudo,
+  .main-content {
+    background: #fff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  * {
+    box-shadow: none !important;
+  }
+}

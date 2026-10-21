@@ -187,3 +187,11 @@
     align-items: flex-start;
   }
 }
+
+/* Motivo da reprovação de um documento, mostrado abaixo do nome na tela de análise. */
+.documento-motivo {
+  margin: 4px 0 0;
+  color: var(--rc-erro-texto, #a1270f);
+  font-size: 12.5px;
+  overflow-wrap: anywhere;
+}

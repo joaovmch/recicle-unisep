@@ -61,9 +61,14 @@ export function paraEndereco(row: any): Endereco {
 }
 
 /** "Rua das Flores, 45 — Centro" a partir do endereço salvo. */
+/**
+ * Rua e número, sem o bairro — quem mostra junta o bairro separado (o detalhe do pedido e
+ * o card da cooperativa fazem "{{ endereco }} — {{ bairro }}"). Incluir o bairro aqui
+ * duplicava: "Rua das Flores, 45 — Centro — Centro".
+ */
 export function enderecoResumido(e: Endereco): string {
   const numero = e.numero ? `, ${e.numero}` : '';
-  return `${e.rua}${numero} — ${e.bairro}`;
+  return `${e.rua}${numero}`;
 }
 
 @Injectable({ providedIn: 'root' })

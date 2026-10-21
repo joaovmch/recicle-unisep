@@ -89,6 +89,31 @@ function paraSolicitacao(row: any): Solicitacao {
   };
 }
 
+/**
+ * Pedido aberto (ainda sem dono), como vem de `public.pedidos_abertos()`: sem nome e sem
+ * endereço do morador. O que a cooperativa vê antes de aceitar é só bairro, categoria, peso,
+ * valor e janela — o suficiente para decidir, sem expor quem é nem onde mora.
+ */
+function paraSolicitacaoAberta(row: any): Solicitacao {
+  return {
+    id: row.id,
+    cooperativaId: null,
+    numero: row.numero,
+    titulo: row.titulo,
+    categoria: row.categoria,
+    pesoEstimadoKg: Number(row.peso_estimado_kg),
+    solicitante: '',
+    endereco: row.bairro,
+    bairro: row.bairro,
+    distanciaKm: row.distancia_km !== null ? Number(row.distancia_km) : 0,
+    janela: row.janela_preferida ?? '',
+    preco: Number(row.preco),
+    status: row.status,
+    criadoEm: row.criado_em,
+    novo: true,
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class SolicitacoesStore {
   private readonly client = inject(SupabaseService).client;
@@ -136,15 +161,23 @@ export class SolicitacoesStore {
     }
     this.dispensadas = this.lerDispensadas(cooperativaId);
 
-    // O RLS já limita ao que é desta cooperativa + pedidos de coleta em casa ainda sem dono
-    // (só para cooperativa aprovada). O filtro explícito evita trazer outra coisa por engano.
-    const { data } = await this.client
+    // Pedidos que já são desta cooperativa (aceitos/concluídos): vêm completos, com nome e
+    // endereço, porque ela precisa deles para a coleta.
+    const { data: propriasData } = await this.client
       .from('solicitacoes')
       .select('*')
-      .or(`cooperativa_id.eq.${cooperativaId},and(cooperativa_id.is.null,status.eq.pendente,destino.eq.coleta_casa)`)
+      .eq('cooperativa_id', cooperativaId)
       .order('criado_em', { ascending: false });
 
-    this._solicitacoes.set((data ?? []).map(paraSolicitacao).filter(s => !this.dispensadas.has(s.id)));
+    // Pedidos de coleta em casa ainda sem dono: vêm por uma função que NÃO expõe nome nem
+    // rua/número — só bairro, categoria, peso, valor e janela. O endereço completo e o nome
+    // só aparecem depois que a cooperativa aceita (aí o pedido vira dela, acima).
+    const { data: abertosData } = await this.client.rpc('pedidos_abertos');
+
+    const proprias = (propriasData ?? []).map(paraSolicitacao);
+    const abertos = (abertosData ?? []).map(paraSolicitacaoAberta);
+
+    this._solicitacoes.set([...abertos, ...proprias].filter(s => !this.dispensadas.has(s.id)));
   }
 
   async buscarPorId(id: string): Promise<Solicitacao | undefined> {
@@ -183,26 +216,19 @@ export class SolicitacoesStore {
     const cooperativaId = this.cooperativaService.cooperativa()?.id;
     if (!cooperativaId) return { erro: 'Cooperativa não carregada.' };
 
-    const { data, error } = await this.client
-      .from('solicitacoes')
-      .update({
-        cooperativa_id: cooperativaId,
-        status: 'aceita',
-        novo: false,
-        data_agendada: agenda.dataAgendada,
-        janela_confirmada: agenda.janelaConfirmada,
-        atribuido_equipe_id: agenda.equipeId,
-        atribuido_veiculo_id: agenda.veiculoId,
-      })
-      .eq('id', id)
-      .eq('status', 'pendente')
-      .or(`cooperativa_id.is.null,cooperativa_id.eq.${cooperativaId}`)
-      .select('id');
+    // Pedido aberto não é mais visível por SELECT (para não expor o morador), então o
+    // "assumir" passa por função com privilégio, que valida tudo e grava a atribuição.
+    const { error } = await this.client.rpc('aceitar_pedido_aberto', {
+      p_id: id,
+      p_data_agendada: agenda.dataAgendada,
+      p_janela: agenda.janelaConfirmada,
+      p_equipe: agenda.equipeId,
+      p_veiculo: agenda.veiculoId,
+    });
 
-    if (error) return { erro: 'Não foi possível aceitar a solicitação. Tente novamente.' };
-    if (!data || data.length === 0) {
+    if (error) {
       await this.carregar();
-      return { erro: 'Esse pedido já foi aceito por outra cooperativa ou cancelado pelo morador.' };
+      return { erro: mensagemDoBanco(error, 'Esse pedido já foi aceito por outra cooperativa ou cancelado pelo morador.') };
     }
 
     this.atualizarLocal(id, {

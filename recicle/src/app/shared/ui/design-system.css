@@ -1450,7 +1450,7 @@
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   /* Tabela larga rola dentro dela mesma, em vez de arrastar a página inteira para o lado. */
   .data-table {
     display: block;

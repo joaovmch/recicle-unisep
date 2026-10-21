@@ -35,8 +35,17 @@
               <div class="documento-row analise-doc-row">
                 <div class="documento-info">
                   <strong>{{ doc.nome }}</strong>
+                  @if (doc.status === 'reprovado' && doc.motivo) {
+                    <p class="documento-motivo">{{ doc.motivo }}</p>
+                  }
                 </div>
-                <span class="badge badge-bad">Não aprovado</span>
+                @if (doc.status === 'reprovado') {
+                  <span class="badge badge-bad">Reprovado</span>
+                } @else if (doc.status === 'validado') {
+                  <span class="badge badge-good">Validado</span>
+                } @else {
+                  <span class="badge badge-warning">Em conferência</span>
+                }
               </div>
             }
           </div>

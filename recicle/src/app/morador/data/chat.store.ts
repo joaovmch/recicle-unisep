@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { SupabaseService } from '../../supabase.service';
 import { MoradorService } from './morador.service';
-import { Classificacao, PassoPreparo, classificarComIA, pontosPrevistos, respostaDaIa } from '../../shared/data/classificador';
+import { Classificacao, PassoPreparo, conversarComIA, pontosPrevistos } from '../../shared/data/classificador';
 
 export interface Mensagem {
   id: string;
@@ -60,6 +60,12 @@ function tituloDe(descricao: string): string {
   return limpo.length > 46 ? `${limpo.slice(0, 46)}…` : limpo || 'Novo descarte';
 }
 
+/** O que a IA recebe de cada mensagem anterior — os passos entram como texto para ela lembrar. */
+function paraHistorico(m: Mensagem): { autor: Mensagem['autor']; texto: string } {
+  const passos = m.passos?.map((p, i) => `${i + 1}. ${p.titulo}: ${p.descricao}`).join('\n');
+  return { autor: m.autor, texto: passos ? `${m.texto}\n${passos}` : m.texto };
+}
+
 @Injectable({ providedIn: 'root' })
 export class ChatStore {
   private readonly client = inject(SupabaseService).client;
@@ -108,8 +114,8 @@ export class ChatStore {
   }
 
   /**
-   * Manda a descrição do morador, classifica e grava as duas mensagens. Cria a conversa
-   * na primeira mensagem.
+   * Manda a mensagem do morador para o assistente e grava as duas mensagens. Cria a
+   * conversa na primeira mensagem; o resumo do resíduo só muda quando a IA identifica um item.
    */
   async enviar(texto: string): Promise<{ erro: string | null }> {
     const morador = this.moradorService.morador();
@@ -127,11 +133,19 @@ export class ChatStore {
   private async enviarComoMorador(moradorId: string, descricao: string): Promise<{ erro: string | null }> {
     const falha = { erro: 'Não foi possível enviar sua mensagem. Tente novamente.' };
 
-    // Conversa que já virou pedido fica congelada: a categoria dela é a do pedido enviado.
-    // Mensagem nova ali vira um descarte novo, em vez de reclassificar o que já foi pedido.
     let conversa = this._ativa();
-    if (conversa?.solicitacaoId) conversa = null;
-    const classificacao = await classificarComIA(descricao);
+    const resposta = await conversarComIA(this._mensagens().map(paraHistorico), descricao);
+    const classificacao = resposta.classificacao;
+
+    // Só conta como "item novo/diferente" quando a IA classifica algo e a categoria muda.
+    // Uma resposta que só repete o item já identificado (ex.: responder uma dúvida sobre ele,
+    // ou uma pergunta fora do tema que o modelo devolve com a mesma classificação) não deve
+    // renomear a conversa nem gerar um descarte novo — o título vira o título do pedido.
+    const itemMudou = !!classificacao && classificacao.categoria !== conversa?.categoria;
+
+    // Conversa que já virou pedido fica congelada: um item diferente abre um descarte novo,
+    // em vez de reclassificar o pedido já enviado. Dúvidas continuam na mesma conversa.
+    if (conversa?.solicitacaoId && itemMudou) conversa = null;
 
     if (!conversa) {
       const { data } = await this.client
@@ -139,7 +153,7 @@ export class ChatStore {
         .insert({
           morador_id: moradorId,
           titulo: tituloDe(descricao),
-          ...this.camposClassificacao(classificacao),
+          ...(classificacao ? this.camposClassificacao(classificacao) : {}),
         })
         .select('*, solicitacoes(status)')
         .single();
@@ -147,12 +161,12 @@ export class ChatStore {
       if (!data) return falha;
       conversa = paraConversa(data);
       this._ativa.set(conversa);
-    } else {
-      // Nova descrição na mesma conversa reclassifica o item — e o título acompanha, porque
-      // é ele que vai como título da solicitação.
+    } else if (itemMudou) {
+      // Item diferente na mesma conversa reclassifica — e o título acompanha, porque é ele
+      // que vai como título da solicitação.
       const { error } = await this.client
         .from('chat_conversas')
-        .update({ titulo: tituloDe(descricao), ...this.camposClassificacao(classificacao) })
+        .update({ titulo: tituloDe(descricao), ...this.camposClassificacao(classificacao!) })
         .eq('id', conversa.id);
       if (error) return falha;
     }
@@ -162,8 +176,9 @@ export class ChatStore {
       {
         conversa_id: conversa.id,
         autor: 'ia',
-        texto: respostaDaIa(classificacao),
-        passos: classificacao.passos,
+        texto: resposta.texto,
+        // Passos só quando a IA identifica o item (novo ou diferente); numa dúvida é só texto.
+        passos: itemMudou ? classificacao!.passos : null,
       },
     ]);
     if (erroMensagens) return falha;

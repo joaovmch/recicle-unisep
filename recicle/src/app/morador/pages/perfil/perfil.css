@@ -73,6 +73,12 @@
   border-radius: 12px;
 }
 
+/* Primeira coluna encolhe e quebra texto; a de ações (Editar/Remover) não é espremida. */
+.endereco-item > div:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .endereco-item strong {
   display: flex;
   align-items: center;
@@ -80,12 +86,14 @@
   color: var(--rc-texto);
   font-size: 13.5px;
   font-weight: 750;
+  overflow-wrap: anywhere;
 }
 
 .endereco-item p {
   margin: 5px 0 0;
   color: #61736d;
   font-size: 12.5px;
+  overflow-wrap: anywhere;
 }
 
 .endereco-cidade {

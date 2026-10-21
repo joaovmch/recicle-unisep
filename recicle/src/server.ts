@@ -9,8 +9,13 @@ import express from 'express';
 import helmet from 'helmet';
 import { join } from 'node:path';
 import { environment } from './environments/environment';
-import { classificar } from './app/shared/data/classificador';
-import { classificarComGemini } from './app/shared/data/classificador-ia.server';
+import { respostaLocal } from './app/shared/data/classificador';
+import {
+  MAX_CARACTERES_POR_MENSAGEM,
+  MAX_MENSAGENS_HISTORICO,
+  MensagemHistorico,
+  conversarComGemini,
+} from './app/shared/data/classificador-ia.server';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
@@ -51,10 +56,21 @@ app.use(
 const trustProxy = process.env['TRUST_PROXY']?.trim();
 if (trustProxy) app.set('trust proxy', /^\d+$/.test(trustProxy) ? Number(trustProxy) : trustProxy);
 
-app.use(express.json({ limit: '10kb' }));
+// Cabe a mensagem nova mais o histórico recente da conversa que vai junto para a IA.
+app.use(express.json({ limit: '48kb' }));
 
-/** Descrição de um item cabe folgada nisso; texto maior só gastaria cota da IA. */
-const DESCRICAO_MAX_CARACTERES = 500;
+/** Uma mensagem do chat cabe folgada nisso; texto maior só gastaria cota da IA. */
+const MENSAGEM_MAX_CARACTERES = 500;
+
+/** Aceita só o formato esperado; qualquer coisa estranha no histórico é descartada. */
+function lerHistorico(valor: unknown): MensagemHistorico[] {
+  if (!Array.isArray(valor)) return [];
+  return valor
+    .slice(-MAX_MENSAGENS_HISTORICO)
+    .filter((m): m is MensagemHistorico => (m?.autor === 'morador' || m?.autor === 'ia') && typeof m?.texto === 'string')
+    .map(m => ({ autor: m.autor, texto: m.texto.slice(0, MAX_CARACTERES_POR_MENSAGEM) }))
+    .filter(m => m.texto.trim());
+}
 
 /**
  * Limite simples por IP para a rota de IA: ela é pública e cada chamada consome a cota
@@ -85,41 +101,41 @@ let avisouSemChave = false;
 function avisarFalhaDaIa(erro: unknown): void {
   const mensagem = erro instanceof Error ? erro.message : String(erro);
   if (mensagem.includes('GEMINI_API_KEY')) {
-    if (!avisouSemChave) console.warn('[classificar] GEMINI_API_KEY não configurada — usando só a regra local.');
+    if (!avisouSemChave) console.warn('[conversar] GEMINI_API_KEY não configurada — usando só a regra local.');
     avisouSemChave = true;
     return;
   }
-  console.warn('[classificar] IA indisponível, usando regra local:', mensagem);
+  console.warn('[conversar] IA indisponível, usando regra local:', mensagem);
 }
 
 /**
- * Classifica a descrição de um resíduo com o Gemini. A chave (GEMINI_API_KEY) só existe
- * aqui no servidor — o navegador nunca a vê. Se a IA falhar por qualquer motivo (sem
- * chave configurada, sem internet, resposta fora do formato esperado), cai para a regra
- * local em `classificador.ts` em vez de devolver erro: o chat nunca trava por causa disso.
+ * Responde a mensagem do chat com o Gemini, levando o histórico recente da conversa. A chave
+ * (GEMINI_API_KEY) só existe aqui no servidor — o navegador nunca a vê. Se a IA falhar por
+ * qualquer motivo (sem chave configurada, sem internet, resposta fora do formato esperado),
+ * cai para a regra local em `classificador.ts` em vez de devolver erro: o chat nunca trava.
  */
-app.post('/api/classificar', async (req, res) => {
-  const descricao = typeof req.body?.descricao === 'string' ? req.body.descricao.trim() : '';
-  if (!descricao) {
-    res.status(400).json({ erro: 'Informe a descrição do resíduo.' });
+app.post('/api/conversar', async (req, res) => {
+  const mensagem = typeof req.body?.mensagem === 'string' ? req.body.mensagem.trim() : '';
+  if (!mensagem) {
+    res.status(400).json({ erro: 'Escreva uma mensagem.' });
     return;
   }
-  if (descricao.length > DESCRICAO_MAX_CARACTERES) {
-    res.status(400).json({ erro: `Descreva o item em até ${DESCRICAO_MAX_CARACTERES} caracteres.` });
+  if (mensagem.length > MENSAGEM_MAX_CARACTERES) {
+    res.status(400).json({ erro: `Escreva em até ${MENSAGEM_MAX_CARACTERES} caracteres.` });
     return;
   }
 
   // Acima do limite não é erro para quem usa: cai na regra local, sem gastar cota da IA.
   if (excedeuLimite(req.ip ?? 'desconhecido')) {
-    res.json(classificar(descricao));
+    res.json(respostaLocal(mensagem));
     return;
   }
 
   try {
-    res.json(await classificarComGemini(descricao));
+    res.json(await conversarComGemini(lerHistorico(req.body?.historico), mensagem));
   } catch (erro) {
     avisarFalhaDaIa(erro);
-    res.json(classificar(descricao));
+    res.json(respostaLocal(mensagem));
   }
 });
 

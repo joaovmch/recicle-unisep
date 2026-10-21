@@ -13,7 +13,7 @@
     }
   </header>
 
-  <input #fileInput type="file" class="hidden-file-input" (change)="arquivoSelecionado($event)" />
+  <input #fileInput type="file" accept="application/pdf,image/jpeg,image/png,image/webp" class="hidden-file-input" (change)="arquivoSelecionado($event)" />
 
   <div class="wizard-body">
     <div class="wizard-grid">
@@ -190,7 +190,7 @@
                 <label for="resp-senha">Senha de acesso ao painel</label>
                 <input
                   id="resp-senha"
-                  type="password"
+                  type="password" maxlength="72"
                   autocomplete="new-password"
                   required
                   [attr.minlength]="senhaMinCaracteres"
@@ -220,14 +220,14 @@
             </div>
             <div class="field campo-obrigatorio" [class.campo-invalido]="invalido('rua')">
               <label for="end-rua">Rua</label>
-              <input id="end-rua" type="text" required placeholder="Nome da rua" [value]="endereco().rua" (input)="atualizarEndereco('rua', $any($event.target).value)" />
+              <input id="end-rua" type="text" required placeholder="Nome da rua" [value]="endereco().rua" (input)="atualizarEndereco('rua', $any($event.target).value)"  maxlength="120"/>
             </div>
           </div>
 
           <div class="field-row three">
             <div class="field campo-obrigatorio" [class.campo-invalido]="invalido('numero')">
               <label for="end-numero">Número</label>
-              <input id="end-numero" type="text" required placeholder="Nº" [value]="endereco().numero" (input)="atualizarEndereco('numero', $any($event.target).value)" />
+              <input id="end-numero" type="text" required placeholder="Nº" [value]="endereco().numero" (input)="atualizarEndereco('numero', $any($event.target).value)"  maxlength="10"/>
             </div>
             <div class="field">
               <label for="end-complemento">Complemento</label>
@@ -237,18 +237,18 @@
                 placeholder="Galpão, fundos, quadra…"
                 [value]="endereco().complemento"
                 (input)="atualizarEndereco('complemento', $any($event.target).value)"
-              />
+               maxlength="80"/>
             </div>
             <div class="field campo-obrigatorio" [class.campo-invalido]="invalido('bairro')">
               <label for="end-bairro">Bairro</label>
-              <input id="end-bairro" type="text" required placeholder="Bairro" [value]="endereco().bairro" (input)="atualizarEndereco('bairro', $any($event.target).value)" />
+              <input id="end-bairro" type="text" required placeholder="Bairro" [value]="endereco().bairro" (input)="atualizarEndereco('bairro', $any($event.target).value)"  maxlength="80"/>
             </div>
           </div>
 
           <div class="field-row">
             <div class="field campo-obrigatorio" [class.campo-invalido]="invalido('cidade')">
               <label for="end-cidade">Cidade</label>
-              <input id="end-cidade" type="text" required placeholder="Cidade" [value]="endereco().cidade" (input)="atualizarEndereco('cidade', $any($event.target).value)" />
+              <input id="end-cidade" type="text" required placeholder="Cidade" [value]="endereco().cidade" (input)="atualizarEndereco('cidade', $any($event.target).value)"  maxlength="80"/>
             </div>
             <div class="field campo-obrigatorio" [class.campo-invalido]="invalido('uf')">
               <label for="end-uf">UF</label>

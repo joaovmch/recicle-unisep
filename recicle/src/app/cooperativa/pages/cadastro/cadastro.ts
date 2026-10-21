@@ -10,7 +10,7 @@ import {
 } from '../../data/cooperativa.service';
 import { AuthService } from '../../../shared/data/auth.service';
 import { SupabaseService } from '../../../supabase.service';
-import { EMAIL_RE, HORA_RE, NOME_MAX_CARACTERES, SENHA_MIN_CARACTERES, UFS, lerMesAno, telefoneValido, ufValida } from '../../../shared/util/validators';
+import { EMAIL_RE, HORA_RE, NOME_MAX_CARACTERES, SENHA_MIN_CARACTERES, erroSenha, UFS, lerMesAno, telefoneValido, ufValida } from '../../../shared/util/validators';
 import { erroArquivoInvalido, formatarTamanhoArquivo } from '../../../shared/util/upload';
 
 interface DadosOrganizacao {
@@ -404,7 +404,7 @@ export class Cadastro {
     if (!o.responsavelNome.trim() || o.responsavelNome.trim().length > NOME_MAX_CARACTERES) invalidos.push('responsavelNome');
     if (!telefoneValido(o.responsavelTelefone)) invalidos.push('responsavelTelefone');
     if (!EMAIL_RE.test(o.responsavelEmail.trim())) invalidos.push('responsavelEmail');
-    if (!this.modoEdicao() && this.senha().length < SENHA_MIN_CARACTERES) invalidos.push('senha');
+    if (!this.modoEdicao() && erroSenha(this.senha())) invalidos.push('senha');
     return invalidos;
   }
 
@@ -455,7 +455,7 @@ export class Cadastro {
 
   private mensagemErro(invalidos: string[]): string {
     if (invalidos.length === 1 && invalidos[0] === 'senha') {
-      return `A senha precisa ter pelo menos ${SENHA_MIN_CARACTERES} caracteres.`;
+      return erroSenha(this.senha()) ?? `A senha precisa ter pelo menos ${SENHA_MIN_CARACTERES} caracteres.`;
     }
     const labels = invalidos.map(c => CAMPO_LABELS[c]).filter(Boolean);
     return labels.length > 0

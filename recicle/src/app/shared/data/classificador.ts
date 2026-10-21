@@ -2,8 +2,8 @@
  * Classificador de resíduo.
  *
  * `classificar()` é a regra determinística por palavra-chave original — síncrona, sem
- * rede, usada como base de comparação e como fallback. `classificarComIA()` é o caminho
- * real usado pelo chat: chama `/api/classificar` (que fala com o Gemini no servidor,
+ * rede, usada como base de comparação e como fallback. `conversarComIA()` é o caminho
+ * real usado pelo chat: chama `/api/conversar` (que fala com o Gemini no servidor,
  * guardando a chave fora do navegador) e, se a chamada falhar por qualquer motivo (sem
  * internet, servidor fora, chave não configurada), cai de volta nesta mesma regra local —
  * o chat nunca trava por causa da IA.
@@ -24,6 +24,12 @@ export interface Classificacao {
   passos: PassoPreparo[];
   /** pontos por kg usados no cálculo da previsão */
   pontosPorKg: number;
+}
+
+/** Resposta do assistente: texto livre e, só quando a pessoa descreveu um item, a classificação. */
+export interface RespostaAssistente {
+  texto: string;
+  classificacao: Classificacao | null;
 }
 
 interface Regra {
@@ -110,22 +116,39 @@ const REGRAS: Regra[] = [
     ],
   },
   {
-    termos: ['remédio', 'remedio', 'medicamento', 'tinta', 'solvente', 'thinner', 'agrotóxico', 'agrotoxico', 'veneno', 'inseticida'],
+    // Perfurocortantes e mercúrio: perigo imediato de corte/contaminação, nunca vão na coleta comum.
+    termos: ['seringa', 'agulha', 'perfurocortante', 'perfuro cortante', 'termômetro', 'termometro', 'mercúrio', 'mercurio', 'lixo hospitalar', 'bisturi', 'lanceta'],
+    prioridade: 2,
+    categoria: 'Resíduo perigoso',
+    materiais: 'Perfurocortante / contaminante',
+    reciclavel: 'Não',
+    pesoPadraoKg: 1,
+    aceitaColetaComum: false,
+    atencao: 'Risco de corte e contaminação. Nunca vá no lixo comum nem na reciclagem. Agulha e seringa vão em recipiente rígido fechado; termômetro de mercúrio e lixo de saúde só em ponto de coleta específico (posto de saúde ou farmácia).',
+    passos: [
+      { titulo: 'Não desmonte nem reencape', descricao: 'Coloque a agulha ou o perfurocortante direto num recipiente rígido e feche bem.' },
+      { titulo: 'Mercúrio: não aspire nem jogue na pia', descricao: 'Recolha com papel, feche num pote de vidro e leve a um ponto de coleta específico.' },
+      { titulo: 'Leve a um ponto de coleta de saúde', descricao: 'Posto de saúde, farmácia ou cooperativa licenciada para resíduo perigoso.' },
+    ],
+  },
+  {
+    termos: ['remédio', 'remedio', 'medicamento', 'tinta', 'solvente', 'thinner', 'agrotóxico', 'agrotoxico', 'veneno', 'inseticida', 'óleo de motor', 'oleo de motor', 'óleo lubrificante', 'oleo lubrificante', 'lubrificante', 'óleo de carro', 'oleo de carro', 'graxa', 'gasolina', 'querosene', 'combustível', 'combustivel'],
     prioridade: 2,
     categoria: 'Resíduo químico',
     materiais: 'Produto químico ou medicamento',
     reciclavel: 'Não',
     pesoPadraoKg: 1,
     aceitaColetaComum: false,
-    atencao: 'Não jogue na pia, no ralo nem no lixo comum. Remédio vai para farmácia com ponto de coleta; tinta e químicos, só para quem tem licença.',
+    atencao: 'Não jogue na pia, no ralo nem no lixo comum. Remédio vai para farmácia com ponto de coleta; tinta, óleo de motor e químicos, só para quem tem licença.',
     passos: [
       { titulo: 'Mantenha na embalagem original', descricao: 'Feche bem e não misture produtos diferentes no mesmo recipiente.' },
-      { titulo: 'Não lave nem esvazie', descricao: 'Resto de tinta ou remédio na água contamina a rede de esgoto.' },
+      { titulo: 'Não lave nem esvazie', descricao: 'Resto de tinta, óleo de motor ou remédio na água contamina a rede de esgoto.' },
       { titulo: 'Confirme quem recebe', descricao: 'Só leve a locais marcados como licenciados para resíduo perigoso.' },
     ],
   },
   {
-    termos: ['óleo', 'oleo', 'gordura'],
+    // Só óleo de cozinha/vegetal — óleo de motor é químico (regra acima, que vence por prioridade).
+    termos: ['óleo de cozinha', 'oleo de cozinha', 'óleo vegetal', 'oleo vegetal', 'óleo de fritura', 'oleo de fritura', 'óleo', 'oleo', 'gordura'],
     categoria: 'Óleo de cozinha',
     materiais: 'Óleo vegetal usado',
     reciclavel: 'Sim',
@@ -448,25 +471,62 @@ function ehClassificacaoValida(v: unknown): v is Classificacao {
 }
 
 /**
- * Chamado pelo chat de verdade: pede a classificação ao endpoint `/api/classificar`
- * (IA real, no servidor) e só usa a regra local se a chamada falhar ou vier com um
- * formato inesperado — assim a conversa nunca fica sem resposta.
+ * Resposta sem IA: a regra por palavra-chave. Item não identificado não vira classificação,
+ * para não apagar o que a conversa já tinha identificado.
  */
-export async function classificarComIA(descricao: string): Promise<Classificacao> {
+export function respostaLocal(mensagem: string): RespostaAssistente {
+  const c = classificar(mensagem);
+  if (c.categoria !== 'A conferir') {
+    const destino = !c.aceitaColetaComum
+      ? 'Esse não pode ir no lixo comum, tá?'
+      : c.reciclavel === 'Não'
+        ? 'Dá pra mandar na coleta comum, mas na compostagem ele rende bem mais.'
+        : 'Até dá pra mandar na coleta comum, mas numa cooperativa ele é bem mais aproveitado.';
+    return {
+      texto: `Isso entra como ${c.categoria.toLowerCase()}. ${destino}\nDeixei o passo a passo aqui embaixo, e logo depois você escolhe se leva num ecoponto ou pede a coleta em casa.`,
+      classificacao: c,
+    };
+  }
+
+  const t = normalizar(mensagem);
+  if (/\b(obrigad|valeu|vlw|brigad)/.test(t)) {
+    return { texto: 'Imagina! Se quiser descartar mais alguma coisa, é só me falar.', classificacao: null };
+  }
+  if (/^(oi+|ola|opa|e ai|eai|bom dia|boa tarde|boa noite|tudo bem|hey)\b/.test(t)) {
+    return { texto: 'Oi! Tudo certo por aqui. Me conta o que você quer descartar que eu te ajudo.', classificacao: null };
+  }
+  return {
+    texto: 'Hmm, não consegui entender qual item é. Pode me contar do que ele é feito e mais ou menos o tamanho?',
+    classificacao: null,
+  };
+}
+
+/**
+ * Chamado pelo chat de verdade: manda o histórico e a mensagem nova ao endpoint
+ * `/api/conversar` (IA real, no servidor) e só usa a regra local se a chamada falhar ou
+ * vier com um formato inesperado — assim a conversa nunca fica sem resposta.
+ */
+export async function conversarComIA(
+  historico: { autor: 'morador' | 'ia'; texto: string }[],
+  mensagem: string,
+): Promise<RespostaAssistente> {
   try {
-    const resposta = await fetch('/api/classificar', {
+    const resposta = await fetch('/api/conversar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ descricao }),
+      body: JSON.stringify({ historico, mensagem }),
       // O servidor já desiste do Gemini antes disso; aqui é só para o chat nunca ficar preso.
       signal: AbortSignal.timeout(20_000),
     });
-    if (!resposta.ok) throw new Error(`classificar: ${resposta.status}`);
+    if (!resposta.ok) throw new Error(`conversar: ${resposta.status}`);
 
     const dados = await resposta.json();
-    if (!ehClassificacaoValida(dados)) throw new Error('classificar: formato inesperado');
-    return dados;
+    if (typeof dados?.texto !== 'string' || !dados.texto.trim()) throw new Error('conversar: formato inesperado');
+    if (dados.classificacao !== null && !ehClassificacaoValida(dados.classificacao)) {
+      throw new Error('conversar: formato inesperado');
+    }
+    return { texto: dados.texto, classificacao: dados.classificacao };
   } catch {
-    return classificar(descricao);
+    return respostaLocal(mensagem);
   }
 }

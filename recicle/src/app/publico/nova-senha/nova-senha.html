@@ -25,7 +25,7 @@
         <label for="nova-senha">Nova senha</label>
         <input
           id="nova-senha"
-          type="password"
+          type="password" maxlength="72"
           autocomplete="new-password"
           [value]="senha()"
           (input)="senha.set($any($event.target).value)"
@@ -37,7 +37,7 @@
         <label for="confirmacao-senha">Repita a nova senha</label>
         <input
           id="confirmacao-senha"
-          type="password"
+          type="password" maxlength="72"
           autocomplete="new-password"
           [value]="confirmacao()"
           (input)="confirmacao.set($any($event.target).value)"

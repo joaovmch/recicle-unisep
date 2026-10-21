@@ -95,7 +95,7 @@
           <label for="criar-senha">Senha</label>
           <input
             id="criar-senha"
-            type="password"
+            type="password" maxlength="72"
             autocomplete="new-password"
             [placeholder]="'Mínimo ' + senhaMinCaracteres + ' caracteres'"
             [value]="senha()"
@@ -150,7 +150,7 @@
           <label for="login-senha">Senha</label>
           <input
             id="login-senha"
-            type="password"
+            type="password" maxlength="72"
             autocomplete="current-password"
             placeholder="Sua senha"
             [value]="senha()"
