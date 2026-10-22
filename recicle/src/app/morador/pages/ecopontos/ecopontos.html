@@ -47,18 +47,11 @@
   <!-- MAPA -->
   <section class="side-card mapa-card">
     <div class="mapa-canvas">
-      <div class="map-grid"></div>
-
-      @for (e of lista(); track e.id) {
-        <button
-          class="mapa-pino"
-          [class.ativo]="selecionado()?.id === e.id"
-          [style.top.%]="posicao(e, 'top')"
-          [style.left.%]="posicao(e, 'left')"
-          (click)="selecionar(e)"
-          [attr.aria-label]="e.nome"
-        ></button>
-      }
+      <app-mapa
+        [marcadores]="marcadores()"
+        [selecionadoId]="selecionado()?.id ?? null"
+        (selecionado)="selecionarPorId($event)"
+      />
 
       @if (selecionado(); as e) {
         <div class="mapa-popup">
@@ -76,7 +69,13 @@
       }
     </div>
 
-    <p class="map-attribution">Mapa · Leaflet · dados © OpenStreetMap contributors</p>
+    @if (semCoordenada() > 0) {
+      <p class="map-attribution">
+        {{ semCoordenada() }}
+        {{ semCoordenada() === 1 ? 'local ainda não tem endereço localizado no mapa' : 'locais ainda não têm endereço localizado no mapa' }}
+        — veja na lista ao lado.
+      </p>
+    }
   </section>
 
 

@@ -600,33 +600,6 @@
   flex-shrink: 0;
 }
 
-
-/* =========================
-   MAPA (placeholder decorativo)
-========================= */
-
-.map-grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.55) 0 2px, transparent 2px 92px),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.55) 0 2px, transparent 2px 92px);
-}
-
-.map-center {
-  position: absolute;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--rc-verde-600);
-  border: 2px solid #ffffff;
-  box-shadow: 0 0 0 1px var(--rc-verde-600);
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 3;
-}
-
 /* =========================
    SELOS / STATUS
 ========================= */

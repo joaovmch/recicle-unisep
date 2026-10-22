@@ -24,6 +24,9 @@ export interface Cooperativa {
   bairro: string | null;
   cidade: string | null;
   uf: string | null;
+  /** Coordenada do galpão, preenchida pela tela de Área de cobertura ao geocodificar o endereço. */
+  latitude: number | null;
+  longitude: number | null;
   raioKm: number;
   diasFuncionamento: string | null;
   horaAbre: string | null;
@@ -134,6 +137,8 @@ function paraCooperativa(row: any): Cooperativa {
     bairro: row.bairro,
     cidade: row.cidade,
     uf: row.uf,
+    latitude: row.latitude !== null && row.latitude !== undefined ? Number(row.latitude) : null,
+    longitude: row.longitude !== null && row.longitude !== undefined ? Number(row.longitude) : null,
     raioKm: Number(row.raio_km),
     diasFuncionamento: row.dias_funcionamento,
     horaAbre: row.hora_abre,
@@ -314,6 +319,10 @@ export class CooperativaService {
         bairro: dados.bairro || null,
         cidade: dados.cidade || null,
         uf: dados.uf || null,
+        // Endereço reenviado pode ser outro: zera a coordenada para a Área de cobertura
+        // localizar o galpão de novo em vez de manter o pino no lugar antigo.
+        latitude: null,
+        longitude: null,
         raio_km: dados.raioKm || 2,
         dias_funcionamento: dados.diasFuncionamento || null,
         hora_abre: dados.horaAbre || null,

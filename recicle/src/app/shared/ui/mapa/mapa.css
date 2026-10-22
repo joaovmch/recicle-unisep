@@ -1,0 +1,129 @@
+/* Sem encapsulamento (ViewEncapsulation.None): os pinos são criados pelo Leaflet fora
+   do template, então estas classes precisam ser globais. Prefixo rc-mapa- evita colisão. */
+
+app-mapa {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* O Leaflet empilha os painéis dele até z-index 1000, e os modais do projeto ficam em 50.
+     Sem isolar, tile e pino apareceriam por cima do modal aberto — `isolate` prende essa
+     numeração toda dentro do mapa. */
+  isolation: isolate;
+}
+
+.rc-mapa {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  background: #e9ebe2;
+}
+
+.rc-mapa-aviso {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #61736d;
+  font-size: 12.5px;
+  font-weight: 600;
+  pointer-events: none;
+  z-index: 500;
+}
+
+.rc-mapa-dica {
+  position: absolute;
+  right: 10px;
+  bottom: 28px;
+  margin: 0;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: rgba(16, 36, 29, 0.72);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  pointer-events: none;
+  z-index: 1100;
+}
+
+.rc-mapa-dica.erro {
+  bottom: 54px;
+  background: rgba(177, 58, 40, 0.92);
+}
+
+/* =========================
+   PINOS
+========================= */
+
+.rc-mapa-pino {
+  /* Sem estilo próprio aqui: este é o elemento que o Leaflet posiciona. */
+  cursor: pointer;
+}
+
+.rc-mapa-pino i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 2.5px solid #ffffff;
+  border-radius: 50%;
+  background: var(--rc-verde-600, #10a957);
+  box-shadow: 0 2px 6px rgba(10, 30, 24, 0.3);
+  transition: background 0.15s ease;
+}
+
+.rc-mapa-pino:hover i {
+  background: var(--rc-verde-900, #0b5c35);
+}
+
+.rc-mapa-pino.ativo i {
+  background: var(--rc-verde-900, #0b5c35);
+  box-shadow: 0 0 0 4px rgba(16, 169, 87, 0.28), 0 2px 8px rgba(10, 30, 24, 0.35);
+}
+
+/* Ponto de referência do mapa (galpão da cooperativa): losango, para não se confundir
+   com os pinos redondos dos bairros. */
+.rc-mapa-pino.destaque i {
+  border-radius: 3px;
+  background: var(--rc-texto, #14312a);
+  transform: rotate(45deg);
+}
+
+.rc-mapa-pino.destaque:hover i {
+  background: var(--rc-verde-900, #0b5c35);
+}
+
+.rc-mapa-pino.atenuado i {
+  background: #b6bfba;
+  box-shadow: 0 1px 4px rgba(10, 30, 24, 0.2);
+}
+
+.rc-mapa-pino.atenuado:hover i {
+  background: #8b9994;
+}
+
+.rc-mapa-pino:focus-visible {
+  outline: 2px solid var(--rc-verde-900, #0b5c35);
+  outline-offset: 2px;
+}
+
+/* =========================
+   CONTROLES DO LEAFLET
+========================= */
+
+.rc-mapa .leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.82);
+  color: #8b9994;
+  font-size: 10.5px;
+}
+
+.rc-mapa .leaflet-control-attribution a {
+  color: #61736d;
+}
+
+.rc-mapa .leaflet-bar a {
+  color: var(--rc-texto, #14312a);
+}

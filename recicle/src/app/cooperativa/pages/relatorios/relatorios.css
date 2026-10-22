@@ -199,3 +199,104 @@
   font-size: 11.5px;
   line-height: 1.5;
 }
+
+
+/* =========================
+   FOLHA DE IMPRESSÃO (PDF)
+=========================
+   O "Exportar em PDF" é a impressão do navegador. Para o arquivo sair com o período e
+   os itens escolhidos no modal — e não com a tela inteira —, a folha é montada à parte
+   e o @media print esconde todo o resto do painel. */
+
+.folha-impressao {
+  display: none;
+}
+
+@media print {
+  /* Esconde o painel inteiro e deixa só a folha. */
+  body > * {
+    display: none !important;
+  }
+
+  .folha-impressao,
+  .folha-impressao * {
+    display: revert !important;
+  }
+
+  .folha-impressao {
+    display: block !important;
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    background: #ffffff;
+    color: #000000;
+    font-size: 11pt;
+  }
+
+  .folha-cabecalho {
+    display: flex !important;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1.5px solid #000000;
+  }
+
+  .folha-cabecalho h1 {
+    margin: 0;
+    font-size: 16pt;
+  }
+
+  .folha-cabecalho p {
+    margin: 4px 0 0;
+    font-size: 9pt;
+  }
+
+  .folha-periodo {
+    text-align: right;
+    font-size: 9pt;
+  }
+
+  .folha-periodo strong {
+    display: block;
+    font-size: 11pt;
+  }
+
+  .folha-impressao h2 {
+    margin: 18px 0 8px;
+    font-size: 12pt;
+  }
+
+  .folha-tabela {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+  }
+
+  .folha-tabela th,
+  .folha-tabela td {
+    padding: 5px 8px;
+    border: 0.5pt solid #888888;
+    text-align: left;
+  }
+
+  .folha-tabela thead th {
+    background: #eeeeee;
+  }
+
+  /* Tabela longa não deve cortar linha no meio da quebra de página. */
+  .folha-tabela tr {
+    break-inside: avoid;
+  }
+
+  .folha-rodape {
+    margin-top: 20px;
+    padding-top: 8px;
+    border-top: 0.5pt solid #888888;
+    font-size: 8pt;
+  }
+
+  @page {
+    margin: 14mm;
+  }
+}
