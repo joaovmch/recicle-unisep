@@ -1,4 +1,24 @@
-/* You can add global styles to this file, and also import other style files */
+/*
+ * Fontes hospedadas aqui mesmo (public/fonts), não no Google Fonts: a CSP do server.ts
+ * só libera 'self', e servir local evita requisição a terceiro. Ambas são variáveis —
+ * um arquivo cobre todos os pesos. Subconjunto latin (inclui os acentos do português).
+ */
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('/fonts/inter-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: Fraunces;
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: swap;
+  src: url('/fonts/fraunces-latin.woff2') format('woff2');
+}
+
 body {
     margin: 0;
 }
@@ -64,5 +84,102 @@ body {
 
   * {
     box-shadow: none !important;
+  }
+}
+
+/* =========================
+   MOVIMENTO — base global
+   Keyframes e utilitários que valem para qualquer componente (CSS global não é
+   encapsulado). As animações são curtas e só usam opacity/transform, que não
+   forçam re-layout.
+========================= */
+
+:root {
+  --rc-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --rc-ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --rc-fonte-titulo: Fraunces, Georgia, "Times New Roman", serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: #c9efd8;
+  color: var(--rc-verde-900);
+}
+
+@keyframes rc-fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes rc-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes rc-scale-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Troca de página: o componente da rota entra com um leve deslize. O seletor pega o
+   irmão do <router-outlet>, que é o host do componente roteado.
+   "backwards", não "both": um transform que continua aplicado depois da animação
+   vira bloco de contenção pros position: fixed de dentro — e aí o fundo escuro dos
+   modais deixava de cobrir a tela inteira. */
+.main-content > :not(router-outlet),
+.morador-conteudo > :not(router-outlet) {
+  animation: rc-fade-up 0.42s var(--rc-ease-out) backwards;
+}
+
+/* Revelar ao rolar (diretiva rcReveal). Só recebe a classe quem está fora da tela
+   quando a página carrega, então nada pisca no primeiro paint. */
+.rc-reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.7s var(--rc-ease-out),
+    transform 0.7s var(--rc-ease-out);
+  transition-delay: var(--rc-reveal-delay, 0ms);
+}
+
+.rc-reveal.rc-visivel {
+  opacity: 1;
+  transform: none;
+}
+
+/* Foco visível só para teclado — o mouse não ganha o anel. */
+:focus-visible {
+  outline: 2px solid var(--rc-verde-600);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  .rc-reveal {
+    opacity: 1;
+    transform: none;
   }
 }

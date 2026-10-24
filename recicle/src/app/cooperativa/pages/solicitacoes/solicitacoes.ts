@@ -4,7 +4,7 @@ import { ToastService } from '../../../shared/ui/toast.service';
 import { Solicitacao, SolicitacoesStore } from '../../data/solicitacoes.store';
 import { CooperativaService } from '../../data/cooperativa.service';
 import { SupabaseService } from '../../../supabase.service';
-import { enderecoComBairro, formatarDistancia, formatarPreco, hojeISO } from '../../../shared/util/format';
+import { enderecoComBairro, formatarDistancia, formatarPreco, hojeISO, primeiroNome } from '../../../shared/util/format';
 import { MembroSelecionavel } from '../../shared/equipe-basico';
 import { mesmoNome, tiposDaCategoria } from '../../../shared/data/classificador';
 
@@ -318,9 +318,8 @@ export class Solicitacoes {
     if (!s) return '';
 
     const dia = this.diaSelecionado();
-    const primeiroNome = s.solicitante.split(' ')[0];
     const agenda = dia && dia.total > 0 ? `A agenda de ${dia.rotulo} passa de ${dia.usadas} para ${dia.usadas + 1} de ${dia.total} vagas. ` : '';
-    return `${agenda}${primeiroNome} recebe um código de retirada na hora — a coleta só fecha quando o coletor digitar esse código no recebimento e pesar o material.`;
+    return `${agenda}${primeiroNome(s.solicitante)} recebe um código de retirada na hora — a coleta só fecha quando o coletor digitar esse código no recebimento e pesar o material.`;
   });
 
   abrirAceite(solicitacao: Solicitacao): void {

@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { formatarPeso, maiuscula } from '../../../shared/util/format';
 import { baixarCsv } from '../../../shared/util/csv';
 import { ToastService } from '../../../shared/ui/toast.service';
 import { SupabaseService } from '../../../supabase.service';
@@ -101,7 +102,7 @@ function mesAnterior(mes: string, passos = 1): string {
 function rotuloDoMes(mes: string): string {
   const { inicio } = limitesDoMes(mes);
   const texto = inicio.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-  return texto.charAt(0).toUpperCase() + texto.slice(1);
+  return maiuscula(texto);
 }
 
 /** Início e fim (exclusivo) do período escolhido no modal de exportação. */
@@ -139,14 +140,7 @@ function limitesDaExportacao(
   return { inicio, fim, rotulo: `${formato(inicio)} a ${formato(ultimoDia)}` };
 }
 
-function formatarPeso(kg: number): string {
-  if (kg < 1000) return `${kg.toLocaleString('pt-BR')} kg`;
-  return `${(kg / 1000).toFixed(1).replace('.', ',')} t`;
-}
 
-function maiuscula(texto: string): string {
-  return texto.charAt(0).toUpperCase() + texto.slice(1);
-}
 
 /**
  * Monta o consolidado de um intervalo qualquer. Fica fora do componente porque a tela

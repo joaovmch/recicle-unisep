@@ -3,9 +3,12 @@
   <!-- HERO -->
   <section class="hero">
     <div class="hero-conteudo">
-      <span class="hero-selo">Projeto de extensão · impacto social</span>
+      <span class="hero-selo">
+        <span class="selo-ponto"></span>
+        Feito com cooperativas de catadores da região
+      </span>
 
-      <h1>Descarte certo,<br />em três minutos.</h1>
+      <h1>Descarte certo,<br />em <em>três minutos.</em></h1>
 
       <p class="hero-texto">
         Conte à nossa IA o que você quer descartar. Ela identifica o tipo de resíduo, explica
@@ -13,12 +16,15 @@
       </p>
 
       <div class="hero-botoes">
-        <button class="btn btn-primary" (click)="comecar()">Conversar com a IA</button>
-        <a class="btn btn-outline" routerLink="/ecopontos">Ver ecopontos próximos</a>
+        <button class="btn btn-primary btn-lg" (click)="comecar()">
+          Conversar com a IA
+          <svg class="btn-seta" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+        </button>
+        <a class="btn btn-outline btn-lg" routerLink="/ecopontos">Ver ecopontos próximos</a>
       </div>
 
       <p class="hero-saiba-mais">
-        <a routerLink="/como-funciona">Como funciona, passo a passo →</a>
+        <a routerLink="/como-funciona">Como funciona, passo a passo <span>→</span></a>
       </p>
 
       <div class="hero-numeros">
@@ -27,54 +33,86 @@
           <span>Tempo médio até o descarte</span>
         </div>
         <div>
-          <strong>{{ cooperativasAtivas() ?? '—' }}</strong>
+          <strong [rcContador]="cooperativasAtivas()"></strong>
           <span>Cooperativas parceiras</span>
         </div>
         <div>
-          <strong>{{ ecopontosAtivos() ?? '—' }}</strong>
+          <strong [rcContador]="ecopontosAtivos()"></strong>
           <span>Pontos de entrega no mapa</span>
         </div>
       </div>
     </div>
 
-    <!-- PRÉVIA DO CHAT -->
-    <aside class="hero-previa">
-      <div class="previa-topo">
-        <span class="previa-avatar">IA</span>
-        <div>
-          <strong>Assistente Re-cicle</strong>
-          <span>Online agora</span>
-        </div>
-        <span class="badge badge-neutral">Prévia</span>
-      </div>
+    <!-- FOTO + PRÉVIA DO CHAT -->
+    <div class="hero-visual">
+      <figure class="hero-foto">
+        <img
+          src="/img/coleta-caminhao.webp"
+          alt="Trabalhadores da coleta despejando recicláveis no caminhão"
+          width="1400" height="933"
+          fetchpriority="high"
+        />
+      </figure>
 
-      <div class="previa-thread">
-        <div class="previa-bolha ia">Oi! Me conta o que você quer descartar hoje.</div>
-        <div class="previa-bolha morador">Uma cadeira de escritório quebrada</div>
-        <div class="previa-bolha ia">
-          Identifiquei: móvel volumoso (madeira + metal + espuma). Não vai na coleta comum —
-          precisa ir a um ecoponto ou coleta agendada.
+      <aside class="hero-previa" aria-label="Exemplo de conversa com a assistente">
+        <div class="previa-topo">
+          <span class="previa-avatar">IA</span>
+          <div>
+            <strong>Assistente Re-cicle</strong>
+            <span><i class="online-ponto"></i>Online agora</span>
+          </div>
         </div>
-      </div>
 
-      <div class="previa-acoes">
-        <span>→ Ver ecopontos</span>
-        <span>→ Agendar coleta em casa</span>
-      </div>
-    </aside>
+        <div class="previa-thread">
+          <div class="previa-bolha ia b1">Oi! Me conta o que você quer descartar hoje.</div>
+          <div class="previa-bolha morador b2">Uma cadeira de escritório quebrada</div>
+          <div class="previa-digitando b3" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="previa-bolha ia b4">
+            Móvel volumoso (madeira, metal e espuma). Não vai na coleta comum — leve a um
+            ecoponto ou agende a coleta.
+          </div>
+        </div>
+
+        <div class="previa-acoes b5">
+          <span>Ver ecopontos</span>
+          <span>Agendar coleta</span>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+
+  <!-- O QUE DÁ PRA DESCARTAR -->
+  <section class="materiais">
+    <header class="secao-topo" rcReveal>
+      <h2>O que dá pra separar em casa</h2>
+      <p>Na dúvida sobre algum item, é só perguntar no chat.</p>
+    </header>
+
+    <div class="materiais-grid">
+      @for (m of materiais; track m.nome; let i = $index) {
+        <article class="material-card" [rcReveal]="i * 90">
+          <img [src]="m.foto" [alt]="m.alt" loading="lazy" width="900" height="600" />
+          <div class="material-info">
+            <strong>{{ m.nome }}</strong>
+            <span>{{ m.exemplos }}</span>
+          </div>
+        </article>
+      }
+    </div>
   </section>
 
 
   <!-- CTA COOPERATIVAS -->
-  <section class="cta-cooperativas">
-    <div>
+  <section class="cta-cooperativas" rcReveal>
+    <div class="cta-texto">
       <h2>Cada descarte vira renda para quem já cuida da cidade</h2>
       <p>
         As solicitações são direcionadas a cooperativas de catadores licenciadas da região,
         com pagamento direto ao prestador.
       </p>
     </div>
-    <button class="btn btn-primary" routerLink="/cooperativa/cadastro">
+    <button class="btn btn-claro" routerLink="/cooperativa/cadastro">
       Cadastrar minha cooperativa
     </button>
   </section>

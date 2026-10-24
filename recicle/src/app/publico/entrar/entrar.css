@@ -10,12 +10,56 @@
 ========================= */
 
 .entrada-hero {
+  position: relative;
   display: flex;
   flex-direction: column;
   padding: 40px 56px 48px;
+  overflow: hidden;
+  isolation: isolate;
   background: var(--rc-verde-900);
   color: #ffffff;
 }
+
+/* Foto ao fundo bem apagada sob o verde: dá textura sem brigar com o texto. */
+.entrada-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: url('/img/muda-maos.webp') center 35% / cover no-repeat;
+  animation: fundo-respira 18s ease-in-out infinite alternate;
+}
+
+.entrada-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(160deg, rgba(12, 59, 44, 0.96) 0%, rgba(12, 59, 44, 0.86) 55%, rgba(12, 59, 44, 0.7) 100%);
+}
+
+@keyframes fundo-respira {
+  from { transform: scale(1); }
+  to   { transform: scale(1.08); }
+}
+
+.hero-texto > *,
+.hero-depoimento {
+  animation: rc-fade-up 0.7s var(--rc-ease-out) backwards;
+}
+
+.hero-texto > :nth-child(2) { animation-delay: 0.08s; }
+.hero-texto > :nth-child(3) { animation-delay: 0.16s; }
+.hero-depoimento { animation-delay: 0.3s; }
+
+.hero-destaques li {
+  animation: rc-fade-up 0.5s var(--rc-ease-out) backwards;
+}
+
+.hero-destaques li:nth-child(1) { animation-delay: 0.3s; }
+.hero-destaques li:nth-child(2) { animation-delay: 0.4s; }
+.hero-destaques li:nth-child(3) { animation-delay: 0.5s; }
+.hero-destaques li:nth-child(4) { animation-delay: 0.6s; }
 
 .entrada-hero .auth-brand {
   text-decoration: none;
@@ -33,10 +77,11 @@
 
 .hero-texto h1 {
   margin: 0;
-  font-size: 42px;
-  font-weight: 750;
-  line-height: 1.15;
-  letter-spacing: -1.2px;
+  font-family: var(--rc-fonte-titulo);
+  font-size: 46px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -1px;
 }
 
 .hero-lead {
@@ -123,8 +168,14 @@
   max-width: 440px;
   padding: 28px 30px 30px;
   background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 2px 6px rgba(20, 50, 40, 0.07);
+  border-radius: 18px;
+  box-shadow: 0 2px 6px rgba(20, 50, 40, 0.05), 0 24px 48px -28px rgba(20, 50, 40, 0.28);
+  animation: rc-scale-in 0.55s var(--rc-ease-out) 0.1s backwards;
+}
+
+/* Troca de aba: o conteúdo novo entra deslizando (o @if recria os nós). */
+.entrada-card > :not(.entrada-abas) {
+  animation: rc-fade-up 0.35s var(--rc-ease-out) backwards;
 }
 
 .entrada-abas {
@@ -151,7 +202,15 @@
   font-weight: 750;
 }
 
-.entrada-abas button.active::after {
+.entrada-abas button {
+  transition: color 0.2s ease;
+}
+
+.entrada-abas button:hover {
+  color: var(--rc-texto);
+}
+
+.entrada-abas button::after {
   content: "";
   position: absolute;
   left: 0;
@@ -160,6 +219,12 @@
   height: 2.5px;
   border-radius: 2px;
   background: var(--rc-verde-600);
+  transform: scaleX(0);
+  transition: transform 0.3s var(--rc-ease-out);
+}
+
+.entrada-abas button.active::after {
+  transform: scaleX(1);
 }
 
 .entrada-card h2 {
@@ -200,10 +265,17 @@
   font-family: inherit;
   text-align: left;
   cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s var(--rc-ease-out), box-shadow 0.25s ease;
 }
 
 .perfil-card:hover {
   border-color: var(--rc-verde-600);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -14px rgba(18, 161, 81, 0.6);
+}
+
+.perfil-card:active {
+  transform: scale(0.98);
 }
 
 .perfil-card.on {
@@ -269,6 +341,11 @@
   color: var(--rc-verde-600);
   font-weight: 700;
   text-decoration: none;
+}
+
+.entrada-rodape a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 

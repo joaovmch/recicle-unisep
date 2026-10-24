@@ -1,4 +1,5 @@
 import { Component, afterNextRender, computed, inject, signal } from '@angular/core';
+import { ha90DiasISO } from '../../../shared/util/format';
 import { PrecisaoCoordenada, descreverPrecisao, geocodificar } from '../../../shared/data/geocodificacao';
 import { distanciaKm } from '../../../shared/util/geo';
 import { UFS, ufValida } from '../../../shared/util/validators';
@@ -55,11 +56,6 @@ const ENDERECO_VAZIO = {
   uf: '',
 };
 
-function ha90DiasISO(): string {
-  const data = new Date();
-  data.setDate(data.getDate() - 90);
-  return data.toISOString();
-}
 
 function paraBairro(row: any): Bairro {
   return {
@@ -108,9 +104,6 @@ export class AreaCobertura {
       : ''
   );
   readonly temErro = computed(() => !!this.erroRaio() || !!this.erroColetas());
-
-  /** Configuração salva, para o "Desfazer" da confirmação (US11 FA02). */
-  private salvo = { raio: 0, coletas: 0, bairros: [] as Bairro[] };
 
   /** Texto do aviso laranja: quanto pedido o raio atual está deixando passar. */
   readonly avisoDistancia = computed(() => {
@@ -242,8 +235,6 @@ export class AreaCobertura {
         .sort((a, b) => b.pedidos - a.pedidos)
         .slice(0, 6)
     );
-
-    this.salvo = { raio: this.raio(), coletas: this.coletasPorPeriodo(), bairros: this.bairros() };
 
     const porBairro = new Map<string, { distanciaKm: number; pedidos: number }>();
     for (const r of recusadasPorArea ?? []) {

@@ -38,6 +38,11 @@
   font-family: inherit;
   text-align: left;
   cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.2s var(--rc-ease-out, ease);
+}
+
+.conversa-item:active {
+  transform: scale(0.98);
 }
 
 .conversa-item:hover {
@@ -159,6 +164,42 @@
   /* Texto colado sem espaço (URL, "garrafagarrafa…") quebra em vez de estourar a bolha. */
   overflow-wrap: anywhere;
   min-width: 0;
+  animation: bolha-entra 0.4s var(--rc-ease-out, ease) backwards;
+}
+
+@keyframes bolha-entra {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+.chat-bolha.ia {
+  transform-origin: bottom left;
+}
+
+.chat-bolha.morador {
+  transform-origin: bottom right;
+}
+
+.chat-bolha.digitando {
+  display: flex;
+  gap: 5px;
+  padding: 15px 16px;
+}
+
+.chat-bolha.digitando i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #8fa49c;
+  animation: ponto-digitando 0.9s ease-in-out infinite;
+}
+
+.chat-bolha.digitando i:nth-child(2) { animation-delay: 0.15s; }
+.chat-bolha.digitando i:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes ponto-digitando {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30%           { transform: translateY(-4px); opacity: 1; }
 }
 
 /* A IA pode quebrar linha na resposta. */
@@ -208,7 +249,13 @@
   display: flex;
   align-items: flex-start;
   gap: 11px;
+  animation: bolha-entra 0.4s var(--rc-ease-out, ease) backwards;
 }
+
+.passos li:nth-child(2) { animation-delay: 0.08s; }
+.passos li:nth-child(3) { animation-delay: 0.16s; }
+.passos li:nth-child(4) { animation-delay: 0.24s; }
+.passos li:nth-child(n + 5) { animation-delay: 0.32s; }
 
 .passo-numero {
   width: 22px;
@@ -255,6 +302,11 @@
   padding: 17px 19px;
   border: 1px solid var(--rc-borda);
   border-radius: 12px;
+  animation: bolha-entra 0.45s var(--rc-ease-out, ease) backwards;
+}
+
+.destino-card + .destino-card {
+  animation-delay: 0.08s;
 }
 
 .destino-card.destaque {
@@ -295,10 +347,13 @@
   font-family: inherit;
   text-align: left;
   cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.25s ease, transform 0.2s var(--rc-ease-out, ease);
 }
 
 .destino-local:hover:not(:disabled) {
   border-color: var(--rc-verde-600);
+  transform: translateX(2px);
+  box-shadow: 0 6px 14px -10px rgba(18, 161, 81, 0.6);
 }
 
 .destino-local:disabled {

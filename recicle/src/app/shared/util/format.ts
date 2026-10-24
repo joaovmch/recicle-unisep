@@ -39,3 +39,26 @@ export function enderecoComBairro(endereco: string | null | undefined, bairro: s
   if (normal(end).endsWith(normal(b))) return end;
   return `${end} — ${b}`;
 }
+
+/** Primeira letra maiúscula, o resto como está. */
+export function maiuscula(texto: string): string {
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+/** Primeiro nome de um nome completo — para mensagens no tom de conversa ("o app de Ana"). */
+export function primeiroNome(nome: string | null | undefined): string {
+  return (nome ?? '').trim().split(/\s+/)[0] ?? '';
+}
+
+/** Peso em "kg" até 999, depois em "t" com uma casa (ex.: "1,2 t"). */
+export function formatarPeso(kg: number): string {
+  if (kg < 1000) return `${kg.toLocaleString('pt-BR')} kg`;
+  return `${(kg / 1000).toFixed(1).replace('.', ',')} t`;
+}
+
+/** ISO de 90 dias atrás — o recorte padrão dos relatórios e listas (RN34). */
+export function ha90DiasISO(): string {
+  const data = new Date();
+  data.setDate(data.getDate() - 90);
+  return data.toISOString();
+}

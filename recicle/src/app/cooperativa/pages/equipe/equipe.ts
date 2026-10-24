@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { maiuscula } from '../../../shared/util/format';
 import { RouterLink } from '@angular/router';
 import { ToastService } from '../../../shared/ui/toast.service';
 import { SupabaseService } from '../../../supabase.service';
@@ -73,7 +74,7 @@ function permissoesLegiveis(membro: { acessoPainel: boolean; podeConfirmar: bool
   if (membro.coletas) partes.push(`${membro.coletas} coletas no mês`);
   // Maiúscula só no começo da linha montada: os pedaços depois do "·" seguem minúsculos.
   const linha = partes.join(' · ');
-  return linha.charAt(0).toUpperCase() + linha.slice(1);
+  return maiuscula(linha);
 }
 
 function gerarIniciais(nome: string): string {

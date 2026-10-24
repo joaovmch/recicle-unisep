@@ -2,10 +2,12 @@ import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../supabase.service';
 import { PublicoShell } from '../layout/publico-shell';
+import { Reveal } from '../../shared/ui/reveal';
+import { Contador } from '../../shared/ui/contador';
 
 @Component({
   selector: 'app-publico-home',
-  imports: [PublicoShell, RouterLink],
+  imports: [PublicoShell, RouterLink, Reveal, Contador],
   templateUrl: './home.html',
   styleUrls: ['../../shared/ui/design-system.css', './home.css'],
 })
@@ -16,6 +18,33 @@ export class Home {
   /** Números reais do projeto — sem dado inventado na vitrine. */
   readonly cooperativasAtivas = signal<number | null>(null);
   readonly ecopontosAtivos = signal<number | null>(null);
+
+  readonly materiais = [
+    {
+      nome: 'Plástico',
+      exemplos: 'Garrafas PET, potes, embalagens limpas',
+      foto: '/img/garrafas-latas.webp',
+      alt: 'Monte de garrafas plásticas coloridas',
+    },
+    {
+      nome: 'Papel e papelão',
+      exemplos: 'Caixas desmontadas, jornal, folhas',
+      foto: '/img/papelao.webp',
+      alt: 'Caixas de papelão amassadas e empilhadas',
+    },
+    {
+      nome: 'Metal',
+      exemplos: 'Latas de alumínio, tampas, sucata leve',
+      foto: '/img/latas.webp',
+      alt: 'Pilha de latas de alumínio prensadas',
+    },
+    {
+      nome: 'Vidro e misturados',
+      exemplos: 'Garrafas, potes de vidro, tampinhas',
+      foto: '/img/balde-garrafas.webp',
+      alt: 'Baldes com garrafas de vidro e tampinhas separadas',
+    },
+  ];
 
   constructor() {
     this.carregarNumeros();

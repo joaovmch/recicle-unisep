@@ -85,6 +85,13 @@
         </div>
       }
 
+      <!-- A IA está pensando: três pontinhos no lugar da próxima resposta. -->
+      @if (enviando()) {
+        <div class="chat-bolha ia digitando" aria-label="A assistente está digitando">
+          <i></i><i></i><i></i>
+        </div>
+      }
+
       <!-- ESCOLHA DE DESTINO -->
       @if (podeEscolherDestino()) {
         <div class="destino-grid">

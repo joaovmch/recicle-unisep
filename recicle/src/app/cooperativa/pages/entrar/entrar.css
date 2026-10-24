@@ -10,6 +10,9 @@
 ========================= */
 
 .entrar-hero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
   background: var(--rc-verde-900);
   color: #ffffff;
   padding: 40px 46px;
@@ -17,14 +20,39 @@
   flex-direction: column;
 }
 
+.entrar-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: url('/img/coleta-caminhao.webp') 40% center / cover no-repeat;
+}
+
+.entrar-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(12, 59, 44, 0.95) 0%, rgba(12, 59, 44, 0.9) 60%, rgba(12, 59, 44, 0.78) 100%);
+}
+
+.entrar-hero > * {
+  animation: rc-fade-up 0.6s var(--rc-ease-out) backwards;
+}
+
+.entrar-hero > :nth-child(2) { animation-delay: 0.08s; }
+.entrar-hero > :nth-child(3) { animation-delay: 0.16s; }
+.entrar-hero > :nth-child(4) { animation-delay: 0.24s; }
+
 .entrar-hero .auth-brand span {
   color: #ffffff;
 }
 
 .entrar-hero h1 {
   margin: 40px 0 0;
-  font-size: 33px;
-  font-weight: 750;
+  font-family: var(--rc-fonte-titulo);
+  font-size: 35px;
+  font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.6px;
 }
@@ -95,7 +123,8 @@
   background: #ffffff;
   border-radius: 16px;
   padding: 26px 28px 28px;
-  box-shadow: 0 2px 5px rgba(20, 50, 40, 0.05);
+  box-shadow: 0 2px 5px rgba(20, 50, 40, 0.05), 0 24px 48px -28px rgba(20, 50, 40, 0.28);
+  animation: rc-scale-in 0.55s var(--rc-ease-out) 0.1s backwards;
 }
 
 .entrar-tabs {
@@ -117,6 +146,11 @@
   font-size: 12.5px;
   font-weight: 700;
   cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.entrar-tab:not(.active):hover {
+  color: var(--rc-texto);
 }
 
 .entrar-tab.active {

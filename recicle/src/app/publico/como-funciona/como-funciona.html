@@ -1,22 +1,35 @@
 <app-publico-shell>
 
   <section class="secao">
-    <h1>Como funciona</h1>
-    <p class="secao-lead">Do "não sei onde jogar" ao descarte registrado — sem sair da conversa.</p>
+    <header class="secao-cabecalho">
+      <h1>Como funciona</h1>
+      <p class="secao-lead">Do "não sei onde jogar" ao descarte registrado — sem sair da conversa.</p>
+    </header>
 
-    <div class="passos-grid">
-      @for (p of passos; track p.numero) {
-        <article class="passo-card">
+    <ol class="passos-grid">
+      @for (p of passos; track p.numero; let i = $index) {
+        <li class="passo-card" [style.animation-delay.ms]="120 + i * 110">
           <span class="passo-numero">{{ p.numero }}</span>
           <strong>{{ p.titulo }}</strong>
           <p>{{ p.descricao }}</p>
-        </article>
+        </li>
       }
+    </ol>
+
+    <div class="faixa-foto" rcReveal>
+      <img src="/img/muda-maos.webp" alt="Mãos segurando uma muda de planta com terra" loading="lazy" width="1400" height="801" />
+      <div class="faixa-texto">
+        <strong>O resíduo certo no lugar certo volta a ser matéria-prima.</strong>
+        <span>E quem faz isso acontecer são as cooperativas da sua cidade.</span>
+      </div>
     </div>
 
-    <div class="passos-acoes">
-      <button class="btn btn-primary" (click)="comecar()">Conversar com a IA</button>
-      <a class="btn btn-outline" routerLink="/ecopontos">Ver ecopontos próximos</a>
+    <div class="passos-acoes" rcReveal>
+      <button class="btn btn-primary btn-lg" (click)="comecar()">
+        Conversar com a IA
+        <svg class="btn-seta" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      </button>
+      <a class="btn btn-outline btn-lg" routerLink="/ecopontos">Ver ecopontos próximos</a>
     </div>
   </section>
 

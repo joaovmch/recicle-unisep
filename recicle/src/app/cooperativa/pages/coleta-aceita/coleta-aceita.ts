@@ -4,7 +4,7 @@ import { Solicitacao, SolicitacoesStore } from '../../data/solicitacoes.store';
 import { CooperativaService } from '../../data/cooperativa.service';
 import { SupabaseService } from '../../../supabase.service';
 import { ToastService } from '../../../shared/ui/toast.service';
-import { formatarDistancia, formatarPreco } from '../../../shared/util/format';
+import { formatarDistancia, formatarPreco, primeiroNome } from '../../../shared/util/format';
 
 function paraISO(data: Date): string {
   return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')}`;
@@ -53,8 +53,7 @@ export class ColetaAceita {
     const coletor = this.coletorNome();
     const quem = coletor ? `, com ${coletor}` : '';
     const periodo = s.janelaConfirmada ? `, período da ${s.janelaConfirmada}` : '';
-    const primeiroNome = s.solicitante.split(' ')[0];
-    return `A #${s.numero} entrou na rota de ${this.dataPorExtenso()}${periodo}${quem}. O código de retirada já aparece no app de ${primeiroNome}.`;
+    return `A #${s.numero} entrou na rota de ${this.dataPorExtenso()}${periodo}${quem}. O código de retirada já aparece no app de ${primeiroNome(s.solicitante)}.`;
   });
 
   // ===== Agenda do dia marcado =====

@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { MoradorService } from '../../data/morador.service';
 import { DescartesStore, STATUS_DESCARTE } from '../../data/descartes.store';
 import { PontosStore } from '../../data/pontos.store';
-import { formatarData } from '../../../shared/util/format';
+import { formatarData, primeiroNome } from '../../../shared/util/format';
 
 @Component({
   selector: 'app-morador-painel',
@@ -30,7 +30,7 @@ export class Painel {
   readonly proximoBeneficio = this.pontosStore.proximoBeneficio;
 
   /** Primeiro nome, como no "Olá, Ana" do layout. */
-  readonly primeiroNome = computed(() => this.morador()?.nome?.trim().split(/\s+/)[0] ?? '');
+  readonly primeiroNome = computed(() => primeiroNome(this.morador()?.nome));
 
   readonly proximaColeta = computed(() =>
     this.emAndamento()

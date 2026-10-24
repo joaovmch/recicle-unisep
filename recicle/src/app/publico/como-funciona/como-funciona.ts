@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { PublicoShell } from '../layout/publico-shell';
+import { Reveal } from '../../shared/ui/reveal';
 
 interface Passo {
   numero: string;
@@ -33,7 +34,7 @@ const PASSOS: Passo[] = [
 
 @Component({
   selector: 'app-publico-como-funciona',
-  imports: [PublicoShell, RouterLink],
+  imports: [PublicoShell, RouterLink, Reveal],
   templateUrl: './como-funciona.html',
   styleUrls: ['../../shared/ui/design-system.css', './como-funciona.css'],
 })

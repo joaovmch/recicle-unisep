@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { ha90DiasISO } from '../../../shared/util/format';
 import { ToastService } from '../../../shared/ui/toast.service';
 import { SupabaseService } from '../../../supabase.service';
 import { CooperativaService } from '../../data/cooperativa.service';
@@ -36,11 +37,6 @@ function inicioDoMesISO(): string {
   return new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString();
 }
 
-function ha90DiasISO(): string {
-  const data = new Date();
-  data.setDate(data.getDate() - 90);
-  return data.toISOString();
-}
 
 @Component({
   selector: 'app-residuos',
@@ -57,7 +53,6 @@ export class Residuos {
   readonly totalRecusados90d = signal(0);
 
   /** Configuração salva, para o "Desfazer" da mensagem de confirmação (RG07 / US10 FA01). */
-  private salvo: TipoResiduo[] = [];
 
   readonly nenhumAtivo = computed(() => this.tipos().length > 0 && this.tipos().every(t => !t.ligado));
 
@@ -152,7 +147,6 @@ export class Residuos {
       })
     );
 
-    this.salvo = this.tipos();
   }
 
   private async buscarIdsConcluidasDoMes(cooperativaId: string): Promise<string[]> {
@@ -192,34 +186,6 @@ export class Residuos {
     }
 
     this.tipos.update(lista => lista.map(t => (t.id === id ? { ...t, ligado: !t.ligado } : t)));
-  }
-
-  /**
-   * Resumo do que mudou e quanto pedido isso representa por mês, a partir dos pedidos
-   * e recusas dos últimos 90 dias (RN34).
-   */
-  private resumoDasMudancas(): string {
-    const antes = new Map(this.salvo.map(t => [t.id, t.ligado]));
-    const ligados = this.tipos().filter(t => t.ligado && antes.get(t.id) === false);
-    const desligados = this.tipos().filter(t => !t.ligado && antes.get(t.id) === true);
-    if (ligados.length === 0 && desligados.length === 0) return 'Nada mudou na lista de tipos.';
-
-    const partes: string[] = [];
-    if (ligados.length > 0) partes.push(`ligou ${ligados.map(t => t.nome.toLowerCase()).join(', ')}`);
-    if (desligados.length > 0) partes.push(`desligou ${desligados.map(t => t.nome.toLowerCase()).join(', ')}`);
-
-    // 90 dias ≈ 3 meses: a média mensal é o que chegou naquele tipo dividido por 3.
-    const porMes = (lista: TipoResiduo[]) =>
-      Math.round(lista.reduce((total, t) => total + t.pedidos90d + t.recusados90d, 0) / 3);
-    const aMais = porMes(ligados);
-    const aMenos = porMes(desligados);
-
-    const estimativas: string[] = [];
-    if (aMais > 0) estimativas.push(`cerca de ${aMais} pedidos a mais por mês`);
-    if (aMenos > 0) estimativas.push(`cerca de ${aMenos} pedidos a menos por mês`);
-
-    const estimativa = estimativas.length > 0 ? ` — ${estimativas.join(' e ')}.` : '';
-    return `Você ${partes.join(' e ')}${estimativa}`;
   }
 
   async salvarAlteracoes(): Promise<void> {

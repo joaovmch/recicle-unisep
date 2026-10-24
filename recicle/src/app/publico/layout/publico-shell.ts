@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, DestroyRef, afterNextRender, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 /**
@@ -13,4 +13,18 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   templateUrl: './publico-shell.html',
   styleUrls: ['../../shared/ui/design-system.css', './publico-shell.css'],
 })
-export class PublicoShell {}
+export class PublicoShell {
+  /** Topo ganha sombra e encolhe um pouco depois que a página rola. */
+  readonly rolou = signal(false);
+
+  constructor() {
+    const destroyRef = inject(DestroyRef);
+
+    afterNextRender(() => {
+      const aoRolar = () => this.rolou.set(window.scrollY > 8);
+      aoRolar();
+      window.addEventListener('scroll', aoRolar, { passive: true });
+      destroyRef.onDestroy(() => window.removeEventListener('scroll', aoRolar));
+    });
+  }
+}

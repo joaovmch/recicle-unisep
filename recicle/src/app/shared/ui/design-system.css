@@ -30,10 +30,11 @@
   /* Nome digitado pelo usuário pode vir sem espaço ("Olá, Fulaninhooooo…"): quebra em vez de vazar. */
   overflow-wrap: anywhere;
   color: var(--rc-texto);
-  font-size: 29px;
+  font-family: var(--rc-fonte-titulo, inherit);
+  font-size: 31px;
   line-height: 1.15;
-  font-weight: 750;
-  letter-spacing: -0.8px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
 }
 
 .page-header p {
@@ -79,20 +80,42 @@
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  transition: 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.25s ease,
+    transform 0.2s var(--rc-ease-out, ease);
+}
+
+.btn:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.btn:not(:disabled):active {
+  transform: translateY(0) scale(0.98);
+  transition-duration: 0.08s;
 }
 
 .btn-primary {
   background: var(--rc-verde-600);
   color: #ffffff;
+  box-shadow: 0 1px 2px rgba(12, 59, 44, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .btn-primary:hover {
   background: var(--rc-verde-600-hover);
+  box-shadow: 0 8px 18px -8px rgba(18, 161, 81, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .btn-primary:disabled {
   background: #a9d9bf;
+  box-shadow: none;
   cursor: not-allowed;
 }
 
@@ -103,7 +126,44 @@
 }
 
 .btn-outline:hover {
-  background: #f8f8f5;
+  background: #fbfbf8;
+  border-color: #c4c3b9;
+  color: var(--rc-texto);
+  box-shadow: 0 6px 14px -8px rgba(20, 50, 40, 0.25);
+}
+
+/* Botão claro para usar sobre fundo verde-escuro (CTA da home). */
+.btn-claro {
+  background: #ffffff;
+  color: var(--rc-verde-900);
+}
+
+.btn-claro:hover {
+  background: #eef9f3;
+  box-shadow: 0 10px 22px -10px rgba(0, 0, 0, 0.45);
+}
+
+.btn-lg {
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+/* Setinha que anda um pouco quando o mouse passa no botão. */
+.btn-seta {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.25s var(--rc-ease-out, ease);
+}
+
+.btn:hover .btn-seta {
+  transform: translateX(3px);
 }
 
 .btn-danger {
@@ -145,7 +205,20 @@
   background: #ffffff;
   border: 1px solid #e7e6df;
   box-shadow: 0 2px 5px rgba(20, 50, 40, 0.05);
+  transition: transform 0.3s var(--rc-ease-out, ease), box-shadow 0.3s ease;
+  animation: ds-sobe 0.5s var(--rc-ease-out, ease) backwards;
 }
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -14px rgba(20, 50, 40, 0.3);
+}
+
+/* Indicadores entram um depois do outro. */
+.stats-grid > :nth-child(2) { animation-delay: 0.06s; }
+.stats-grid > :nth-child(3) { animation-delay: 0.12s; }
+.stats-grid > :nth-child(4) { animation-delay: 0.18s; }
+.stats-grid > :nth-child(5) { animation-delay: 0.24s; }
 
 .stat-card.stat-warning {
   background: var(--rc-aviso-bg);
@@ -281,6 +354,16 @@
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.tab:not(.active):hover {
+  color: var(--rc-texto);
+  box-shadow: 0 4px 10px rgba(20, 50, 40, 0.12);
+}
+
+.tab:active {
+  transform: scale(0.97);
 }
 
 .tab.active {
@@ -299,6 +382,11 @@
   border-radius: 14px;
   padding: 18px 20px;
   box-shadow: 0 2px 5px rgba(20, 50, 40, 0.05);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.side-card:hover {
+  box-shadow: 0 10px 24px -16px rgba(20, 50, 40, 0.28);
 }
 
 .side-card-header {
@@ -342,6 +430,13 @@
   cursor: pointer;
   padding: 0;
   white-space: nowrap;
+  transition: color 0.15s ease;
+}
+
+.link-btn:hover {
+  color: var(--rc-verde-600-hover);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .side-card p {
@@ -445,6 +540,9 @@
   height: 100%;
   border-radius: 20px;
   background: #4fdc8b;
+  transform-origin: left;
+  animation: ds-encher 1s var(--rc-ease-out, ease) 0.2s backwards;
+  transition: width 0.6s var(--rc-ease-out, ease);
 }
 
 
@@ -537,6 +635,15 @@
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.chip:not(.dim):hover {
+  border-color: #b9c9c1;
+}
+
+.chip:not(.dim):active {
+  transform: scale(0.97);
 }
 
 .chip.on {
@@ -559,6 +666,16 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.chip.on .chip-check svg {
+  animation: ds-check 0.3s var(--rc-ease-spring, ease) backwards;
+}
+
+@keyframes ds-check {
+  from { transform: scale(0.4); opacity: 0; }
+  to   { transform: none; opacity: 1; }
 }
 
 .chip.on .chip-check {
@@ -710,6 +827,13 @@
   font-family: inherit;
   font-size: 13.5px;
   color: var(--rc-texto);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.field input:hover,
+.field select:hover,
+.field textarea:hover {
+  border-color: #c4c3b9;
 }
 
 .field textarea {
@@ -721,8 +845,9 @@
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
-  outline: 2px solid var(--rc-verde-600);
-  outline-offset: 1px;
+  outline: none;
+  border-color: var(--rc-verde-600);
+  box-shadow: 0 0 0 4px rgba(18, 161, 81, 0.14);
 }
 
 .field-row {
@@ -919,6 +1044,12 @@
   flex-direction: column;
   gap: 10px;
   background: #ffffff;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.25s ease;
+}
+
+.option-card.selectable:hover {
+  border-color: #c9d6cf;
+  box-shadow: 0 8px 18px -12px rgba(20, 50, 40, 0.3);
 }
 
 .option-card.on {
@@ -1022,6 +1153,8 @@
   justify-content: center;
   padding: 20px;
   z-index: 50;
+  animation: ds-aparece 0.2s ease backwards;
+  backdrop-filter: blur(2px);
 }
 
 .modal-card {
@@ -1033,6 +1166,7 @@
   border-radius: 16px;
   padding: 26px 26px 22px;
   box-shadow: 0 20px 45px rgba(10, 30, 24, 0.25);
+  animation: ds-modal 0.32s var(--rc-ease-out, ease) backwards;
 }
 
 .modal-card.wide {
@@ -1068,6 +1202,11 @@
   border-radius: 11px;
   border: 1px solid #e0dfd7;
   cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.reason-option:hover {
+  border-color: #c9d6cf;
 }
 
 .reason-option.selected {
@@ -1146,8 +1285,14 @@
   cursor: pointer;
 }
 
+.modal-close {
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.2s ease;
+}
+
 .modal-close:hover {
   background: #f1f0ea;
+  color: var(--rc-texto);
+  transform: rotate(90deg);
 }
 
 .modal-close svg {
@@ -1185,7 +1330,7 @@
   font-size: 13px;
   font-weight: 600;
   box-shadow: 0 10px 25px rgba(10, 30, 24, 0.25);
-  animation: toast-in 0.2s ease;
+  animation: toast-in 0.35s var(--rc-ease-spring, ease);
 }
 
 .toast.com-acao {
@@ -1235,10 +1380,32 @@
   flex-shrink: 0;
 }
 
+/* Keyframes do design system (o Angular escopa keyframes por componente, por isso
+   moram aqui junto das regras que os usam). */
+@keyframes ds-sobe {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes ds-aparece {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes ds-modal {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes ds-encher {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(12px) scale(0.96);
   }
   to {
     opacity: 1;
@@ -1323,6 +1490,12 @@
   color: #556961;
   cursor: pointer;
   margin-bottom: 16px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.upload-dropzone:hover {
+  border-color: var(--rc-verde-600);
+  background: var(--rc-verde-claro-bg);
 }
 
 .upload-dropzone svg {
@@ -1379,6 +1552,14 @@
   text-transform: uppercase;
   letter-spacing: 0.3px;
   border-bottom: 1px solid #ece9e0;
+}
+
+.data-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.data-table tbody tr:hover {
+  background: #fafaf6;
 }
 
 .data-table td {

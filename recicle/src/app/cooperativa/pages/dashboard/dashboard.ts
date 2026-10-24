@@ -3,7 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { Solicitacao, SolicitacoesStore } from '../../data/solicitacoes.store';
 import { CooperativaService } from '../../data/cooperativa.service';
 import { SupabaseService } from '../../../supabase.service';
-import { formatarDistancia, formatarPreco, hojeISO } from '../../../shared/util/format';
+import { formatarDistancia, formatarPeso, formatarPreco, hojeISO, maiuscula } from '../../../shared/util/format';
 
 interface MaterialBarra {
   material: string;
@@ -51,9 +51,6 @@ function paraISO(data: Date): string {
   return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')}`;
 }
 
-function maiuscula(texto: string): string {
-  return texto.charAt(0).toUpperCase() + texto.slice(1);
-}
 
 @Component({
   selector: 'app-dashboard',
@@ -112,8 +109,7 @@ export class Dashboard {
 
   readonly materialRecebidoMes = computed(() => {
     const kg = this.concluidasDoMes().reduce((total, s) => total + (s.dadosColeta?.pesoRecebidoKg ?? 0), 0);
-    if (kg < 1000) return `${kg.toLocaleString('pt-BR')} kg`;
-    return `${(kg / 1000).toFixed(1).replace('.', ',')} t`;
+    return formatarPeso(kg);
   });
 
   private readonly avaliacoes = computed(() =>

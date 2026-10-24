@@ -88,7 +88,11 @@
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: 0.2s ease;
+  position: relative;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    padding-left 0.25s var(--rc-ease-out, ease);
 }
 
 /*
@@ -109,12 +113,18 @@
 
 .menu-item:hover {
   background: rgba(255, 255, 255, 0.06);
+  color: #e6f3ed;
+}
+
+.menu-item:not(.active):hover {
+  padding-left: 20px;
 }
 
 .menu-item.active {
   background: var(--rc-verde-600);
   color: white;
   font-weight: 700;
+  box-shadow: 0 8px 18px -10px rgba(18, 161, 81, 0.9);
 }
 
 .sidebar-rodape {
@@ -157,6 +167,10 @@
   font-weight: 500;
   cursor: pointer;
   text-align: left;
+}
+
+.logout-btn {
+  transition: color 0.15s ease;
 }
 
 .logout-btn:hover {

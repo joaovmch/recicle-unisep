@@ -9,11 +9,29 @@
 ========================= */
 
 .publico-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
   display: flex;
   align-items: center;
   gap: 34px;
   padding: 14px 40px;
   background: var(--rc-verde-900);
+  transition: box-shadow 0.3s ease, padding 0.3s ease;
+}
+
+.publico-topbar.rolou {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  box-shadow: 0 8px 24px -12px rgba(5, 25, 18, 0.55);
+}
+
+.publico-topbar .brand-icon {
+  transition: transform 0.35s var(--rc-ease-spring, ease);
+}
+
+.publico-topbar .auth-brand:hover .brand-icon {
+  transform: rotate(-8deg) scale(1.05);
 }
 
 .publico-topbar .auth-brand {
@@ -40,9 +58,38 @@
   text-decoration: none;
 }
 
+.publico-nav a {
+  transition: color 0.15s ease;
+}
+
 .publico-nav a:hover {
   color: #ffffff;
 }
+
+/* Sublinhado que cresce do centro no hover e fica fixo na aba ativa. */
+.publico-nav a {
+  position: relative;
+  padding: 6px 0;
+}
+
+.publico-nav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transform: scaleX(0);
+  transition: transform 0.3s var(--rc-ease-out, ease);
+}
+
+.publico-nav a:hover::after,
+.publico-nav a.active::after {
+  transform: scaleX(1);
+}
+
 
 .publico-nav a.active {
   color: #4fdc8b;
@@ -63,6 +110,7 @@
 
 .publico-acoes .link-btn:hover {
   color: #ffffff;
+  text-decoration: none;
 }
 
 
