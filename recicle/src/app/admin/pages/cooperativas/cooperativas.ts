@@ -163,6 +163,20 @@ export class Cooperativas {
       lista.map(d => (d.id === doc.id ? { ...d, status: 'validado', motivoRecusa: null } : d))
     );
     this.toast.mostrar(`${doc.nome}: validado.`);
+
+    // Validar o último documento obrigatório já aprova o cadastro. Sem isso a cooperativa
+    // via tudo "Validado" mas continuava presa em "em análise" até alguém lembrar de clicar
+    // em "Aprovar cadastro" (mesmo conjunto de documentos que a tela dela mostra: sem "outro").
+    const cooperativa = this.detalheAberto();
+    const obrigatorios = this.documentosDetalhe().filter(d => d.tipo !== 'outro');
+    if (
+      cooperativa &&
+      cooperativa.statusCadastro === 'em_analise' &&
+      obrigatorios.length > 0 &&
+      obrigatorios.every(d => d.status === 'validado')
+    ) {
+      await this.definirStatus(cooperativa, 'aprovado');
+    }
   }
 
   async reprovarDocumento(doc: DocumentoAdmin): Promise<void> {
