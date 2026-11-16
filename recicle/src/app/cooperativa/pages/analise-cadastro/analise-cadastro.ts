@@ -1,4 +1,4 @@
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../shared/data/auth.service';
 import { CooperativaService } from '../../data/cooperativa.service';
@@ -7,6 +7,9 @@ import { NOME_TIPO_DOCUMENTO, ordenarPorTipoDocumento, TipoDocumentoDb } from '.
 
 /** Reconferido nesse intervalo pra tela sair sozinha de "em análise" assim que o admin aprovar ou reprovar. */
 const INTERVALO_VERIFICACAO_MS = 10_000;
+
+/** Tempo que o "Cadastro aprovado!" fica na tela antes de abrir o painel. */
+const ESPERA_ANTES_DO_PAINEL_MS = 3_000;
 
 type StatusDocumentoAnalise = 'em-conferencia' | 'validado' | 'reprovado';
 
@@ -56,15 +59,30 @@ export class AnaliseCadastro {
     this.verificarStatus();
 
     const intervalId = setInterval(() => this.verificarStatus(), INTERVALO_VERIFICACAO_MS);
-    this.destroyRef.onDestroy(() => clearInterval(intervalId));
+    let redirecionamentoId: ReturnType<typeof setTimeout> | undefined;
+    this.destroyRef.onDestroy(() => {
+      clearInterval(intervalId);
+      clearTimeout(redirecionamentoId);
+    });
+
+    // A pessoa já está logada: assim que o admin aprova, mostra o "Cadastro aprovado!" por
+    // alguns segundos e abre o painel sozinho (antes pedia pra sair e logar de novo).
+    effect(() => {
+      if (!this.aprovado() || redirecionamentoId) return;
+      clearInterval(intervalId);
+      redirecionamentoId = setTimeout(() => this.irParaPainel(), ESPERA_ANTES_DO_PAINEL_MS);
+    });
+  }
+
+  irParaPainel(): void {
+    this.router.navigate(['/cooperativa/dashboard']);
   }
 
   /**
    * Reconfere status do cadastro e dos documentos no Supabase. Se o admin aprovou (ou
    * validou/reprovou algum documento) enquanto a pessoa estava parada nessa tela, os sinais
-   * são atualizados e a UI (incluindo os 3 estágios do progresso) reage sozinha. Não navega
-   * pro painel automaticamente — quem decide ir é a pessoa, clicando no botão que aparece
-   * quando `aprovado()` vira true.
+   * são atualizados e a UI (incluindo os 3 estágios do progresso) reage sozinha — e, quando
+   * `aprovado()` vira true, o effect do construtor abre o painel.
    */
   private async verificarStatus(): Promise<void> {
     const sessao = await this.auth.sessaoAtual();

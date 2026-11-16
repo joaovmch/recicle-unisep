@@ -61,8 +61,7 @@
           @if (aprovado()) {
             <h1>Cadastro aprovado!</h1>
             <p class="analise-lead">
-              Sua cooperativa já pode receber solicitações pelo Re-cicle. Volte para a tela de login e entre de
-              novo com seu e-mail e senha para acessar o painel.
+              Sua cooperativa já pode receber solicitações pelo Re-cicle. Abrindo o painel em instantes…
             </p>
           } @else {
             <h1>Cadastro em análise</h1>
@@ -109,8 +108,8 @@
           </div>
 
           @if (aprovado()) {
-            <button class="btn btn-primary" style="width: 100%; margin-top: 18px;" (click)="sair()">
-              Voltar para o login
+            <button class="btn btn-primary" style="width: 100%; margin-top: 18px;" (click)="irParaPainel()">
+              Entrar no painel
             </button>
           } @else {
             <h3 class="summary-title analise-section-title">O que enviamos para conferência</h3>
