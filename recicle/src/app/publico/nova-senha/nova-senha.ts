@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../shared/data/auth.service';
-import { SupabaseService, traduzirErroAuth } from '../../supabase.service';
+import { SupabaseService, copiarSessaoParaArea, traduzirErroAuth } from '../../supabase.service';
 import { MoradorService } from '../../morador/data/morador.service';
 import { CooperativaService } from '../../cooperativa/data/cooperativa.service';
 import { ToastService } from '../../shared/ui/toast.service';
@@ -101,7 +101,11 @@ export class NovaSenha {
     this.toast.mostrar('Senha alterada.');
 
     if (morador) return void this.router.navigate(['/painel']);
-    if (cooperativa) return void this.router.navigate(['/cooperativa/dashboard']);
+    if (cooperativa) {
+      // A sessão nasceu nesta área (link do e-mail); a área da cooperativa guarda a dela à parte.
+      copiarSessaoParaArea('cooperativa');
+      return void this.router.navigate(['/cooperativa/dashboard']);
+    }
     this.router.navigate(['/entrar'], { queryParams: { aba: 'entrar' } });
   }
 }

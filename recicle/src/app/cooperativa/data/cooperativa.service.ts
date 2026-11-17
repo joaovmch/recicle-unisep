@@ -183,6 +183,27 @@ export class CooperativaService {
     senha: string,
     arquivos?: ArquivosCadastro
   ): Promise<{ erro: string | null; campo?: string; pendenteConfirmacao: boolean }> {
+    // A conta já foi criada num envio anterior que falhou depois do signUp (ex.: CNPJ
+    // repetido) e a sessão ainda é dela: grava o cadastro direto, sem refazer o signUp
+    // (que responderia "já cadastrado") e sem exigir que a senha seja digitada igual.
+    const { data: sessaoAtual } = await this.client.auth.getSession();
+    const usuarioAtual = sessaoAtual.session?.user;
+    if (usuarioAtual?.email && usuarioAtual.email.toLowerCase() === dados.responsavelEmail.trim().toLowerCase()) {
+      const { row: linhaExistente } = await this.buscarLinha(usuarioAtual.id);
+      if (linhaExistente) {
+        return {
+          erro: 'Já existe um cadastro enviado com esse e-mail. Entre pelo painel para acompanhar.',
+          campo: 'responsavelEmail',
+          pendenteConfirmacao: false,
+        };
+      }
+      const erroInsercao = await this.inserirLinha(usuarioAtual.id, dados, arquivos);
+      if (!erroInsercao) await this.carregar();
+      return erroInsercao
+        ? { erro: erroInsercao.mensagem, campo: erroInsercao.campo, pendenteConfirmacao: false }
+        : { erro: null, pendenteConfirmacao: false };
+    }
+
     const { data: signUpData, error: signUpError } = await this.client.auth.signUp({
       email: dados.responsavelEmail,
       password: senha,

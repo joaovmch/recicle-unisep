@@ -151,12 +151,13 @@ export class Cooperativas {
   }
 
   async validarDocumento(doc: DocumentoAdmin): Promise<void> {
-    const { error } = await this.client
+    const { data: alterados, error } = await this.client
       .from('documentos')
       .update({ status: 'validado', motivo_recusa: null })
-      .eq('id', doc.id);
-    if (error) {
-      this.toast.mostrar('Não foi possível validar esse documento.');
+      .eq('id', doc.id)
+      .select('id');
+    if (error || !alterados?.length) {
+      this.toast.mostrar('Não foi possível validar esse documento. Se continuar, saia e entre de novo como admin.');
       return;
     }
     this.documentosDetalhe.update(lista =>
@@ -191,12 +192,13 @@ export class Cooperativas {
       return;
     }
 
-    const { error } = await this.client
+    const { data: alterados, error } = await this.client
       .from('documentos')
       .update({ status: 'reprovado', motivo_recusa: motivoLimpo })
-      .eq('id', doc.id);
-    if (error) {
-      this.toast.mostrar('Não foi possível reprovar esse documento.');
+      .eq('id', doc.id)
+      .select('id');
+    if (error || !alterados?.length) {
+      this.toast.mostrar('Não foi possível reprovar esse documento. Se continuar, saia e entre de novo como admin.');
       return;
     }
     this.documentosDetalhe.update(lista =>
@@ -209,13 +211,21 @@ export class Cooperativas {
     if (status === 'reprovado' && !window.confirm(`Reprovar o cadastro de ${cooperativa.nome}? Ela perde o acesso ao painel.`)) {
       return;
     }
-    const { error } = await this.client
+    // `.select()` devolve as linhas realmente alteradas: um UPDATE barrado pelo RLS (ex.: a
+    // sessão deste navegador não é de admin) responde 204 sem erro e sem mudar nada — e a
+    // tela dizia "aprovado" enquanto o banco seguia em análise.
+    const { data: alteradas, error } = await this.client
       .from('cooperativas')
       .update({ status_cadastro: status })
-      .eq('id', cooperativa.id);
+      .eq('id', cooperativa.id)
+      .select('id');
 
-    if (error) {
-      this.toast.mostrar('Não foi possível atualizar o status.');
+    if (error || !alteradas?.length) {
+      this.toast.mostrar(
+        error
+          ? 'Não foi possível atualizar o status.'
+          : 'O status não foi gravado: a sessão deste navegador não tem permissão de admin. Saia e entre de novo.'
+      );
       return;
     }
 

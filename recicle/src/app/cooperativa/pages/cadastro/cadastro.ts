@@ -255,6 +255,7 @@ export class Cadastro {
   private async inicializar(): Promise<void> {
     if (this.route.snapshot.data['edicao'] !== true) {
       this.carregarRascunho();
+      await this.retomarContaSemCadastro();
       return;
     }
 
@@ -272,6 +273,23 @@ export class Cadastro {
     }
 
     await this.preencherComCooperativaExistente(cooperativa);
+  }
+
+  /**
+   * Conta de login criada num envio anterior que falhou antes de gravar o cadastro (ex.: CNPJ
+   * repetido): a pessoa caía aqui num formulário em branco sem saber por quê, e ao reenviar
+   * ouvia "e-mail já cadastrado". Avisa o que aconteceu e já deixa o e-mail da conta no lugar.
+   */
+  private async retomarContaSemCadastro(): Promise<void> {
+    const sessao = await this.auth.sessaoAtual();
+    const email = sessao?.user.email;
+    if (!email) return;
+    if (await this.cooperativaService.carregar()) return;
+
+    if (!this.organizacao().responsavelEmail.trim()) {
+      this.organizacao.update(o => ({ ...o, responsavelEmail: email }));
+    }
+    this.toast.mostrar(`A conta ${email} já existe, mas o cadastro não chegou a ser enviado. Preencha e envie de novo.`);
   }
 
   /** Pré-preenche o wizard com o que já está salvo — é o que faz "Revisar cadastro" mostrar os dados reais em vez de vir em branco. */
@@ -475,17 +493,25 @@ export class Cadastro {
     if (this.modoEdicao()) return [];
 
     const o = this.organizacao();
-    const cnpjLimpo = o.cnpj.replace(/\D/g, '');
+    // Mesmo valor que vai para o INSERT (a função do banco compara só os dígitos; antes
+    // mandávamos os dígitos e o banco comparava com o CNPJ formatado — nunca batia, e o
+    // CNPJ repetido só estourava no envio, depois de a conta de login já ter sido criada).
+    const cnpj = o.cnpj.trim();
     const email = o.responsavelEmail.trim();
 
-    const [cnpjRes, emailRes] = await Promise.all([
-      this.client.rpc('cnpj_disponivel', { p_cnpj: cnpjLimpo }),
+    const [cnpjRes, emailRes, sessao] = await Promise.all([
+      this.client.rpc('cnpj_disponivel', { p_cnpj: cnpj }),
       this.client.rpc('email_em_uso', { p_email: email }),
+      this.auth.sessaoAtual(),
     ]);
+
+    // Conta criada num envio anterior que falhou antes de gravar o cadastro: é desta pessoa
+    // (a sessão é dela), então o e-mail "em uso" não é duplicidade — é a retomada.
+    const contaDaPropriaSessao = (sessao?.user.email ?? '').toLowerCase() === email.toLowerCase();
 
     const invalidos: string[] = [];
     if (cnpjRes.data === false) invalidos.push('cnpjDuplicado');
-    if (emailRes.data === true) invalidos.push('emailDuplicado');
+    if (emailRes.data === true && !contaDaPropriaSessao) invalidos.push('emailDuplicado');
     return invalidos;
   }
 
@@ -516,6 +542,9 @@ export class Cadastro {
 
     this.camposInvalidos.set(new Set());
     this.erroEtapa.set(null);
+    // O erro do último envio fica preso na tela em todas as etapas se não for limpo aqui —
+    // a pessoa corrigia o campo e continuava vendo "campo inválido" como se nada tivesse mudado.
+    this.erroEnvio.set(null);
 
     const proxima = Math.min(4, this.etapaAtual() + 1);
     this.etapaAtual.set(proxima);

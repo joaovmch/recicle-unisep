@@ -48,30 +48,65 @@ export function definirContinuarConectado(continuar: boolean): void {
  * o localStorage quando marca. A leitura olha os dois porque a preferência pode ter mudado
  * depois da última gravação, e toda escrita limpa o outro lado para nunca ficar cópia velha.
  */
+/**
+ * Área do site a que a aba pertence. Cada área guarda a própria sessão: sem isso, admin,
+ * cooperativa e morador abertos no mesmo navegador dividiam UMA chave de sessão, e a aba
+ * da cooperativa passava a consultar o banco com o token do admin (caía num cadastro em
+ * branco) — ou o admin aprovava com o token da cooperativa (RLS ignorava e nada mudava).
+ */
+function areaDaSessao(): 'admin' | 'cooperativa' | 'morador' {
+  const caminho = typeof location !== 'undefined' ? location.pathname : '';
+  if (caminho.startsWith('/admin')) return 'admin';
+  if (caminho.startsWith('/cooperativa')) return 'cooperativa';
+  return 'morador';
+}
+
+/**
+ * Copia a sessão da área atual para outra área. Serve ao fluxo de "esqueci a senha": o
+ * link do e-mail abre em /nova-senha (área morador) e, se a conta for de cooperativa, a
+ * pessoa segue para /cooperativa/... — que lê a sessão de outra chave e a mandaria logar de novo.
+ */
+export function copiarSessaoParaArea(alvo: 'admin' | 'cooperativa' | 'morador'): void {
+  const origem = areaDaSessao();
+  if (origem === alvo) return;
+  for (const storage of [localStorage, sessionStorage]) {
+    try {
+      for (const chave of Object.keys(storage)) {
+        if (chave.startsWith(`${origem}:sb-`) && chave.endsWith('-auth-token')) {
+          storage.setItem(chave.replace(`${origem}:`, `${alvo}:`), storage.getItem(chave) ?? '');
+        }
+      }
+    } catch {
+      // Sem storage não há sessão persistida para copiar.
+    }
+  }
+}
+
 function armazenamentoDaSessao() {
   const principal = () => (querContinuarConectado() ? localStorage : sessionStorage);
   const secundario = () => (querContinuarConectado() ? sessionStorage : localStorage);
+  const chaveDaArea = (chave: string) => `${areaDaSessao()}:${chave}`;
 
   return {
     getItem: (chave: string): string | null => {
       try {
-        return principal().getItem(chave) ?? secundario().getItem(chave);
+        return principal().getItem(chaveDaArea(chave)) ?? secundario().getItem(chaveDaArea(chave));
       } catch {
         return null;
       }
     },
     setItem: (chave: string, valor: string): void => {
       try {
-        secundario().removeItem(chave);
-        principal().setItem(chave, valor);
+        secundario().removeItem(chaveDaArea(chave));
+        principal().setItem(chaveDaArea(chave), valor);
       } catch {
         // Sem storage não dá para persistir — a sessão vive só em memória.
       }
     },
     removeItem: (chave: string): void => {
       try {
-        localStorage.removeItem(chave);
-        sessionStorage.removeItem(chave);
+        localStorage.removeItem(chaveDaArea(chave));
+        sessionStorage.removeItem(chaveDaArea(chave));
       } catch {
         // Nada a limpar.
       }
